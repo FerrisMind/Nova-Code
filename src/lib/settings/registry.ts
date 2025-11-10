@@ -128,14 +128,10 @@ const settings: SettingDefinition[] = [
     category: 'appearance',
     section: 'appearance.theme',
     order: 10,
-    control: 'select',
-    options: [
-      { value: 'light', label: 'Светлая' },
-      { value: 'dark', label: 'Тёмная' }
-    ],
-    get: () => theme.getState().mode,
+    control: 'toggle',
+    get: () => theme.getState().mode === 'dark',
     set: (value: SettingValue) => {
-      const mode = value === 'light' ? 'light' : 'dark';
+      const mode = value ? 'dark' : 'light';
       theme.setTheme(mode);
     }
   },
@@ -154,28 +150,19 @@ const settings: SettingDefinition[] = [
     set: (value: SettingValue) => {
       theme.setPalette(String(value) as ThemePaletteId);
     },
-    options: (() => {
-      // Опции включают только валидные ThemePaletteId.
+    options: () => {
+      // Опции включают только валидные ThemePaletteId для текущего режима.
       // Карточки палитр будут визуально использовать цвета через CardSelect.
-      const light = listPalettesByMode('light');
-      const dark = listPalettesByMode('dark');
-      return [
-        ...light.map((p) => ({
-          value: p.id as ThemePaletteId,
-          label: p.label,
-          // Мини-превью для светлой палитры
-          backgroundColor: p.backgroundPrimary,
-          textColor: p.textColor
-        })),
-        ...dark.map((p) => ({
-          value: p.id as ThemePaletteId,
-          label: p.label,
-          // Мини-превью для тёмной палитры
-          backgroundColor: p.backgroundPrimary,
-          textColor: p.textColor
-        }))
-      ];
-    })()
+      const currentMode = theme.getState().mode;
+      const palettes = listPalettesByMode(currentMode);
+      return palettes.map((p) => ({
+        value: p.id as ThemePaletteId,
+        label: p.label,
+        // Мини-превью для палитры
+        backgroundColor: p.backgroundPrimary,
+        textColor: p.textColor
+      }));
+    }
   },
 
   // ---------------------------------------------------------------------------

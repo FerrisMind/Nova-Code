@@ -87,13 +87,14 @@
 <style>
   .sidebar {
     position: relative;
-    background-color: var(--nc-bg);
+    background-color: var(--nc-level-1);
     border-right: 1px solid var(--nc-border-subtle);
     color: var(--nc-fg-muted);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
+    border-radius: 0 12px 12px 0;  /* скругляем правые верхний и нижний углы */
   }
 
   /* Ресайз-хендл слева:

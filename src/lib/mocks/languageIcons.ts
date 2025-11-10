@@ -7,6 +7,11 @@
 export function getLanguageIcon(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
   
+  // Settings tab
+  if (filename === 'Settings') {
+    return 'lucide:Settings';
+  }
+  
   // TypeScript - blue #007acc
   if (ext === 'ts' || ext === 'tsx') {
     return 'devicon:typescript-plain colored';

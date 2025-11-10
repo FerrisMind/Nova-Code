@@ -155,7 +155,7 @@
             class="nc-card-palette-preview"
             style={`background-color: ${option.backgroundColor ?? 'transparent'}; color: ${option.textColor ?? 'inherit'};`}
           >
-            <span class="nc-card-palette-swatch" />
+            <span class="nc-card-palette-swatch"></span>
           </div>
         {/if}
 
@@ -181,7 +181,7 @@
 
   .nc-card-grid {
     display: grid;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
   }
 
@@ -190,73 +190,46 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
-    padding: 6px 7px;
+    gap: 4px;
+    padding: 8px;
     width: 100%;
     border-radius: 8px;
-    border: 1px solid rgba(75, 85, 99, 0.55);
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(129, 140, 248, 0.11),
-        transparent
-      ),
-      rgba(6, 8, 16, 0.98);
-    color: var(--nc-fg, #e5e7eb);
+    border: 1px solid var(--nc-palette-border);
+    background: var(--nc-level-1);
+    color: var(--nc-palette-text);
     text-align: left;
     cursor: pointer;
-    box-shadow:
-      0 8px 18px rgba(15, 23, 42, 0.65),
-      inset 0 0 0 0 rgba(129, 140, 248, 0.08);
     outline: none;
     transition:
-      transform 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      box-shadow 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      border-color 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      background-color 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      background 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99);
-    font-size: 10px;
+      border-color 0.12s ease,
+      background-color 0.12s ease;
+    font-size: 12px;
     box-sizing: border-box;
   }
 
   .nc-card.is-disabled {
     cursor: default;
+    opacity: 0.5;
   }
 
   .nc-card:hover:not(.is-disabled) {
-    transform: translateY(-1px);
-    border-color: rgba(129, 140, 248, 0.9);
-    box-shadow:
-      0 10px 24px rgba(15, 23, 42, 0.85),
-      0 0 14px rgba(129, 140, 248, 0.28);
+    background: var(--nc-level-2);
+    border-color: var(--nc-level-3);
   }
 
   .nc-card:focus-visible:not(.is-disabled) {
-    border-color: var(--nc-accent, #4f46e5);
-    box-shadow:
-      0 0 0 1px rgba(191, 219, 254, 0.95),
-      0 0 18px rgba(129, 140, 248, 0.96);
+    border-color: var(--nc-level-4);
   }
 
   .nc-card.active {
-    border-color: var(--nc-accent, #4f46e5);
-    box-shadow:
-      0 10px 26px rgba(15, 23, 42, 0.98),
-      0 0 18px rgba(79, 70, 229, 0.7),
-      inset 0 0 0 1px rgba(148, 163, 253, 0.16);
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(79, 70, 229, 0.18),
-        transparent
-      ),
-      rgba(5, 8, 18, 0.98);
+    border-color: var(--nc-level-4);
+    background: var(--nc-level-2);
   }
 
   .nc-card-header {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     width: 100%;
   }
 
@@ -266,19 +239,16 @@
     justify-content: center;
     width: 16px;
     height: 16px;
-    border-radius: 6px;
-    background-color: rgba(15, 23, 42, 0.98);
-    box-shadow:
-      0 1px 3px rgba(15, 23, 42, 0.9),
-      0 0 6px rgba(129, 140, 248, 0.4);
-    color: var(--nc-accent, #818cf8);
+    border-radius: 4px;
+    background-color: var(--nc-level-4);
+    color: var(--nc-palette-text);
     flex-shrink: 0;
   }
 
   .nc-card-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
-    color: var(--nc-fg, #e5e7eb);
+    color: var(--nc-palette-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -286,39 +256,38 @@
   }
 
   .nc-card-badge {
-    padding: 1px 4px;
-    border-radius: 999px;
-    font-size: 7px;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 8px;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    background-color: rgba(79, 70, 229, 0.18);
-    color: var(--nc-accent, #818cf8);
+    background-color: var(--nc-level-3);
+    color: var(--nc-level-5);
     flex-shrink: 0;
   }
 
   .nc-card-description {
-    font-size: 8px;
-    color: var(--nc-fg-muted, #9ca3af);
+    font-size: 12px;
+    color: var(--nc-level-4);
     opacity: 0.9;
     line-height: 1.35;
   }
 
   .nc-card-palette-preview {
-    margin-top: 3px;
-    padding: 3px 4px;
+    margin-top: 4px;
+    padding: 4px;
     border-radius: 4px;
-    border: 1px solid rgba(148, 163, 253, 0.18);
+    border: 1px solid var(--nc-level-4);
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 7px;
+    font-size: 8px;
   }
 
   .nc-card-palette-swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
     background-color: currentColor;
-    box-shadow: 0 0 4px rgba(15, 23, 42, 0.5);
   }
 </style>

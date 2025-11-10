@@ -10,6 +10,7 @@
   // ----------------------------------------------------------------------------
 
   import { createEventDispatcher } from 'svelte';
+  import Icon from '$lib/common/Icon.svelte';
   import type {
     SettingDefinition,
     SettingId,
@@ -90,27 +91,43 @@
 
     dispatch('change', { value: next, meta });
   };
+
+  // Определяем нужны ли иконки (для theme.mode)
+  const showIcons = () => definition.id === 'theme.mode';
+
 </script>
 
 <button
   type="button"
-  class="nc-toggle-root {currentValue() ? 'on' : 'off'} {compact ? 'compact' : ''} {disabled ? 'disabled' : ''}"
+  class="nc-toggle-root {currentValue() ? 'on' : 'off'} {compact ? 'compact' : ''} {disabled ? 'disabled' : ''} {showIcons() ? 'with-icons' : ''}"
   id={resolveId()}
   aria-pressed={currentValue()}
   aria-label={definition.label}
   on:click={handleToggle}
   disabled={disabled}
 >
+  {#if showIcons()}
+    <span class="nc-toggle-icon nc-toggle-icon-left">
+      <Icon name="sun" size={compact ? 12 : 14} />
+    </span>
+  {/if}
+  
   <span class="nc-toggle-track">
     <span class="nc-toggle-thumb"></span>
   </span>
+  
+  {#if showIcons()}
+    <span class="nc-toggle-icon nc-toggle-icon-right">
+      <Icon name="moon" size={compact ? 12 : 14} />
+    </span>
+  {/if}
 </button>
 
 <style>
   .nc-toggle-root {
-    --nc-toggle-height: 18px;
-    --nc-toggle-width: 32px;
-    --nc-toggle-padding: 2px;
+    --nc-toggle-height: 20px;
+    --nc-toggle-width: 36px;
+    --nc-toggle-padding: 4px;
     --nc-toggle-duration: 0.22s;
     --nc-toggle-ease: cubic-bezier(0.33, 0.02, 0.11, 0.99);
 
@@ -127,7 +144,7 @@
 
   .nc-toggle-root.compact {
     --nc-toggle-height: 16px;
-    --nc-toggle-width: 28px;
+    --nc-toggle-width: 32px;
   }
 
   .nc-toggle-root.disabled {
@@ -140,69 +157,72 @@
     height: var(--nc-toggle-height);
     padding: var(--nc-toggle-padding);
     box-sizing: border-box;
-    border-radius: 999px;
-    background-color: var(--nc-bg-subtle, rgba(15, 23, 42, 0.9));
-    border: 1px solid var(--nc-border-subtle, rgba(148, 163, 253, 0.25));
+    border-radius: 12px;
+    background-color: var(--nc-level-1);
+    border: 1px solid var(--nc-palette-border);
     display: flex;
     align-items: center;
     transition:
       background-color var(--nc-toggle-duration) var(--nc-toggle-ease),
-      border-color var(--nc-toggle-duration) var(--nc-toggle-ease),
-      box-shadow var(--nc-toggle-duration) var(--nc-toggle-ease),
-      transform var(--nc-toggle-duration) var(--nc-toggle-ease);
-    box-shadow:
-      0 0 0 0 rgba(129, 140, 248, 0),
-      inset 0 0 0 0 rgba(79, 70, 229, 0.4);
-    backdrop-filter: blur(6px);
+      border-color var(--nc-toggle-duration) var(--nc-toggle-ease);
   }
 
   .nc-toggle-thumb {
     width: calc(var(--nc-toggle-height) - var(--nc-toggle-padding) * 2 - 4px);
     height: calc(var(--nc-toggle-height) - var(--nc-toggle-padding) * 2 - 4px);
-    border-radius: 999px;
-    background: radial-gradient(circle at 30% 30%, #e5e7ff, #6366f1);
-    box-shadow:
-      0 2px 4px rgba(15, 23, 42, 0.6),
-      0 0 0 0 rgba(129, 140, 248, 0.25);
+    border-radius: 8px;
+    background: var(--nc-level-3);
     transform: translateX(0);
     transition:
       transform var(--nc-toggle-duration) var(--nc-toggle-ease),
-      box-shadow var(--nc-toggle-duration) var(--nc-toggle-ease),
       background var(--nc-toggle-duration) var(--nc-toggle-ease);
   }
 
   .nc-toggle-root.on .nc-toggle-track {
-    background-color: var(--nc-accent, #4f46e5);
-    border-color: var(--nc-accent, #4f46e5);
-    box-shadow:
-      0 0 10px rgba(79, 70, 229, 0.55),
-      inset 0 0 0 0 rgba(15, 23, 42, 0.5);
+    background-color: var(--nc-level-3);
+    border-color: var(--nc-level-4);
   }
 
   .nc-toggle-root.on .nc-toggle-thumb {
     transform: translateX(
       calc(var(--nc-toggle-width) - var(--nc-toggle-height))
     );
-    box-shadow:
-      0 2px 6px rgba(15, 23, 42, 0.85),
-      0 0 10px rgba(191, 219, 254, 0.6);
-    background: radial-gradient(circle at 30% 30%, #eef2ff, #818cf8);
+    background: var(--nc-level-5);
   }
 
   .nc-toggle-root.off .nc-toggle-track {
-    background-color: var(--nc-bg-subtle, rgba(9, 9, 11, 0.96));
-    border-color: var(--nc-border-subtle, rgba(75, 85, 99, 0.65));
+    background-color: var(--nc-level-1);
+    border-color: var(--nc-palette-border);
   }
 
   .nc-toggle-root:hover:not(.disabled) .nc-toggle-track {
-    box-shadow:
-      0 4px 10px rgba(15, 23, 42, 0.6),
-      0 0 0 1px rgba(129, 140, 248, 0.16);
+    background-color: var(--nc-level-2);
+    border-color: var(--nc-level-3);
   }
 
   .nc-toggle-root:focus-visible:not(.disabled) .nc-toggle-track {
-    box-shadow:
-      0 0 0 1px rgba(191, 219, 254, 0.95),
-      0 0 14px rgba(129, 140, 248, 0.9);
+    border-color: var(--nc-level-4);
+  }
+
+  /* Иконки для theme.mode */
+  .nc-toggle-root.with-icons {
+    gap: 8px;
+  }
+
+  .nc-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nc-palette-text);
+    opacity: 0.5;
+    transition: opacity var(--nc-toggle-duration) var(--nc-toggle-ease);
+  }
+
+  .nc-toggle-root.off .nc-toggle-icon-left {
+    opacity: 1;
+  }
+
+  .nc-toggle-root.on .nc-toggle-icon-right {
+    opacity: 1;
   }
 </style>

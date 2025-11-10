@@ -22,7 +22,7 @@
   import { getFileContentLines } from '../mocks/content.mock';
   import MonacoHost from '../editor/MonacoHost.svelte';
   import { editorSettings } from '../stores/editorSettingsStore';
-  import SettingsView from '../sidebar/SettingsView.svelte';
+  import SettingsShell from '$lib/settings/layout/SettingsShell.svelte';
 
   let current = $state(null as import('../stores/editorStore').EditorTab | null);
   let editorOptions = $state(editorSettings.getSettings());
@@ -65,7 +65,12 @@
   {:else}
     {#key current.id}
       {#if current.id === 'settings'}
-        <SettingsView />
+        <div class="settings-wrapper">
+          <SettingsShell
+            id="editor-settings-shell"
+            compactMode={false}
+          />
+        </div>
       {:else}
         <!-- Локально вычисляем контент для активного файла. -->
         {#await Promise.resolve(getContent(current.id)) then content}
@@ -113,6 +118,13 @@
     background-color: var(--nc-tab-bg-active);
     color: var(--nc-fg);
     overflow: hidden;
+  }
+
+  .settings-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: var(--nc-tab-bg-active);
   }
 
   .welcome {

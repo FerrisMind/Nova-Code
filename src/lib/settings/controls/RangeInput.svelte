@@ -199,9 +199,9 @@
   .nc-range-root {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 2px 0;
-    color: var(--nc-fg);
+    gap: 8px;
+    padding: 4px 0;
+    color: var(--nc-palette-text);
   }
 
   .nc-range-root.compact {
@@ -226,20 +226,11 @@
     appearance: none;
     width: 100%;
     height: 4px;
-    border-radius: 999px;
-    background: linear-gradient(
-      to right,
-      rgba(79, 70, 229, 0.85),
-      rgba(129, 140, 248, 0.55)
-    );
+    border-radius: 4px;
+    background: var(--nc-level-2);
     outline: none;
     transition:
-      box-shadow 0.18s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      background-color 0.18s cubic-bezier(0.33, 0.02, 0.11, 0.99);
-    box-shadow:
-      0 0 0 1px rgba(15, 23, 42, 0.9),
-      0 4px 8px rgba(15, 23, 42, 0.85);
-    background-color: var(--nc-bg-subtle, #020817);
+      background-color 0.12s ease;
   }
 
   .nc-range-root.disabled .nc-range-slider {
@@ -247,55 +238,52 @@
   }
 
   .nc-range-slider:hover:not(:disabled) {
-    box-shadow:
-      0 0 0 1px rgba(79, 70, 229, 0.4),
-      0 6px 12px rgba(15, 23, 42, 0.9);
+    background: var(--nc-level-3);
   }
 
   .nc-range-slider:focus-visible {
-    box-shadow:
-      0 0 0 1px rgba(191, 219, 254, 0.9),
-      0 0 16px rgba(129, 140, 248, 0.9);
+    background: var(--nc-level-3);
   }
 
   .nc-range-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 999px;
-    background: radial-gradient(circle at 30% 30%, #eff6ff, #4f46e5);
-    box-shadow:
-      0 2px 6px rgba(15, 23, 42, 0.9),
-      0 0 8px rgba(129, 140, 248, 0.7);
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background: var(--nc-level-4);
     cursor: pointer;
     transition:
-      transform 0.18s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      box-shadow 0.18s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      background 0.18s cubic-bezier(0.33, 0.02, 0.11, 0.99);
+      transform 0.12s ease,
+      background 0.12s ease;
   }
 
   .nc-range-slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border-radius: 999px;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
     border: none;
-    background: radial-gradient(circle at 30% 30%, #eff6ff, #4f46e5);
-    box-shadow:
-      0 2px 6px rgba(15, 23, 42, 0.9),
-      0 0 8px rgba(129, 140, 248, 0.7);
+    background: var(--nc-level-4);
     cursor: pointer;
   }
 
   .nc-range-slider:hover::-webkit-slider-thumb {
-    transform: scale(1.02);
-    box-shadow:
-      0 3px 8px rgba(15, 23, 42, 0.95),
-      0 0 10px rgba(191, 219, 254, 0.9);
+    transform: scale(1.1);
+    background: var(--nc-level-5);
   }
 
   .nc-range-slider:hover::-moz-range-thumb {
-    transform: scale(1.02);
+    transform: scale(1.1);
+    background: var(--nc-level-5);
+  }
+
+  .nc-range-slider:focus::-webkit-slider-thumb {
+    transform: scale(1.15);
+    background: var(--nc-level-5);
+  }
+
+  .nc-range-slider:focus::-moz-range-thumb {
+    transform: scale(1.15);
   }
 
   .nc-range-scale {
@@ -305,7 +293,7 @@
     justify-content: space-between;
     font-size: 8px;
     color: var(--nc-fg-muted, #9ca3af);
-    padding-top: 1px;
+    padding-top: 4px;
     pointer-events: none;
   }
 
@@ -320,35 +308,31 @@
   }
 
   .nc-range-root.compact .nc-range-input-wrap {
-    width: 46px;
+    width: 48px;
   }
 
   .nc-range-input {
     width: 100%;
-    padding: 2px 4px;
-    border-radius: 6px;
-    border: 1px solid var(--nc-border-subtle, rgba(75, 85, 99, 0.8));
-    background-color: rgba(6, 8, 16, 0.98);
-    color: var(--nc-fg, #e5e7eb);
-    font-size: 9px;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--nc-palette-border);
+    background-color: var(--nc-level-1);
+    color: var(--nc-palette-text);
+    font-size: 12px;
     line-height: 1.2;
     box-sizing: border-box;
     outline: none;
     transition:
-      border-color 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      box-shadow 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99),
-      background-color 0.16s cubic-bezier(0.33, 0.02, 0.11, 0.99);
+      border-color 0.12s ease,
+      background-color 0.12s ease;
   }
 
   .nc-range-input:focus-visible {
-    border-color: var(--nc-accent, #4f46e5);
-    box-shadow:
-      0 0 0 1px rgba(79, 70, 229, 0.7),
-      0 6px 16px rgba(15, 23, 42, 0.9);
-    background-color: rgba(10, 16, 25, 1);
+    border-color: var(--nc-level-5);
+    background-color: var(--nc-level-2);
   }
 
   .nc-range-input:hover:not(:disabled) {
-    border-color: rgba(148, 163, 253, 0.8);
+    border-color: var(--nc-level-4);
   }
 </style>

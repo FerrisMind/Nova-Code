@@ -47,29 +47,41 @@ const createThemeStore = () => {
   /**
    * Установить режим темы (light/dark).
    * При смене режима:
-   * - автоматически выбирается дефолтная палитра для нового режима;
-   * - palette всегда остается валидной для mode.
+   * - пытаемся сохранить "слот" палитры (default/alt-1/alt-2/alt-3);
+   * - если текущая палитра dark-alt-2, при переходе на light выберется light-alt-2.
    */
   const setTheme = (mode: Theme) => {
-    const nextPalette = getDefaultPaletteForMode(mode);
-    store.update(() => ({
-      mode,
-      palette: nextPalette.id
-    }));
+    store.update((state) => {
+      // Извлекаем "слот" палитры из текущего ID
+      const currentPaletteSlot = state.palette.replace(/^(light|dark)-/, '');
+      
+      // Формируем новый ID палитры для нового режима
+      const newPaletteId = `${mode}-${currentPaletteSlot}` as ThemePaletteId;
+      
+      return {
+        mode,
+        palette: newPaletteId
+      };
+    });
   };
 
   /**
    * Переключить режим темы (dark ↔ light).
-   * Палитра синхронизируется через getDefaultPaletteForMode.
+   * Сохраняет "слот" палитры при переключении.
    */
   const toggleTheme = () => {
     store.update((state) => {
       const nextMode: Theme = state.mode === 'dark' ? 'light' : 'dark';
-      const nextPalette = getDefaultPaletteForMode(nextMode);
+      
+      // Извлекаем "слот" палитры из текущего ID
+      const currentPaletteSlot = state.palette.replace(/^(light|dark)-/, '');
+      
+      // Формируем новый ID палитры для нового режима
+      const newPaletteId = `${nextMode}-${currentPaletteSlot}` as ThemePaletteId;
 
       return {
         mode: nextMode,
-        palette: nextPalette.id
+        palette: newPaletteId
       };
     });
   };

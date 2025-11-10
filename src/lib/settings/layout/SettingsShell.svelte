@@ -1,18 +1,16 @@
 <script lang="ts">
   // src/lib/settings/layout/SettingsShell.svelte
   // ----------------------------------------------------------------------------
-  // Трехпанельный контейнер настроек (SettingsShell).
+  // Двухпанельный контейнер настроек (SettingsShell).
   //
   // В рамках данного subtasks:
   // - Использует settingsRegistry как источник секций и SettingDefinition.
   // - Рендерит:
   //   - слева: SettingsNav (список секций),
-  //   - по центру: SettingsContent (список настроек выбранной секции),
-  //   - справа: SettingsPreview (данные активной настройки).
+  //   - справа: SettingsContent (список настроек выбранной секции).
   // - Поддерживает:
   //   - initialSectionId / initialSettingId / externalSelection;
-  //   - compactMode (компактный вид для sidebar);
-  //   - showPreviewPane (управление правой панелью).
+  //   - compactMode (компактный вид для sidebar).
   // - Не изменяет значения настроек (set вызывают только будущие controls/оркестраторы).
   // - Не ломает существующий функционал: опирается только на registry/get().
   //
@@ -25,8 +23,7 @@
 
   import { createEventDispatcher, onMount } from 'svelte';
   import SettingsNav from '$lib/settings/layout/SettingsNav.svelte';
-  import SettingsContent from '$lib/settings/layout/SettingsContent.svelte';
-  import SettingsPreview from '$lib/settings/layout/SettingsPreview.svelte';
+  import SettingsAllContent from '$lib/settings/layout/SettingsAllContent.svelte';
 
   import type {
     SettingId,
@@ -67,9 +64,6 @@
   export let initialSettingId: string | undefined = undefined;
 
   export let compactMode: boolean = false;
-
-  // undefined — автоматический режим; true/false — форс отображения превью.
-  export let showPreviewPane: boolean | undefined = undefined;
 
   // Внешний выбор (команды, поиск, профили, быстрые действия).
   // Необязательный проп; по умолчанию отсутствует.
@@ -115,12 +109,15 @@
   let activeSettingId: SettingId | undefined;
   let activeSettingDefinition: SettingDefinition | undefined;
 
+  // Поисковый запрос
+  let searchQuery: string = '';
+
+  // Контейнер прокрутки для Intersection Observer
+  let scrollContainer: HTMLElement;
+
   // Плейсхолдеры для dirty-счетчиков (реальная логика будет в settingsStore).
   const emptyDirtySection: Record<string, number> = {};
   const emptyDirtySetting: Record<string, number> = {};
-
-  // Связанные настройки для превью (reactive)
-  let relatedSettings: SettingDefinition[] = [];
 
   // ---------------------------------------------------------------------------
   // Инициализация выбора
@@ -194,15 +191,6 @@
     } else {
       activeSettingDefinition = undefined;
     }
-
-    // Обновляем relatedSettings для превью.
-    if (activeSettingDefinition) {
-      relatedSettings = activeSectionSettings.filter(
-        (s) => s.id !== activeSettingDefinition!.id
-      );
-    } else {
-      relatedSettings = [];
-    }
   }
 
   function emitBusOpened() {
@@ -258,7 +246,6 @@
     // При смене секции сбрасываем активную настройку (минимально предсказуемое поведение).
     activeSettingId = undefined;
     activeSettingDefinition = undefined;
-    relatedSettings = [];
 
     dispatch('sectionchange', {
       sectionId: section.id,
@@ -266,6 +253,28 @@
     });
 
     emitBusSectionFocused(section.id);
+
+    // Скроллим к секции в правой панели
+    if (scrollToSection) {
+      scrollToSection(sectionId);
+    }
+  }
+
+  function scrollToSection(sectionId: string) {
+    // Эта функция будет передана в SettingsAllContent
+    const element = document.querySelector(`[data-section-id="${sectionId}"]`);
+    if (element) {
+      if (!scrollContainer) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      const sectionTop = element instanceof HTMLElement ? element.offsetTop : 0;
+      scrollContainer.scrollTo({
+        top: Math.max(sectionTop - 16, 0),
+        behavior: 'smooth'
+      });
+    }
   }
 
   function handleSettingFocus(event: CustomEvent<{ settingId: string }>) {
@@ -276,13 +285,12 @@
     activeSettingId = def.id;
     activeSettingDefinition = def;
 
-    activeSectionId = def.section;
-    activeSection = getSectionById(def.section);
-    activeSectionSettings = activeSection
-      ? getSettingsBySection(activeSection.id)
-      : [];
-
-    relatedSettings = activeSectionSettings.filter((s) => s.id !== def.id);
+    // Не меняем активную секцию при фокусе на настройке - только по скроллу
+    // activeSectionId = def.section;
+    // activeSection = getSectionById(def.section);
+    // activeSectionSettings = activeSection
+    //   ? getSettingsBySection(activeSection.id)
+    //   : [];
 
     dispatch('settingfocus', {
       settingId: def.id,
@@ -293,6 +301,29 @@
     emitBusSettingFocused(def.id);
   }
 
+  function handleSectionVisible(event: CustomEvent<{ sectionId: string }>) {
+    const sectionId = event.detail.sectionId;
+    if (sectionId === activeSectionId) return;
+    
+    const section = getSectionById(sectionId);
+    if (!section) return;
+
+    activeSectionId = section.id;
+    activeSection = section;
+    activeSectionSettings = getSettingsBySection(section.id);
+
+    // При смене секции сбрасываем активную настройку
+    activeSettingId = undefined;
+    activeSettingDefinition = undefined;
+
+    dispatch('sectionchange', {
+      sectionId: section.id,
+      section
+    });
+
+    emitBusSectionFocused(section.id);
+  }
+
   function handleSettingClick(event: CustomEvent<{ settingId: string }>) {
     const settingId = event.detail.settingId;
     const def = getSetting(settingId);
@@ -300,28 +331,9 @@
 
     activeSettingId = def.id;
     activeSettingDefinition = def;
-    relatedSettings = activeSectionSettings.filter((s) => s.id !== def.id);
   }
 
   // ---------------------------------------------------------------------------
-  // Решение о видимости правой панели превью
-  // ---------------------------------------------------------------------------
-
-  let shouldShowPreview = false;
-
-  $: {
-    if (showPreviewPane === true) {
-      shouldShowPreview = true;
-    } else if (showPreviewPane === false) {
-      shouldShowPreview = false;
-    } else {
-      // Автоматический режим:
-      // - в compactMode по умолчанию скрываем превью,
-      // - иначе показываем, только если есть активная настройка.
-      shouldShowPreview = !compactMode && !!activeSettingDefinition;
-    }
-  }
-
   // Иконки секций для SettingsNav (минимальный реалистичный mapping)
   const sectionIcons: Record<string, string> = {
     'appearance.theme': 'color-palette',
@@ -335,69 +347,66 @@
   class="settings-shell-root {compactMode ? 'compact' : 'full'}"
   data-shell-id={id}
 >
-  <!-- Левая панель: секции -->
-  <div class="pane pane-left">
-    <SettingsNav
-      sections={allSections}
-      activeSectionId={activeSectionId}
-      dirtyBySection={emptyDirtySection}
-      sectionIcons={sectionIcons}
-      on:select={(e) => handleSectionSelect(e.detail.sectionId)}
-    />
-  </div>
-
-  <!-- Центральная панель: настройки выбранной секции -->
-  <div class="pane pane-center">
-    <SettingsContent
-      section={activeSection}
-      settings={activeSectionSettings}
-      activeSettingId={activeSettingId}
-      dirtyBySetting={emptyDirtySetting}
-      on:settingfocus={handleSettingFocus}
-      on:settingclick={handleSettingClick}
-    />
-  </div>
-
-  <!-- Правая панель: превью активной настройки -->
-  {#if shouldShowPreview}
-    <div class="pane pane-right">
-      <SettingsPreview
-        activeSettingDefinition={activeSettingDefinition}
-        relatedSettings={relatedSettings}
-        helpText={undefined}
+  <div class="settings-container">
+    <!-- Левая панель: секции -->
+    <div class="pane pane-left">
+      <SettingsNav
+        sections={allSections}
+        activeSectionId={activeSectionId}
+        dirtyBySection={emptyDirtySection}
+        sectionIcons={sectionIcons}
+        on:select={(e) => handleSectionSelect(e.detail.sectionId)}
       />
     </div>
-  {/if}
+    <div class="pane pane-right">
+      <div class="search-container">
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Search settings..."
+          bind:value={searchQuery}
+        />
+      </div>
+      <div class="content-scrollable" bind:this={scrollContainer}>
+        <SettingsAllContent
+          activeSettingId={activeSettingId}
+          dirtyBySetting={emptyDirtySetting}
+          scrollContainer={scrollContainer}
+          on:settingfocus={handleSettingFocus}
+          on:settingclick={handleSettingClick}
+          on:sectionvisible={handleSectionVisible}
+        />
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
   .settings-shell-root {
-    display: grid;
-    grid-template-rows: 1fr;
-    gap: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
     width: 100%;
     height: 100%;
-    padding: 8px;
+    padding: 32px;
     box-sizing: border-box;
     color: var(--nc-fg);
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(129, 140, 248, 0.05),
-        transparent
-      ),
-      var(--nc-bg);
-    backdrop-filter: blur(12px);
   }
 
-  .settings-shell-root.full {
-    grid-template-columns: 210px minmax(0, 1.9fr) 300px;
+  .settings-container {
+    display: grid;
+    grid-template-columns: 256px minmax(500px, 700px);
+    gap: 8px;
+    width: 100%;
+    max-width: 1100px;
+    height: 100%;
+    margin: 0 auto;
+    align-items: flex-start;
   }
 
-  .settings-shell-root.compact {
-    grid-template-columns: 190px minmax(0, 2.2fr) auto;
-    padding: 6px;
-    gap: 6px;
+  .settings-shell-root.compact .settings-container {
+    grid-template-columns: 216px minmax(400px, 600px);
+    gap: 8px;
   }
 
   .pane {
@@ -406,29 +415,73 @@
   }
 
   .pane-left {
-    border-radius: 10px;
-    background-color: rgba(10, 16, 25, 0.98);
-    box-shadow:
-      0 14px 30px rgba(15, 23, 42, 0.66),
-      inset 0 0 0 1px rgba(15, 23, 42, 0.96);
+    border-radius: 12px;
+    background-color: var(--nc-level-0);
+    border: 1px solid var(--nc-palette-border);
     overflow: hidden;
-  }
-
-  .pane-center {
-    min-width: 0;
   }
 
   .pane-right {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    overflow: hidden;
   }
 
-  .settings-shell-root.compact .pane-right {
-    max-width: 260px;
+  .search-container {
+    padding: 12px;
+    background: var(--nc-level-0);
+    border-radius: 8px;
+    border: 1px solid var(--nc-palette-border);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--nc-palette-border);
+    border-radius: 6px;
+    background: var(--nc-level-1);
+    color: var(--nc-palette-text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.12s ease;
+  }
+
+  .search-input:focus {
+    border-color: var(--nc-level-4);
+  }
+
+  .search-input::placeholder {
+    color: var(--nc-palette-text);
+    opacity: 0.6;
+  }
+
+  .content-scrollable {
+    border-radius: 8px;
+    border: 1px solid var(--nc-palette-border);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--nc-level-0);
+  }
+
+  @media (max-width: 1200px) {
+    .settings-container {
+      grid-template-columns: 220px minmax(450px, 1fr);
+      gap: 20px;
+    }
   }
 
   @media (max-width: 900px) {
-    .settings-shell-root.full {
-      grid-template-columns: 180px minmax(0, 1.8fr) 260px;
+    .settings-shell-root {
+      padding: 16px;
+    }
+    
+    .settings-container {
+      grid-template-columns: 180px minmax(350px, 1fr);
+      gap: 12px;
     }
   }
 </style>

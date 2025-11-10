@@ -43,10 +43,10 @@
     const palette = getPaletteById(state.palette);
     const isLight = state.mode === 'light';
 
-    // Мэппинг строго через утвержденные палитры:
-    // - backgroundPrimary → базовый фон;
-    // - backgroundVariants → уровни вложенности.
-    const [level0, level1, level3, level5] = palette.backgroundVariants;
+    // Мэппинг через уровни фона:
+    // - backgroundLevels[0] → базовый фон;
+    // - backgroundLevels[1-5] → уровни вложенности.
+    const levels = palette.backgroundLevels;
     const textColor = palette.textColor;
 
     const root = document.documentElement;
@@ -54,11 +54,13 @@
     // Установить data-theme для глобальных селекторов/devicon.
     root.setAttribute('data-theme', state.mode);
 
-    // Базовые уровни яркости (palette → CSS custom properties).
-    root.style.setProperty('--nc-level-0', level0); // Base / shell
-    root.style.setProperty('--nc-level-1', level1 ?? level0);
-    root.style.setProperty('--nc-level-3', level3 ?? level1 ?? level0);
-    root.style.setProperty('--nc-level-5', level5 ?? level3 ?? level1 ?? level0);
+    // Уровни фона (palette → CSS custom properties).
+    root.style.setProperty('--nc-level-0', levels[0]); // Base / shell
+    root.style.setProperty('--nc-level-1', levels[1]); // Рабочая область/карточки
+    root.style.setProperty('--nc-level-2', levels[2]); // Рабочая область/карточки
+    root.style.setProperty('--nc-level-3', levels[3]); // Кнопки обычные
+    root.style.setProperty('--nc-level-4', levels[4]); // Hover
+    root.style.setProperty('--nc-level-5', levels[5]); // Hover
 
     // Текст в соответствии со спецификацией.
     root.style.setProperty('--nc-palette-text', textColor);
@@ -196,6 +198,8 @@
     overflow: hidden;
     background-color: var(--nc-tab-bg-active);
     border-left: 1px solid var(--nc-border-subtle);
+    border-radius: 12px;
+    margin: 0 8px;
   }
 
   /* Стек редактора + нижней панели:

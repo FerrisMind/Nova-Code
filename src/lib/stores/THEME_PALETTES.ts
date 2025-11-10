@@ -37,12 +37,15 @@ export interface ThemePalette {
   label: string;
   mode: ThemeMode;
 
-  // Основной фон оболочки приложения.
+  // Основной фон оболочки приложения (Level 0).
   backgroundPrimary: string;
 
-  // Варианты фона для разных уровней вложенности/слоев.
-  // Допускаются только значения из утвержденного списка для соответствующей темы.
-  backgroundVariants: string[];
+  // Уровни фона для иерархии:
+  // Level 0: backgroundPrimary
+  // Level 1-2: +8-10 пунктов (рабочая область/карточки)
+  // Level 3: +12-14 пунктов (кнопки обычные)
+  // Level 5: +14-16 пунктов (hover)
+  backgroundLevels: Record<0 | 1 | 2 | 3 | 4 | 5, string>;
 
   // Основной цвет текста для данной палитры.
   textColor: string;
@@ -76,32 +79,32 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     label: 'Light / Default',
     mode: 'light',
     backgroundPrimary: '#F5F7FA',
-    backgroundVariants: ['#F5F7FA', '#FAF8F5', '#FFF9E6', '#F0F4F1'],
-    textColor: '#232323'
+    backgroundLevels: calculateBackgroundLevels('#F5F7FA', 'light'),
+    textColor: '#2e2e2e'
   },
   'light-alt-1': {
     id: 'light-alt-1',
     label: 'Light / Alt 1',
     mode: 'light',
     backgroundPrimary: '#FAF8F5',
-    backgroundVariants: ['#FAF8F5', '#F5F7FA', '#FFF9E6', '#F0F4F1'],
-    textColor: '#232323'
+    backgroundLevels: calculateBackgroundLevels('#FAF8F5', 'light'),
+    textColor: '#2e2e2e'
   },
   'light-alt-2': {
     id: 'light-alt-2',
     label: 'Light / Alt 2',
     mode: 'light',
     backgroundPrimary: '#FFF9E6',
-    backgroundVariants: ['#FFF9E6', '#F5F7FA', '#FAF8F5', '#F0F4F1'],
-    textColor: '#232323'
+    backgroundLevels: calculateBackgroundLevels('#FFF9E6', 'light'),
+    textColor: '#2e2e2e'
   },
   'light-alt-3': {
     id: 'light-alt-3',
     label: 'Light / Alt 3',
     mode: 'light',
     backgroundPrimary: '#F0F4F1',
-    backgroundVariants: ['#F0F4F1', '#F5F7FA', '#FAF8F5', '#FFF9E6'],
-    textColor: '#232323'
+    backgroundLevels: calculateBackgroundLevels('#F0F4F1', 'light'),
+    textColor: '#2e2e2e'
   },
 
   // ---------------------------------------------------------------------------
@@ -112,7 +115,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     label: 'Dark / Default',
     mode: 'dark',
     backgroundPrimary: '#1A1D2E',
-    backgroundVariants: ['#1A1D2E', '#1E1E1E', '#2B2D30', '#1C2321'],
+    backgroundLevels: calculateBackgroundLevels('#1A1D2E', 'dark'),
     textColor: '#E8E8E8'
   },
   'dark-alt-1': {
@@ -120,7 +123,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     label: 'Dark / Alt 1',
     mode: 'dark',
     backgroundPrimary: '#1E1E1E',
-    backgroundVariants: ['#1E1E1E', '#1A1D2E', '#2B2D30', '#1C2321'],
+    backgroundLevels: calculateBackgroundLevels('#1E1E1E', 'dark'),
     textColor: '#E8E8E8'
   },
   'dark-alt-2': {
@@ -128,7 +131,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     label: 'Dark / Alt 2',
     mode: 'dark',
     backgroundPrimary: '#2B2D30',
-    backgroundVariants: ['#2B2D30', '#1A1D2E', '#1E1E1E', '#1C2321'],
+    backgroundLevels: calculateBackgroundLevels('#2B2D30', 'dark'),
     textColor: '#E8E8E8'
   },
   'dark-alt-3': {
@@ -136,14 +139,93 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     label: 'Dark / Alt 3',
     mode: 'dark',
     backgroundPrimary: '#1C2321',
-    backgroundVariants: ['#1C2321', '#1A1D2E', '#1E1E1E', '#2B2D30'],
+    backgroundLevels: calculateBackgroundLevels('#1C2321', 'dark'),
     textColor: '#E8E8E8'
   }
 };
 
 // -----------------------------------------------------------------------------
-// Утилиты
+// Утилиты для расчета уровней фона
 // -----------------------------------------------------------------------------
+
+/**
+ * Рассчитывает уровни фона на основе базового цвета.
+ * Для темной темы: светлее с каждым уровнем (+яркость).
+ * Для светлой темы: темнее с каждым уровнем (-яркость).
+ * 
+ * Иерархия уровней:
+ * Level 0: Базовый фон (сайдбар)
+ * Level 1-2: +8-10 пунктов (рабочая область/карточки)
+ * Level 3: +12-14 пунктов (кнопки обычные)
+ * Level 4: +14-16 пунктов (промежуточный)
+ * Level 5: +14-16 пунктов (hover-состояния)
+ */
+function calculateBackgroundLevels(baseColor: string, mode: ThemeMode): Record<0 | 1 | 2 | 3 | 4 | 5, string> {
+  // Преобразуем hex в HSL
+  const hexToHsl = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return [h * 360, s * 100, l * 100];
+  };
+
+  const hslToHex = (h: number, s: number, l: number) => {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+
+  const [h, s, baseL] = hexToHsl(baseColor);
+  const levels: Record<0 | 1 | 2 | 3 | 4 | 5, string> = {
+    0: baseColor,
+    1: baseColor,
+    2: baseColor,
+    3: baseColor,
+    4: baseColor,
+    5: baseColor
+  };
+
+  // Уровни согласно спецификации:
+  // Level 0: 0 (базовый)
+  // Level 1: +8 пунктов
+  // Level 2: +10 пунктов
+  // Level 3: +13 пунктов (среднее между 12-14)
+  // Level 4: +15 пунктов
+  // Level 5: +16 пунктов
+  const adjustments = [0, 8, 10, 13, 15, 16];
+
+  for (let i = 1; i <= 5; i++) {
+    let newL = baseL;
+    if (mode === 'dark') {
+      // Темная тема: светлее (+яркость)
+      newL = Math.min(100, baseL + adjustments[i]);
+    } else {
+      // Светлая тема: темнее (-яркость)
+      newL = Math.max(0, baseL - adjustments[i]);
+    }
+    levels[i as 0 | 1 | 2 | 3 | 4 | 5] = hslToHex(h, s, newL);
+  }
+
+  return levels;
+}
 
 /**
  * Получить палитру по ID.

@@ -92,10 +92,12 @@ export interface SettingDefinition {
     | 'text'
     | 'number'
     | 'radio'
-    | 'slider';
+    | 'slider'
+    | 'toggle';
 
   // Доступные варианты для select/radio (если применимо).
-  options?: { value: SettingValue; label: string }[];
+  // Может быть статическим массивом или функцией, возвращающей массив на основе текущего состояния.
+  options?: { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[] | (() => { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[]);
 
   // Функция чтения текущего значения из реального источника.
   // Должна быть чистой относительно глобального состояния.

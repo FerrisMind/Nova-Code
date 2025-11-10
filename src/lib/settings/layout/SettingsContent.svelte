@@ -34,6 +34,7 @@
   import Toggle from '$lib/settings/controls/Toggle.svelte';
   import RangeInput from '$lib/settings/controls/RangeInput.svelte';
   import CardSelect from '$lib/settings/controls/CardSelect.svelte';
+  import { theme } from '$lib/stores/themeStore';
 
   const dispatch = createEventDispatcher<{
     settingfocus: { settingId: string };
@@ -64,6 +65,9 @@
   export let dirtyBySetting:
     | Record<string, number | boolean>
     | undefined;
+
+  // Реактивно отслеживаем изменения режима темы для обновления опций палитр
+  $: currentMode = $theme.mode;
 
   const handleMouseEnter = (settingId: string) => {
     dispatch('settingfocus', { settingId });
@@ -96,7 +100,7 @@
   // ---------------------------------------------------------------------------
 
   const isBooleanControl = (def: SettingDefinition): boolean => {
-    return def.control === 'boolean';
+    return def.control === 'boolean' || def.control === 'toggle';
   };
 
   const isRangeControl = (def: SettingDefinition): boolean => {
@@ -107,6 +111,14 @@
 
   const isSelectLikeControl = (def: SettingDefinition): boolean => {
     return def.control === 'select' || def.control === 'radio';
+  };
+
+  const hasOptions = (def: SettingDefinition): boolean => {
+    if (!def.options) return false;
+    
+    // Если options - функция, вызываем её и проверяем результат
+    const opts = typeof def.options === 'function' ? def.options() : def.options;
+    return Array.isArray(opts) && opts.length > 0;
   };
 
   const getNumericRangeMeta = (def: SettingDefinition):
@@ -128,14 +140,20 @@
   };
 
   const mapOptionsToCards = (def: SettingDefinition) => {
-    if (!def.options || def.options.length === 0) return [];
+    // Явно используем currentMode, чтобы Svelte отслеживал зависимость
+    void currentMode;
+    
+    const opts = typeof def.options === 'function' ? def.options() : def.options;
+    if (!opts || opts.length === 0) return [];
     // Минимальный адаптер: CardSelectOption совместим с { value, label }.
-    return def.options.map((opt) => ({
+    return opts.map((opt) => ({
       value: opt.value,
       label: opt.label,
       description: undefined,
       icon: undefined,
-      badge: undefined
+      badge: undefined,
+      backgroundColor: opt.backgroundColor,
+      textColor: opt.textColor
     }));
   };
 </script>
@@ -207,7 +225,7 @@
                   {formatValue(setting)}
                 </div>
               {/if}
-            {:else if isSelectLikeControl(setting) && setting.options && setting.options.length > 0}
+            {:else if isSelectLikeControl(setting) && hasOptions(setting)}
               <!-- Для select/radio используем CardSelect, опции берем из real definition.options -->
               <div class="setting-control cards">
                 <CardSelect
@@ -254,28 +272,19 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 12px 12px 10px;
+    padding: 12px;
     height: 100%;
     box-sizing: border-box;
-    color: var(--nc-fg);
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(148, 163, 253, 0.06),
-        transparent
-      ),
-      rgba(10, 16, 25, 0.92);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    box-shadow:
-      0 16px 40px rgba(15, 23, 42, 0.55),
-      inset 0 0 0 1px rgba(148, 163, 253, 0.03);
+    color: var(--nc-palette-text);
+    background: var(--nc-level-0);
+    border-radius: 8px;
+    border: 1px solid var(--nc-palette-border);
     overflow: hidden;
   }
 
   .section-header {
-    padding: 4px 4px 8px;
-    border-bottom: 1px solid var(--nc-border-subtle);
+    padding: 4px;
+    border-bottom: 1px solid var(--nc-palette-border);
   }
 
   .title-row {
@@ -286,27 +295,27 @@
 
   .section-title {
     margin: 0;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
     letter-spacing: -0.01em;
-    color: var(--nc-fg);
+    color: var(--nc-palette-text);
   }
 
   .section-id {
-    font-size: 10px;
-    color: var(--nc-fg-muted);
+    font-size: 12px;
+    color: var(--nc-palette-text);
     opacity: 0.7;
   }
 
   .section-description {
-    margin: 2px 0 0 0;
-    font-size: 11px;
-    color: var(--nc-fg-muted);
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: var(--nc-palette-text);
   }
 
   .settings-list {
     flex: 1;
-    padding: 6px 4px 4px;
+    padding: 4px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -320,40 +329,31 @@
     gap: 10px;
     padding: 8px 8px;
     border-radius: 8px;
-    background: radial-gradient(
-        circle at top left,
-        rgba(148, 163, 253, 0.04),
-        transparent
-      ),
-      rgba(12, 17, 28, 0.98);
-    border: 1px solid rgba(148, 163, 253, 0.06);
+    background: var(--nc-level-2);
+    border: 1px solid var(--nc-palette-border);
     cursor: pointer;
     transition: all 0.12s ease;
-    box-shadow: 0 0 0 rgba(15, 23, 42, 0);
     outline: none;
   }
 
   .setting-item:hover {
-    background-color: var(--nc-tab-bg-active);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
-    border-color: var(--nc-border-subtle);
+    border-color: var(--nc-level-3);
+    background: var(--nc-level-1);
   }
 
   .setting-item.active {
-    border-color: var(--nc-accent);
-    box-shadow:
-      0 10px 26px rgba(37, 99, 235, 0.38),
-      0 0 0 1px rgba(37, 99, 235, 0.16);
+    border-color: var(--nc-level-4);
+    background: var(--nc-level-1);
   }
 
   .setting-item.dirty {
-    border-color: rgba(249, 115, 22, 0.7);
+    border-color: #fb923c;
   }
 
   .setting-main {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     flex: 1;
     min-width: 0;
   }
@@ -361,13 +361,13 @@
   .setting-label-row {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 8px;
   }
 
   .setting-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
-    color: var(--nc-fg);
+    color: var(--nc-palette-text);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -375,21 +375,21 @@
   }
 
   .setting-id {
-    font-size: 9px;
-    color: var(--nc-fg-muted);
+    font-size: 12px;
+    color: var(--nc-palette-text);
     opacity: 0.75;
   }
 
   .setting-description {
-    font-size: 10px;
-    color: var(--nc-fg-muted);
+    font-size: 12px;
+    color: var(--nc-palette-text);
   }
 
   .setting-meta {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
+    gap: 4px;
     min-width: 120px;
     text-align: right;
   }
@@ -398,13 +398,13 @@
     font-size: 8px;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: var(--nc-fg-muted);
+    color: var(--nc-palette-text);
     opacity: 0.7;
   }
 
   .setting-value {
-    font-size: 11px;
-    color: var(--nc-accent);
+    font-size: 12px;
+    color: var(--nc-level-5);
     max-width: 130px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -418,19 +418,19 @@
   }
 
   .setting-control.cards {
-    width: 180px;
+    width: 192px;
   }
 
   .setting-control-hint {
     font-size: 8px;
-    color: var(--nc-fg-muted);
+    color: var(--nc-palette-text);
     opacity: 0.7;
   }
 
   .setting-dirty-indicator {
     width: 8px;
     height: 8px;
-    border-radius: 999px;
+    border-radius: 8px;
     background: radial-gradient(
       circle,
       #fb923c,
@@ -441,16 +441,16 @@
 
   .empty-hint {
     padding: 16px;
-    font-size: 11px;
-    color: var(--nc-fg-muted);
+    font-size: 12px;
+    color: var(--nc-palette-text);
   }
 
   .settings-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
 
   .settings-list::-webkit-scrollbar-thumb {
-    background-color: var(--nc-highlight-subtle);
-    border-radius: 999px;
+    background-color: var(--nc-level-4);
+    border-radius: 4px;
   }
 </style>

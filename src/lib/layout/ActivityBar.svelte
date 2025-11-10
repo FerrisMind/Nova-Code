@@ -32,34 +32,34 @@
   };
 </script>
 
-<div class="activity-bar">
+<div class="activity-bar" class:rounded={!$layoutState.leftSidebarVisible}>
   <div class="activity-items">
     {#each leftViews as view}
       <button
         class="activity-btn"
-        class:active={$activityStore === view.id}
+        class:active={$activityStore === view.id && $layoutState.leftSidebarVisible}
         on:click={() => setActive(view.id as ActivityId)}
         title={view.title}
       >
         <!-- Отладка: явно логируем id/icon в data-* для визуальной проверки -->
-        <Icon name={view.icon} size={22} />
+        <Icon name={view.icon} size={20} />
       </button>
     {/each}
   </div>
 
   <div class="activity-bottom">
     <button class="activity-btn profile" title="Account">
-      <Icon name="lucide:User" size={20} />
+      <Icon name="lucide:User" size={18} />
     </button>
 
     <!-- Нижняя кнопка настроек: lucide-иконка, согласованная с sidebarRegistry -->
     <button
       class="activity-btn settings-bottom"
       title="Settings"
-      class:active={$activityStore === 'settings'}
+      class:active={$activityStore === 'settings' && $layoutState.leftSidebarVisible}
       on:click={handleSettingsClick}
     >
-      <Icon name="lucide:Settings" size={20} />
+      <Icon name="lucide:Settings" size={18} />
     </button>
   </div>
 </div>
@@ -67,7 +67,7 @@
 <style>
   .activity-bar {
     width: 48px;                         /* 12 * 4px */
-    background-color: var(--nc-bg);
+    background-color: var(--nc-level-1);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -75,6 +75,10 @@
     gap: 4px;                            /* 1 * 4px */
     border-right: 1px solid var(--nc-border-subtle);
     box-sizing: border-box;
+  }
+
+  .activity-bar.rounded {
+    border-radius: 0 12px 12px 0;        /* скругляем правые верхний и нижний углы, когда сайдбар скрыт */
   }
 
   .activity-items {
@@ -94,8 +98,8 @@
   }
 
   .activity-btn {
-    width: 40px;                         /* 10 * 4px */
-    height: 40px;                        /* 10 * 4px */
+    width: 36px;                         /* 9 * 4px */
+    height: 36px;                        /* 9 * 4px */
     border-radius: 8px;                  /* 2 * 4px */
     border: none;
     background: transparent;
