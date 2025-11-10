@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nova Code</title>
+
+    <!-- Devicon fonts: base.css для шрифта, min.css для цветов -->
+    <link rel="stylesheet" href="%sveltekit.assets%/devicon-base.css" />
+    <link rel="stylesheet" href="%sveltekit.assets%/devicon.min.css" />
+    <!-- Devicon dark theme: переопределение цветов для темного фона -->
+    <link rel="stylesheet" href="%sveltekit.assets%/devicon-dark-theme.css" />
+
+    <style>
+      /* Цветовые переменные палитры (устанавливаются динамически через JavaScript) */
+      :root {
+        /* Основной фон и текст */
+        --nc-palette-bg: #1a1d2e;
+        --nc-palette-text: #e8e8e8;
+        --nc-palette-border: #3a3a3a;
+
+        /* Альтернативные фоны для вариации */
+        --nc-palette-bg-1: #1e1e1e;
+        --nc-palette-bg-2: #2b2d30;
+        --nc-palette-bg-3: #1c2321;
+      }
+
+      /* Быстрая инициализация темы до загрузки JS */
+      html {
+        color-scheme: dark light;
+      }
+
+      html.theme-light {
+        color-scheme: light;
+      }
+
+      html.theme-dark {
+        color-scheme: dark;
+      }
+    </style>
+
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

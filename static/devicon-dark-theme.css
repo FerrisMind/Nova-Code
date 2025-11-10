@@ -1,0 +1,68 @@
+/* Devicon Theme Overrides */
+/* Темная тема: оригинальные яркие цвета (исправление для темного фона) */
+/* Светлая тема: все цвета на 20% темнее автоматически */
+
+/* Глобальное затемнение ВСЕХ devicon иконок в светлой теме */
+:root[data-theme="light"] [class*="devicon-"].colored {
+  filter: brightness(0.85) !important;
+}
+
+/* Исправление проблемных темных цветов для темной темы */
+
+/* Markdown - синий (был черный #000) */
+.devicon-markdown-original.colored,
+.devicon-markdown-plain.colored {
+  color: #58a6ff !important;
+}
+
+/* JSON - желтый как JavaScript (был темно-серый #505050) */
+.devicon-json-plain.colored {
+  color: #f0db4f !important;
+}
+
+/* TOML - светлый (был серый) */
+.devicon-toml-plain.colored {
+  color: #d0d0d0 !important;
+}
+
+/* Mapbox - был черный #000 */
+.devicon-mapbox-original.colored,
+.devicon-mapbox-plain.colored,
+.devicon-mapbox-original-wordmark.colored,
+.devicon-mapbox-plain-wordmark.colored {
+  color: #e8e8e8 !important;
+}
+
+/* Mattermost - был очень темный #19191c */
+.devicon-mattermost-original.colored,
+.devicon-mattermost-original-wordmark.colored,
+.devicon-mattermost-plain.colored,
+.devicon-mattermost-plain-wordmark.colored {
+  color: #e0e0e0 !important;
+}
+
+/* GitHub - был черный #181717 */
+.devicon-github-original.colored,
+.devicon-github-original-wordmark.colored,
+.devicon-github-plain.colored,
+.devicon-github-plain-wordmark.colored {
+  color: #f0f0f0 !important;
+}
+
+/* GitLab - оранжевый (усиление) */
+.devicon-gitlab-plain.colored,
+.devicon-gitlab-plain-wordmark.colored {
+  color: #fc6d26 !important;
+}
+
+/* Nginx - ярко-зеленый (был темно-зеленый #009639) */
+.devicon-nginx-original.colored,
+.devicon-nginx-plain.colored {
+  color: #00d454 !important;
+}
+
+/* PostgreSQL - светло-синий (был темно-синий #336791) */
+.devicon-postgresql-plain.colored,
+.devicon-postgresql-plain-wordmark.colored {
+  color: #4a9dd9 !important;
+}
