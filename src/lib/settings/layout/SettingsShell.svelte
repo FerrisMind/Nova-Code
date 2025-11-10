@@ -263,13 +263,10 @@
   function scrollToSection(sectionId: string) {
     // Эта функция будет передана в SettingsAllContent
     const element = document.querySelector(`[data-section-id="${sectionId}"]`);
-    if (element) {
-      if (!scrollContainer) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-
-      const sectionTop = element instanceof HTMLElement ? element.offsetTop : 0;
+    if (element && scrollContainer) {
+      const rect = element.getBoundingClientRect();
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const sectionTop = rect.top - containerRect.top + scrollContainer.scrollTop;
       scrollContainer.scrollTo({
         top: Math.max(sectionTop - 16, 0),
         behavior: 'smooth'
@@ -391,6 +388,7 @@
     padding: 32px;
     box-sizing: border-box;
     color: var(--nc-fg);
+    background: var(--nc-tab-bg-active);
   }
 
   .settings-container {

@@ -30,8 +30,6 @@
   // ---------------------------------------------------------------------------
 
   let container: HTMLElement;
-  let sections: HTMLElement[] = [];
-  let scrollHandler: (() => void) | null = null;
 
   /**
    * Id активной настройки (например, выбранной в превью).
@@ -63,54 +61,63 @@
   }));
 
   // ---------------------------------------------------------------------------
-// Синхронизация по скроллбару
+// Синхронизация по скроллбару с Intersection Observer
   // ---------------------------------------------------------------------------
 
-  function updateActiveSection() {
-    if (!scrollContainer || sections.length === 0) return;
+  let observer: IntersectionObserver | null = null;
 
-    const scrollTop = scrollContainer.scrollTop;
-    let closestSection = sections[0];
-    let minDistance = Math.abs(sections[0].offsetTop - scrollTop);
+  function handleIntersection(entries: IntersectionObserverEntry[]) {
+    let activeEntry: IntersectionObserverEntry | null = null;
+    let minDistance = Infinity;
 
-    for (let i = 1; i < sections.length; i++) {
-      const section = sections[i];
-      const distance = Math.abs(section.offsetTop - scrollTop);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestSection = section;
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        const distance = Math.abs(entry.boundingClientRect.top - entry.rootBounds!.top);
+        if (distance < minDistance) {
+          minDistance = distance;
+          activeEntry = entry;
+        }
       }
     }
 
-    const sectionId = closestSection.getAttribute('data-section-id');
-    if (sectionId) {
-      dispatch('sectionvisible', { sectionId });
+    if (activeEntry) {
+      const sectionId = activeEntry.target.getAttribute('data-section-id');
+      if (sectionId) {
+        dispatch('sectionvisible', { sectionId });
+      }
     }
   }
 
   onMount(() => {
     if (container && scrollContainer) {
-      const scrollElement = scrollContainer as HTMLElement;
-      
       // Получаем все секции
-      sections = Array.from(container.querySelectorAll('[data-section-id]')) as HTMLElement[];
-      
-      // Добавляем обработчик скролла с throttling для лучшей производительности
-      let timeout: number;
-      scrollHandler = () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(updateActiveSection, 100);
-      };
-      scrollElement.addEventListener('scroll', scrollHandler);
-      
+      const sections = Array.from(container.querySelectorAll('[data-section-id]')) as HTMLElement[];
+
+      // Создаем Intersection Observer для отслеживания пересечения секций с верхней границей
+      observer = new IntersectionObserver(handleIntersection, {
+        root: scrollContainer,
+        rootMargin: '0px 0px -99% 0px',
+        threshold: 0
+      });
+
+      // Наблюдаем за всеми секциями
+      sections.forEach((section: HTMLElement) => {
+        observer!.observe(section);
+      });
+
       // Начальная синхронизация
-      updateActiveSection();
+      const firstSection = sections[0];
+      if (firstSection) {
+        const sectionId = firstSection.getAttribute('data-section-id');
+        if (sectionId) {
+          dispatch('sectionvisible', { sectionId });
+        }
+      }
     }
 
     return () => {
-      if (scrollContainer && scrollHandler) {
-        const scrollElement = scrollContainer as HTMLElement;
-        scrollElement.removeEventListener('scroll', scrollHandler);
+      if (observer) {
+        observer.disconnect();
       }
     };
   });

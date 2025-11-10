@@ -62,6 +62,9 @@
     root.style.setProperty('--nc-level-4', levels[4]); // Hover
     root.style.setProperty('--nc-level-5', levels[5]); // Hover
 
+    // Активный таб
+    root.style.setProperty('--nc-tab-bg-active', levels[0]);
+
     // Текст в соответствии со спецификацией.
     root.style.setProperty('--nc-palette-text', textColor);
 
