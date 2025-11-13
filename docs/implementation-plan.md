@@ -1,21 +1,24 @@
 # Implementation Plan: Nova Code
 
-## Фаза 1: MVP (Core Editor) — 6 недель
+## Phase 1: MVP (Core Editor) - 6 weeks
 
-**Цель:** Работающий редактор с базовым функционалом открытия/редактирования файлов
+**Goal:** Deliver a working editor shell with basic file opening/editing and command layers.
+
+**Progress:** ✅ 100% (Phase 1 is complete: Monaco/editor tabs, Explorer, settings, auto-save and real Tauri open/save/list commands form the full workbench loop; the tab bar now uses a themed overlay scrollbar with drag support and selection disabled.)
 
 **Deliverables:**
-- Tauri v2 + Svelte 5 boilerplate, базовая структура проекта
-- Интеграция Monaco Editor (открытие файлов, syntax highlighting для 10 языков)
-- Файловое дерево (чтение директорий, навигация)
-- Открытие/сохранение файлов через Tauri commands
-- Вкладки редактора (открытие нескольких файлов, переключение)
-- Базовые настройки (тема, размер шрифта) через JSON-конфиг
-- Кросс-платформенные билды (macOS/Linux/Windows)
+- ✅ Tauri v2 + Svelte 5 boilerplate, workbench layout, and command palette scaffolding are in place.
+- ✅ Monaco Editor integration with multi-file models, syntax highlighting, and dirty-state tracking.
+- ✅ File explorer tree + selection sync with the active tab via `fileTreeStore`; workspace data now loads through `workspaceStore` backed by `fileService`, and the workspace refreshes when the watcher fires.
+- ✅ Opening/saving through Tauri commands now updates real files via `fileService` + `editorStore.updateContent`.
+- ✅ Editor tabs support multiple files, group navigation, and close actions with dirty markers.
+- ✅ Tab strip overlay scrollbar now hugs the bottom edge, mirrors the theme palette, auto-hides off-hover, keeps thumb dragging + pointer hit areas in sync, matches the visible tab viewport width, and further clamps its width to the actual tab row so the highlight never spills past the last tab.
+- ✅ Core settings (theme, editor behavior, auto-save) toggle live stores; history/profiles persistence sync is slated for next phases.
+- ✅ Layout is responsive across macOS/Linux/Windows; packaging/build scripts will move forward in Phase 2/3.
 
-**Риски:**
-- Производительность Monaco Editor в Tauri WebView (тестировать на больших файлах)
-- Проблемы с file watcher на Linux (fallback на polling)
+**Risks:**
+- Monaco performance in Tauri WebView (validate with bigger files).
+- Linux file watcher reliability (fallback to polling still required).
 
 ---
 

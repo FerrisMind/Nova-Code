@@ -12,7 +12,7 @@
   // цветовой/типографической системой Nova Code.
   // ---------------------------------------------------------------------------
 
-  import type { FileNode } from '../mocks/files.mock';
+import type { FileNode } from '../types/fileNode';
   import Icon from '../common/Icon.svelte';
   import { getLanguageIcon } from '../mocks/languageIcons';
   import {

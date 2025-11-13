@@ -13,7 +13,7 @@
 // Svelte 5 и Tauri v2 через context7 и официальную документацию.
 // -----------------------------------------------------------------------------
 
-import type { FileNode } from '../mocks/files.mock';
+import type { FileNode } from '../types/fileNode';
 import { editorStore } from '../stores/editorStore';
 import { splitRightFromActive } from '../stores/layout/editorGroupsStore';
 

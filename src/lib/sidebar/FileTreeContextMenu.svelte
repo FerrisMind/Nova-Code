@@ -14,7 +14,7 @@
 // -----------------------------------------------------------------------------
 
   import { createEventDispatcher } from 'svelte';
-  import type { FileNode } from '../mocks/files.mock';
+import type { FileNode } from '../types/fileNode';
   import type { FileTreeActionId } from './fileTreeActions';
 
   export let visible: boolean = false;

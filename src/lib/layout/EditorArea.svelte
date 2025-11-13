@@ -18,16 +18,49 @@
   // - подключение diff-режима и IntelliSense-провайдеров на базе EditorCore.
 
   import { onDestroy } from 'svelte';
-  import { activeEditor } from '../stores/editorStore';
-  import { getFileContentLines } from '../mocks/content.mock';
+  import { activeEditor, editorStore } from '../stores/editorStore';
+  import { fileService } from '../services/fileService';
   import MonacoHost from '../editor/MonacoHost.svelte';
   import { editorSettings } from '../stores/editorSettingsStore';
   import SettingsShell from '$lib/settings/layout/SettingsShell.svelte';
   import WelcomeScreen from './WelcomeScreen.svelte';
+  import { editorBehaviorStore } from '../stores/editorBehaviorStore';
 
   let current = $state(null as import('../stores/editorStore').EditorTab | null);
   let editorOptions = $state(editorSettings.getSettings());
   let backgroundColor = $state('var(--nc-level-1)');
+
+  let autoSaveEnabled = editorBehaviorStore.getAutoSave();
+  let autoSaveDelay = editorBehaviorStore.getAutoSaveDelay();
+  let pendingSave: { fileId: string; value: string } | null = null;
+  let pendingAutoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+  let previousEditorId: string | null = null;
+
+  const clearAutoSaveTimer = () => {
+    if (pendingAutoSaveTimer) {
+      clearTimeout(pendingAutoSaveTimer);
+      pendingAutoSaveTimer = null;
+    }
+  };
+
+  const flushAutoSave = async () => {
+    if (!autoSaveEnabled || !pendingSave) return;
+    try {
+      await editorStore.updateContent(pendingSave.fileId, pendingSave.value);
+    } catch (error) {
+      console.error('[auto-save] failed to persist', error);
+    }
+    pendingSave = null;
+    clearAutoSaveTimer();
+  };
+
+  const scheduleAutoSave = () => {
+    if (!autoSaveEnabled || !pendingSave) return;
+    clearAutoSaveTimer();
+    pendingAutoSaveTimer = window.setTimeout(() => {
+      void flushAutoSave();
+    }, autoSaveDelay);
+  };
 
   const unsub = activeEditor.subscribe(($active) => {
     current = $active;
@@ -39,22 +72,52 @@
     editorOptions = settings;
   });
 
+  const behaviorUnsub = editorBehaviorStore.subscribe((state) => {
+    autoSaveEnabled = state.autoSave;
+    autoSaveDelay = state.autoSaveDelay;
+    if (!state.autoSave) {
+      clearAutoSaveTimer();
+    } else if (pendingSave) {
+      scheduleAutoSave();
+    }
+  });
+
   onDestroy(() => {
     unsub();
     settingsUnsub();
+    behaviorUnsub();
+    flushAutoSave();
+    clearAutoSaveTimer();
   });
 
   /**
    * Получение строк и значения для активного файла.
    * Сейчас используем mocks; далее здесь будет интеграция с workspace/Tauri.
    */
-  const getContent = (fileId: string) => {
-    const lines = getFileContentLines(fileId);
+  const getContent = async (fileId: string) => {
+    const value = await fileService.readFile(fileId);
     return {
-      lines,
-      value: lines.join('\n')
+      lines: value.split(/\r?\n/),
+      value
     };
   };
+
+  function handleEditorContentChange(fileId: string, value: string) {
+    editorStore.markDirty(fileId, true);
+    pendingSave = { fileId, value };
+    if (autoSaveEnabled) {
+      scheduleAutoSave();
+    } else {
+      clearAutoSaveTimer();
+    }
+  }
+
+  $effect(() => {
+    if (current?.id !== previousEditorId) {
+      previousEditorId = current?.id ?? null;
+      flushAutoSave();
+    }
+  });
 </script>
 
 <div class="editor-area" style:background-color={backgroundColor}>
@@ -96,11 +159,9 @@
               renderWhitespace: editorOptions.renderWhitespace,
               lineNumbers: editorOptions.lineNumbers
             }}
-            on:change={(e) => {
-              // Точка интеграции с editorStore/workspace/Tauri:
-              // пример:
-              // editorStore.updateContent(e.detail.fileId, e.detail.value);
-            }}
+            on:change={(e) =>
+              handleEditorContentChange(e.detail.fileId, e.detail.value)
+            }
           />
         {/await}
       {/if}
@@ -115,6 +176,8 @@
     display: flex;
     color: var(--nc-fg);
     overflow: hidden;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
   }
 
   .settings-wrapper {

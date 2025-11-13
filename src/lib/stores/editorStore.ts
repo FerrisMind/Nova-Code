@@ -18,7 +18,7 @@
 // -----------------------------------------------------------------------------
 
 import { derived, writable, type Readable } from 'svelte/store';
-import type { FileNode } from '../mocks/files.mock';
+import type { FileNode } from '../types/fileNode';
 import {
   addTabToGroup,
   removeTab as removeTabFromGroups,
@@ -295,6 +295,17 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
   };
 
   /**
+   * Persist editor content to the mock file registry and reset the dirty flag.
+   */
+  const updateContent = async (id: string, value: string): Promise<void> => {
+    const fileNode = findFileById(filesTreeProvider(), id);
+    if (!fileNode || fileNode.type !== 'file') return;
+
+    await fileService.writeFile(id, value);
+    markDirty(id, false);
+  };
+
+  /**
    * Открыть настройки как специальную вкладку редактора.
    * Settings не является файлом, поэтому используем специальный id.
    */
@@ -333,6 +344,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     setActiveEditor,
     closeEditor,
     markDirty,
+    updateContent,
     ensureTabForFile
   };
 };
@@ -341,9 +353,10 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
 // Инициализация store для текущего окружения
 // -----------------------------------------------------------------------------
 
-import { workspaceFiles } from '../mocks/files.mock';
+import { getWorkspaceFiles } from './workspaceStore';
+import { fileService } from '../services/fileService';
 
-export const editorStore = createEditorStore(() => workspaceFiles);
+export const editorStore = createEditorStore(getWorkspaceFiles);
 
 /**
  * Derived store: активный таб по activeEditorId.

@@ -67,18 +67,19 @@
 <style>
   .activity-bar {
     width: 48px;                         /* 12 * 4px */
-    background-color: var(--nc-level-1);
+    background-color: var(--nc-level-0);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 8px 0;                      /* 2 * 4px */
     gap: 4px;                            /* 1 * 4px */
     border-right: 1px solid var(--nc-border-subtle);
+    border-radius: 12px 0 0 12px;
     box-sizing: border-box;
   }
 
   .activity-bar.rounded {
-    border-radius: 0 12px 12px 0;        /* скругляем правые верхний и нижний углы, когда сайдбар скрыт */
+    border-radius: 12px;  /* Rounded for detached state */
   }
 
   .activity-items {

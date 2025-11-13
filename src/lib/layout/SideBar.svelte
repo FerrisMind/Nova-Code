@@ -92,9 +92,9 @@
     color: var(--nc-fg-muted);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
-    border-radius: 0 12px 12px 0;  /* скругляем правые верхний и нижний углы */
+    border-radius: 12px;  /* Rounded corners on all sides */
   }
 
   /* Ресайз-хендл слева:
@@ -104,11 +104,12 @@
   .resize-handle {
     position: absolute;
     top: 0;
-    right: 0;
-    width: 3px;                /* как у bottom-panel верхнего хендла по ощущению: тонкая полоса */
+    right: -4px;
+    width: 4px;                /* Handle sits in gap between panels */
     height: 100%;
     cursor: col-resize;
     background: transparent;
+    z-index: 1;
   }
 
   .resize-handle:hover {

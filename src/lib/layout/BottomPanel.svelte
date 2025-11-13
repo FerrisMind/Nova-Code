@@ -121,8 +121,9 @@
        Высота управляется через layoutStore.bottomPanelHeight. */
     position: relative;
     width: 100%;
-    background-color: var(--nc-bg);
+    background-color: var(--nc-level-1);
     border-top: 1px solid var(--nc-border-subtle);
+    border-radius: 12px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -134,11 +135,13 @@
      - тот же визуальный паттерн, что и у .resize-handle в SideBar.svelte:
        узкая прозрачная полоса по границе, подсветка только по hover. */
   .resize-handle-top {
+
     position: absolute;
-    top: 0;              /* ровно по верхней границе панели */
+
+    top: -4px;           /* ровно по верхней границе панели */
     left: 0;
     right: 0;
-    height: 3px;         /* тонкая зона захвата */
+    height: 4px;         /* тонкая зона захвата */
     cursor: row-resize;
     background: transparent;
   }

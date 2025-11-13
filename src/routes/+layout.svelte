@@ -9,7 +9,7 @@
   import BottomPanel from '../lib/layout/BottomPanel.svelte';
   import StatusBar from '../lib/layout/StatusBar.svelte';
   import CommandPalette from '../lib/commands/CommandPalette.svelte';
-  import { toggleLeftSidebar } from '../lib/stores/layout/layoutStore';
+  import { layoutState, toggleLeftSidebar } from '../lib/stores/layout/layoutStore';
   import { initDefaultCommands } from '../lib/commands/defaultCommands';
   import { openCommandPalette } from '../lib/stores/commandPaletteStore';
 
@@ -137,7 +137,7 @@
   <div class="nova-main">
     <ActivityBar />
 
-    <div class="nova-center">
+    <div class="nova-center" class:sidebar-hidden={!$layoutState.leftSidebarVisible}>
       <SideBar />
 
       <!-- EditorRegion + BottomPanel делят вертикаль; справа опциональный RightSideBar -->
@@ -194,6 +194,10 @@
     overflow: hidden;
   }
 
+  .nova-center.sidebar-hidden .nova-editor-region {
+    margin-left: 0;
+  }
+
   .nova-editor-region {
     display: flex;
     flex-direction: column;
@@ -202,7 +206,9 @@
     background-color: var(--nc-tab-bg-active);
     border-left: 1px solid var(--nc-border-subtle);
     border-radius: 12px;
-    margin: 0 8px;
+    margin: 0 4px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
   }
 
   /* Стек редактора + нижней панели:
@@ -215,6 +221,8 @@
     flex-direction: column;
     flex: 1;
     overflow: hidden;
+    gap: 4px; /* 1 * 4px spacing between editor and bottom panel */
+    background-color: var(--nc-level-0);
   }
 
   .nova-editor-stack > :global(.editor-area-root) {

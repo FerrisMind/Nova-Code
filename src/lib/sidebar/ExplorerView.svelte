@@ -14,7 +14,7 @@
   // ---------------------------------------------------------------------------
 
   import { workspaceStore } from '../stores/workspaceStore';
-  import type { FileNode } from '../mocks/files.mock';
+import type { FileNode } from '../types/fileNode';
   import FileTree from './FileTree.svelte';
   import { activeEditor } from '../stores/editorStore';
   import { syncWithActiveTab } from '../stores/fileTreeStore';

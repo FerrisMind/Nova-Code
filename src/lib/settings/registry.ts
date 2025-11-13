@@ -28,6 +28,7 @@ import {
   type ThemePaletteId,
   listPalettesByMode
 } from '$lib/stores/THEME_PALETTES';
+import { editorBehaviorStore } from '$lib/stores/editorBehaviorStore';
 
 // -----------------------------------------------------------------------------
 // Локальные типы по контракту
@@ -104,6 +105,13 @@ const sections: SettingsSectionDefinition[] = [
       'editor.lineNumbers',
       'editor.bracketPairColorization'
     ]
+  },
+  {
+    id: 'editor.behavior',
+    label: 'Editor Behavior',
+    category: 'editor',
+    order: 50,
+    settings: ['editor.autoSave']
   }
 ];
 
@@ -379,6 +387,19 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().bracketPairColorization,
     set: (value: SettingValue) => {
       editorSettings.setBracketPairColorization(Boolean(value));
+    }
+  },
+  {
+    id: 'editor.autoSave',
+    label: 'Auto Save',
+    description: 'Automatically persist files after edits when enabled.',
+    category: 'editor',
+    section: 'editor.behavior',
+    order: 10,
+    control: 'boolean',
+    get: () => editorBehaviorStore.getAutoSave(),
+    set: (value: SettingValue) => {
+      editorBehaviorStore.setAutoSave(Boolean(value));
     }
   }
 ];

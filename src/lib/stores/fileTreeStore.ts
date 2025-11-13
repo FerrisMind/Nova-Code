@@ -14,7 +14,7 @@
 // -----------------------------------------------------------------------------
 
 import { writable, derived, get, type Readable } from 'svelte/store';
-import type { FileNode } from '../mocks/files.mock';
+import type { FileNode } from '../types/fileNode';
 import { workspaceStore } from './workspaceStore';
 import { editorStore, activeEditor } from './editorStore';
 

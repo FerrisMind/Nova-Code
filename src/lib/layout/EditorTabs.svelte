@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { editorStore, activeEditor, type EditorTab } from '../stores/editorStore';
   import Icon from '../common/Icon.svelte';
   import { getLanguageIcon } from '../mocks/languageIcons';
 
   let stateTabs: EditorTab[] = [];
   let currentActive: EditorTab | null = null;
+  let tabContainer: HTMLDivElement | null = null;
 
   const unsubscribeStore = editorStore.subscribe(($state: any) => {
     stateTabs = $state.openTabs;
@@ -12,6 +14,11 @@
 
   const unsubscribeActive = activeEditor.subscribe(($active) => {
     currentActive = $active;
+  });
+
+  onDestroy(() => {
+    unsubscribeStore();
+    unsubscribeActive();
   });
 
   const setActive = (id: string) => {
@@ -23,11 +30,19 @@
   };
 </script>
 
-<div class="tabs-bar" class:hidden={stateTabs.length === 0}>
-  {#if stateTabs.length === 0}
-    <div class="tabs-empty">Open a file from Explorer to get started.</div>
-  {:else}
-    {#each stateTabs as tab (tab.id)}
+<div
+  class="tabs-bar-wrapper"
+  class:hidden={stateTabs.length === 0}
+  role="presentation"
+>
+  <div
+    class="tabs-bar"
+    bind:this={tabContainer}
+  >
+    {#if stateTabs.length === 0}
+      <div class="tabs-empty">Open a file from Explorer to get started.</div>
+    {:else}
+      {#each stateTabs as tab (tab.id)}
       <div
         class="tab"
         class:active={currentActive && currentActive.id === tab.id}
@@ -54,13 +69,29 @@
         >
           <Icon name="lucide:X" size={16} />
         </button>
-      </div>
-    {/each}
-  {/if}
+        </div>
+      {/each}
+    {/if}
+  </div>
 </div>
 
 <style>
+  .tabs-bar-wrapper {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    height: 36px;
+    overflow: hidden;
+    user-select: none;
+  }
+
   .tabs-bar {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
     display: flex;
     align-items: stretch;
     height: 36px;                         /* 9 * 4px */
@@ -70,6 +101,8 @@
     white-space: nowrap;
     gap: 2px;
     padding: 0;
+    position: relative;
+    user-select: none;
   }
 
   .tabs-empty {
@@ -96,6 +129,8 @@
     flex-shrink: 0;
     border: 1px solid var(--nc-border-subtle);
     border-bottom-color: var(--nc-border-subtle);
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   .tab:hover {
@@ -164,15 +199,36 @@
   }
 
   .tabs-bar::-webkit-scrollbar {
-    height: 4px;                          /* 1 * 4px */
+    height: 4px;
+  }
+
+  .tabs-bar:not(:hover)::-webkit-scrollbar {
+    height: 0;
+  }
+
+  .tabs-bar::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   .tabs-bar::-webkit-scrollbar-thumb {
-    background-color: var(--nc-highlight-subtle);
-    border-radius: 4px;                   /* 1 * 4px */
+    background-color: transparent;
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
   }
 
-  .tabs-bar.hidden {
+  .tabs-bar:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(128, 128, 128, 0.4);
+  }
+
+  .tabs-bar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(128, 128, 128, 0.6);
+  }
+
+  .tabs-bar::-webkit-scrollbar-thumb:active {
+    background-color: rgba(128, 128, 128, 0.8);
+  }
+
+  .tabs-bar-wrapper.hidden {
     display: none;
   }
 </style>

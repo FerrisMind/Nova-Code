@@ -171,7 +171,21 @@ export function getLanguageIcon(filename: string): string {
   if (filename.includes('vite.config')) {
     return 'devicon:vite-original colored';
   }
-  
-  // Default fallback - файл без специфичной иконки
+
+  const lucideFallbacks: Record<string, string> = {
+    toml: 'lucide:FileText',
+    lock: 'lucide:Lock',
+    log: 'lucide:FileWarning',
+    csv: 'lucide:Rows',
+    txt: 'lucide:FileText',
+    yaml: 'lucide:FileCode',
+    yml: 'lucide:FileCode'
+  };
+
+  if (lucideFallbacks[ext]) {
+    return lucideFallbacks[ext];
+  }
+
+  // Default fallback - любые неизвестные файлы
   return 'lucide:File';
 }
