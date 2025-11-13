@@ -36,8 +36,9 @@
 
 <div class="titlebar" data-tauri-drag-region>
   <div class="titlebar-left">
-    <div class="app-icon"></div>
-    <div class="app-title">Nova Code</div>
+    <div class="app-icon">
+      <img src="/app-icon.png" alt="App Icon" />
+    </div>
   </div>
 
   <div class="titlebar-center"></div>
@@ -92,15 +93,12 @@
     width: 16px;                 /* 4 * 4px */
     height: 16px;                /* 4 * 4px */
     border-radius: 4px;          /* 1 * 4px */
-    background: radial-gradient(circle at 30% 0%, var(--nc-accent), transparent),
-      radial-gradient(circle at 80% 80%, #22c55e, transparent),
-      radial-gradient(circle at 0% 100%, #a855f7, transparent);
   }
 
-  .app-title {
-    font-size: 12px;             /* 3 * 4px */
-    font-weight: 500;
-    color: var(--nc-fg);
+  .app-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   /* .app-subtitle удалён по требованиям дизайна */

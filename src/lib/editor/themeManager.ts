@@ -1,4 +1,5 @@
 import type * as monaco from 'monaco-editor';
+import { getPaletteById, type ThemePaletteId } from '../stores/THEME_PALETTES';
 
 /**
  * Структура кастомной темы Monaco Editor
@@ -108,12 +109,22 @@ export class ThemeManager {
   /**
    * Получить список доступных тем
    */
-  getAvailableThemes(): Array<{ id: string; name: string; type: 'built-in' | 'custom' }> {
-    const themes: Array<{ id: string; name: string; type: 'built-in' | 'custom' }> = [];
+  getAvailableThemes(): Array<{ id: string; name: string; type: 'built-in' | 'custom' | 'popular' }> {
+    const themes: Array<{ id: string; name: string; type: 'built-in' | 'custom' | 'popular' }> = [];
 
     // Встроенные темы
     Object.entries(builtInThemes).forEach(([id, name]) => {
       themes.push({ id, name, type: 'built-in' });
+    });
+
+    // Популярные темы
+    const popularThemes = [
+      'monokai', 'dracula', 'one-dark-pro', 'material', 'nord',
+      'github-light', 'solarized-light', 'atom-one-light'
+    ];
+    popularThemes.forEach(id => {
+      const name = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      themes.push({ id, name, type: 'popular' });
     });
 
     // Кастомные темы
@@ -152,38 +163,61 @@ export class ThemeManager {
   }
 
   /**
-   * Создать новую тему на основе существующей
+   * Создать тему Monaco на основе палитры приложения
    */
-  createThemeFromCurrent(name: string): CustomTheme | null {
-    if (!this.currentThemeId) return null;
+  createThemeFromPalette(paletteId: ThemePaletteId): CustomTheme {
+    const palette = getPaletteById(paletteId);
+    const isDark = palette.mode === 'dark';
 
-    const currentCustomTheme = this.customThemes.get(this.currentThemeId);
-    if (currentCustomTheme) {
-      // Клонируем существующую кастомную тему
-      return { ...currentCustomTheme, name };
-    }
-
-    // Создаем базовую тему на основе встроенной
-    const baseTheme: CustomTheme = {
-      name,
-      base: this.currentThemeId === 'vs' ? 'vs' : 'vs-dark',
+    const theme: CustomTheme = {
+      name: palette.label,
+      base: isDark ? 'vs-dark' : 'vs',
       inherit: true,
       rules: [
-        { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '569CD6', fontStyle: 'bold' },
-        { token: 'string', foreground: 'CE9178' },
-        { token: 'number', foreground: 'B5CEA8' }
+        { token: 'comment', foreground: isDark ? '6A9955' : '008000', fontStyle: 'italic' },
+        { token: 'keyword', foreground: isDark ? '569CD6' : '0000FF', fontStyle: 'bold' },
+        { token: 'string', foreground: isDark ? 'CE9178' : 'A31515' },
+        { token: 'number', foreground: isDark ? 'B5CEA8' : '09885A' }
       ],
       colors: {
-        'editor.background': this.currentThemeId === 'vs' ? '#FFFFFF' : '#1E1E1E',
-        'editor.foreground': this.currentThemeId === 'vs' ? '#000000' : '#D4D4D4',
-        'editor.lineHighlightBackground': this.currentThemeId === 'vs' ? '#F0F0F0' : '#2A2A2A',
-        'editorCursor.foreground': '#FFFFFF',
-        'editor.selectionBackground': this.currentThemeId === 'vs' ? '#ADD6FF' : '#264F78'
+        'editor.background': palette.backgroundLevels[4],
+        'editor.foreground': palette.textColor,
+        'editor.lineHighlightBackground': palette.backgroundLevels[2],
+        'editorCursor.foreground': palette.textColor,
+        'editor.selectionBackground': isDark ? '#264F78' : '#ADD6FF',
+        'editorLineNumber.foreground': isDark ? '#858585' : '#237893',
+        'editorLineNumber.activeForeground': palette.textColor
       }
     };
 
-    return baseTheme;
+    return theme;
+  }
+
+  /**
+   * Загрузить популярные темы из monaco-themes
+   */
+  async loadPopularThemes(): Promise<void> {
+    if (!this.monaco) return;
+
+    const themes = [
+      { name: 'Monokai', file: 'Monokai.json', base: 'vs-dark' },
+      { name: 'Dracula', file: 'Dracula.json', base: 'vs-dark' },
+      { name: 'One Dark Pro', file: 'One Dark Pro.json', base: 'vs-dark' },
+      { name: 'Material Dark', file: 'Material.json', base: 'vs-dark' },
+      { name: 'Nord', file: 'Nord.json', base: 'vs-dark' },
+      { name: 'GitHub Light', file: 'GitHub Light.json', base: 'vs' },
+      { name: 'Solarized Light', file: 'Solarized Light.json', base: 'vs' },
+      { name: 'Atom One Light', file: 'Atom One Light.json', base: 'vs' }
+    ];
+
+    for (const theme of themes) {
+      try {
+        const themeData = await import(`monaco-themes/themes/${theme.file}`);
+        this.monaco.editor.defineTheme(theme.name.toLowerCase().replace(/\s+/g, '-'), themeData.default || themeData);
+      } catch (error) {
+        console.warn(`Failed to load theme ${theme.name}:`, error);
+      }
+    }
   }
 }
 

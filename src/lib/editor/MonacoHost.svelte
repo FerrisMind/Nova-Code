@@ -26,6 +26,8 @@
   } from './intellisense';
   import './monacoEnvironment';
   import { themeManager } from './themeManager';
+  import { theme, type ThemeState } from '../stores/themeStore';
+  import { getPaletteById } from '../stores/THEME_PALETTES';
 
   // Входные параметры.
   let {
@@ -49,6 +51,9 @@
   let containerElement: HTMLDivElement;
   let core: EditorCoreApi | null = null;
 
+  // Текущая тема
+  let currentTheme: ThemeState = { mode: 'dark', palette: 'dark-default' };
+
   /**
    * Инициализация Monaco + EditorCore.
    * Используем динамический импорт ESM API Monaco.
@@ -56,6 +61,7 @@
   onMount(() => {
     let isDisposed = false;
     let unsubscribe: (() => void) | null = null;
+    let themeUnsubscribe: (() => void) | null = null;
 
     (async () => {
       // Динамический импорт полного Monaco API.
@@ -70,6 +76,22 @@
       // Инициализация менеджера тем
       themeManager.initialize(monaco as any);
 
+      // Загружаем популярные темы
+      await themeManager.loadPopularThemes();
+
+      // Создаем и регистрируем темы для всех палитр
+      const palettes = ['light-default', 'light-alt-1', 'light-alt-2', 'light-alt-3', 'dark-default', 'dark-alt-1', 'dark-alt-2', 'dark-alt-3'] as const;
+      palettes.forEach(paletteId => {
+        const themeData = themeManager.createThemeFromPalette(paletteId);
+        const themeId = `nova-${paletteId}`;
+        monaco.editor.defineTheme(themeId, {
+          base: themeData.base,
+          inherit: themeData.inherit,
+          rules: themeData.rules,
+          colors: themeData.colors
+        });
+      });
+
       core = createEditorCore(monaco as any);
       core.attachTo(containerElement, options);
 
@@ -80,12 +102,23 @@
         language
       });
 
+      // Применяем начальную тему
+      const initialTheme = theme.getState();
+      currentTheme = initialTheme;
+      themeManager.applyTheme(`nova-${initialTheme.palette}`);
+
       // Подписка на изменения активной модели и проброс наружу как Svelte-события.
       unsubscribe = core.onDidChangeContent((changedFileId, changedValue) => {
         // Хост отвечает за один fileId; фильтруем для надёжности.
         if (changedFileId === fileId) {
           dispatch('change', { fileId: changedFileId, value: changedValue });
         }
+      });
+
+      // Подписка на изменения темы
+      themeUnsubscribe = theme.subscribe((newTheme) => {
+        currentTheme = newTheme;
+        themeManager.applyTheme(`nova-${newTheme.palette}`);
       });
 
       // Гарантируем снятие подписки при размонтировании.
@@ -95,6 +128,9 @@
       isDisposed = true;
       if (unsubscribe) {
         unsubscribe();
+      }
+      if (themeUnsubscribe) {
+        themeUnsubscribe();
       }
     };
   });
