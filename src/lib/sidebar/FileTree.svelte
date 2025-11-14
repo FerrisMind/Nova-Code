@@ -19,7 +19,6 @@ import type { FileNode } from '../types/fileNode';
     fileTreeState,
     toggleDir,
     selectFile,
-    isExpanded,
     type FileNodeId
   } from '../stores/fileTreeStore';
   import { editorStore } from '../stores/editorStore';
@@ -33,16 +32,6 @@ import type { FileNode } from '../types/fileNode';
   const dispatch = createEventDispatcher<{
     open: { node: FileNode };
   }>();
-
-  // Подписка на состояние дерева с явным типом.
-  let treeState: {
-    expanded: Set<FileNodeId>;
-    selectedFileId: FileNodeId | null;
-  };
-
-  const unsubscribe = fileTreeState.subscribe((state) => {
-    treeState = state;
-  });
 
   const baseIndent = 12; // 3 * 4px
   const perDepth = 12; // 3 * 4px
@@ -67,7 +56,7 @@ import type { FileNode } from '../types/fileNode';
   }
 
   function isSelected(node: FileNode): boolean {
-    return treeState?.selectedFileId === node.id;
+    return $fileTreeState?.selectedFileId === node.id;
   }
 
   function onContextMenu(event: MouseEvent, node: FileNode): void {
@@ -126,7 +115,7 @@ import type { FileNode } from '../types/fileNode';
         style={`padding-left:${baseIndent + depth * perDepth}px`}
         role="button"
         tabindex="0"
-        aria-expanded={isExpanded(node.id)}
+        aria-expanded={$fileTreeState.expanded.has(node.id)}
         on:click={() => onDirClick(node)}
         on:keydown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -148,19 +137,14 @@ import type { FileNode } from '../types/fileNode';
         on:contextmenu={(e) => onContextMenu(e, node)}
       >
         <Icon
-          name={isExpanded(node.id) ? 'lucide:chevron-down' : 'lucide:chevron-right'}
+          name={$fileTreeState.expanded.has(node.id) ? 'lucide:chevron-down' : 'lucide:chevron-right'}
           size={14}
           className="chevron"
-        />
-        <Icon
-          name={isExpanded(node.id) ? 'lucide:folder-open' : 'lucide:folder'}
-          size={14}
-          className="folder-icon"
         />
         <span class="name">{node.name}</span>
       </div>
 
-      {#if isExpanded(node.id) && node.children}
+      {#if $fileTreeState.expanded.has(node.id) && node.children}
         <!-- Рекурсивный вызов того же компонента для поддерева -->
         <svelte:self nodes={node.children} depth={depth + 1} on:open />
       {/if}
@@ -211,6 +195,14 @@ import type { FileNode } from '../types/fileNode';
   .dir-row {
     height: 24px; /* 6 * 4px */
     user-select: none;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+  }
+
+  .dir-row:hover {
+    background-color: var(--nc-level-5);
+    color: var(--nc-fg);
+    border-radius: 4px;
   }
 
   .file-row {
@@ -252,10 +244,15 @@ import type { FileNode } from '../types/fileNode';
   .chevron {
     color: var(--nc-fg-muted);
     flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    min-height: 14px;
   }
 
-  .folder-icon {
-    color: var(--nc-fg);
+  .row :global(.nc-icon) {
     flex-shrink: 0;
+    min-width: 14px;
+    min-height: 14px;
   }
 </style>

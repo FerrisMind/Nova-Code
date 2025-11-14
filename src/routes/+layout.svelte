@@ -279,4 +279,107 @@
   :global(.nova-root *) {
     box-sizing: border-box;
   }
+
+  /* Глобальные стили для скроллбаров */
+  :global(*::-webkit-scrollbar) {
+    width: 10px;
+    height: 10px;
+  }
+
+  :global(*::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(*::-webkit-scrollbar-thumb) {
+    background-color: rgba(128, 128, 128, 0.4);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  :global(*::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(128, 128, 128, 0.6);
+  }
+
+  :global(*::-webkit-scrollbar-thumb:active) {
+    background-color: rgba(128, 128, 128, 0.8);
+  }
+
+  :global(*::-webkit-scrollbar-corner) {
+    background: transparent;
+  }
+
+  /* Firefox scrollbar styles */
+  :global(*) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+  }
+
+  /* Для темной темы - более светлые скроллбары */
+  :global(.theme-dark *::-webkit-scrollbar-thumb) {
+    background-color: rgba(160, 160, 160, 0.3);
+  }
+
+  :global(.theme-dark *::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(160, 160, 160, 0.5);
+  }
+
+  :global(.theme-dark *::-webkit-scrollbar-thumb:active) {
+    background-color: rgba(160, 160, 160, 0.7);
+  }
+
+  /* Для светлой темы - более темные скроллбары */
+  :global(.theme-light *::-webkit-scrollbar-thumb) {
+    background-color: rgba(80, 80, 80, 0.3);
+  }
+
+  :global(.theme-light *::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(80, 80, 80, 0.5);
+  }
+
+  :global(.theme-light *::-webkit-scrollbar-thumb:active) {
+    background-color: rgba(80, 80, 80, 0.7);
+  }
+
+  /* Monaco Editor специфичные стили для скроллбаров */
+  :global(.monaco-scrollable-element > .scrollbar) {
+    background: transparent !important;
+  }
+
+  :global(.monaco-scrollable-element > .scrollbar > .slider) {
+    background: rgba(128, 128, 128, 0.4) !important;
+    border-radius: 5px !important;
+  }
+
+  :global(.monaco-scrollable-element > .scrollbar > .slider:hover) {
+    background: rgba(128, 128, 128, 0.6) !important;
+  }
+
+  :global(.monaco-scrollable-element > .scrollbar > .slider:active) {
+    background: rgba(128, 128, 128, 0.8) !important;
+  }
+
+  :global(.theme-dark .monaco-scrollable-element > .scrollbar > .slider) {
+    background: rgba(160, 160, 160, 0.3) !important;
+  }
+
+  :global(.theme-dark .monaco-scrollable-element > .scrollbar > .slider:hover) {
+    background: rgba(160, 160, 160, 0.5) !important;
+  }
+
+  :global(.theme-dark .monaco-scrollable-element > .scrollbar > .slider:active) {
+    background: rgba(160, 160, 160, 0.7) !important;
+  }
+
+  :global(.theme-light .monaco-scrollable-element > .scrollbar > .slider) {
+    background: rgba(80, 80, 80, 0.3) !important;
+  }
+
+  :global(.theme-light .monaco-scrollable-element > .scrollbar > .slider:hover) {
+    background: rgba(80, 80, 80, 0.5) !important;
+  }
+
+  :global(.theme-light .monaco-scrollable-element > .scrollbar > .slider:active) {
+    background: rgba(80, 80, 80, 0.7) !important;
+  }
 </style>

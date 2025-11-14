@@ -414,7 +414,17 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         lineNumbers: editorOptions.lineNumbers ?? 'on',
         bracketPairColorization: bracketPairColorization ?? { enabled: true },
         readOnly: editorOptions.readOnly ?? false,
-        theme
+        theme,
+        scrollbar: {
+          vertical: 'auto',
+          horizontal: 'auto',
+          useShadows: false,
+          verticalHasArrows: false,
+          horizontalHasArrows: false,
+          verticalScrollbarSize: 10,
+          horizontalScrollbarSize: 10,
+          arrowSize: 0
+        }
       });
 
       state.editor = constructed;
@@ -694,7 +704,17 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
             folding: baseOpts.folding,
             fontSize: baseOpts.fontSize,
             lineNumbers: baseOpts.lineNumbers,
-            enableSplitViewResizing: true
+            enableSplitViewResizing: true,
+            scrollbar: {
+              vertical: 'auto',
+              horizontal: 'auto',
+              useShadows: false,
+              verticalHasArrows: false,
+              horizontalHasArrows: false,
+              verticalScrollbarSize: 10,
+              horizontalScrollbarSize: 10,
+              arrowSize: 0
+            }
           });
 
           diffEditor.setModel({

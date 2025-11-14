@@ -25,7 +25,16 @@
 
   const [set, key] = name.split(':');
 
-  const isLucide = set === 'lucide' && key in (Lucide as any);
+  // Конвертировать kebab-case в PascalCase для Lucide иконок
+  function kebabToPascal(str: string): string {
+    return str
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+  }
+
+  const lucideKey = set === 'lucide' ? kebabToPascal(key) : key;
+  const isLucide = set === 'lucide' && lucideKey in (Lucide as any);
   const isDevicon = set === 'devicon';
 
   /**
@@ -57,7 +66,7 @@
 </script>
 
 {#if isLucide}
-  {@const LucideIcon = (Lucide as any)[key]}
+  {@const LucideIcon = (Lucide as any)[lucideKey]}
   {#if LucideIcon}
     <LucideIcon class={`nc-icon ${className}`} size={size} aria-hidden="true" />
   {:else if svg}
@@ -94,6 +103,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    min-width: var(--icon-size, 16px);
+    min-height: var(--icon-size, 16px);
   }
 
   .nc-icon :global(svg) {
@@ -101,5 +113,10 @@
     height: 100%;
     display: block;
     color: inherit; /* Для Lucide SVG иконок */
+    flex-shrink: 0;
+  }
+
+  i.nc-icon {
+    flex-shrink: 0;
   }
 </style>
