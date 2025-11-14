@@ -176,7 +176,6 @@
     background-color: var(--nc-bg);
     color: var(--nc-fg-muted);
     font-size: 12px;                      /* 3 * 4px */
-    border-top: 1px solid var(--nc-border-subtle);
     box-sizing: border-box;
   }
 

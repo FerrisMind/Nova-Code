@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { afterUpdate, onDestroy, onMount } from 'svelte';
   import { editorStore, activeEditor, type EditorTab } from '../stores/editorStore';
   import Icon from '../common/Icon.svelte';
   import { getLanguageIcon } from '../mocks/languageIcons';
@@ -7,6 +7,21 @@
   let stateTabs: EditorTab[] = [];
   let currentActive: EditorTab | null = null;
   let tabContainer: HTMLDivElement | null = null;
+  let scrollbarTrack: HTMLDivElement | null = null;
+  let scrollbarThumb: HTMLSpanElement | null = null;
+  let animationFrame: number | null = null;
+  let resizeObserver: ResizeObserver | null = null;
+  let maxScrollDistance = 0;
+  let maxThumbOffset = 0;
+  let currentThumbWidth = 0;
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartScrollLeft = 0;
+  let hoverActive = false;
+  let scrollActive = false;
+  let scrollVisible = false;
+  let scrollVisibilityTimer: ReturnType<typeof setTimeout> | null = null;
+  const SCROLL_VISIBILITY_TIMEOUT = 1200;
 
   const unsubscribeStore = editorStore.subscribe(($state: any) => {
     stateTabs = $state.openTabs;
@@ -16,9 +31,206 @@
     currentActive = $active;
   });
 
+  const scheduleScrollbarUpdate = () => {
+    if (typeof requestAnimationFrame !== 'function') {
+      updateScrollbar();
+      return;
+    }
+
+    if (animationFrame !== null) {
+      cancelAnimationFrame(animationFrame);
+    }
+
+    animationFrame = requestAnimationFrame(() => {
+      animationFrame = null;
+      updateScrollbar();
+    });
+  };
+
+  const updateScrollbar = () => {
+    if (!tabContainer || !scrollbarTrack || !scrollbarThumb) {
+      return;
+    }
+
+    const containerWidth = tabContainer.clientWidth;
+    const contentWidth = tabContainer.scrollWidth;
+    maxScrollDistance = Math.max(contentWidth - containerWidth, 0);
+
+    if (maxScrollDistance === 0) {
+      scrollbarTrack.style.opacity = '0';
+      scrollbarTrack.style.pointerEvents = 'none';
+      scrollbarThumb.style.opacity = '0';
+      return;
+    }
+
+    scrollbarTrack.style.opacity = '1';
+    scrollbarTrack.style.pointerEvents = 'auto';
+
+    const trackWidth = scrollbarTrack.clientWidth;
+    const trackAvailableWidth = Math.max(trackWidth, 0);
+    const calculatedThumbWidth = Math.max((containerWidth / contentWidth) * trackAvailableWidth, 32);
+    currentThumbWidth = Math.min(calculatedThumbWidth, trackAvailableWidth);
+    scrollbarThumb.style.width = `${currentThumbWidth}px`;
+
+    maxThumbOffset = Math.max(trackAvailableWidth - currentThumbWidth, 0);
+    const scrollRatio = Math.min(Math.max(tabContainer.scrollLeft / maxScrollDistance, 0), 1);
+    const thumbOffset = maxThumbOffset * scrollRatio;
+    scrollbarThumb.style.transform = `translateX(${thumbOffset}px)`;
+    scrollbarThumb.style.opacity = '1';
+  };
+
+  const handleContainerScroll = () => {
+    scheduleScrollbarUpdate();
+    triggerScrollVisibility();
+  };
+
+  const handleWindowResize = () => {
+    scheduleScrollbarUpdate();
+  };
+
+  const updateScrollbarVisibility = () => {
+    const shouldShow = hoverActive || scrollActive;
+    if (scrollVisible === shouldShow) return;
+    scrollVisible = shouldShow;
+  };
+
+  const triggerScrollVisibility = () => {
+    scrollActive = true;
+    updateScrollbarVisibility();
+
+    if (scrollVisibilityTimer !== null) {
+      clearTimeout(scrollVisibilityTimer);
+    }
+
+    scrollVisibilityTimer = window.setTimeout(() => {
+      scrollActive = false;
+      scrollVisibilityTimer = null;
+      updateScrollbarVisibility();
+    }, SCROLL_VISIBILITY_TIMEOUT);
+  };
+
+  const handleMouseEnter = () => {
+    hoverActive = true;
+    updateScrollbarVisibility();
+  };
+
+  const handleMouseLeave = () => {
+    hoverActive = false;
+    updateScrollbarVisibility();
+  };
+
+  const stopThumbDrag = () => {
+    if (!isDragging) {
+      return;
+    }
+
+    isDragging = false;
+    window.removeEventListener('pointermove', handleThumbPointerMove);
+    window.removeEventListener('pointerup', stopThumbDrag);
+    window.removeEventListener('pointercancel', stopThumbDrag);
+  };
+
+  const handleThumbPointerMove = (event: PointerEvent) => {
+    if (!isDragging || !tabContainer || maxThumbOffset <= 0) {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.clientX - dragStartX;
+    const ratio = delta / maxThumbOffset;
+    const target = dragStartScrollLeft + ratio * maxScrollDistance;
+    tabContainer.scrollLeft = Math.min(Math.max(target, 0), maxScrollDistance);
+  };
+
+  const startThumbDrag = (event: PointerEvent) => {
+    if (maxScrollDistance <= 0 || !tabContainer) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartScrollLeft = tabContainer.scrollLeft;
+
+    triggerScrollVisibility();
+
+    window.addEventListener('pointermove', handleThumbPointerMove);
+    window.addEventListener('pointerup', stopThumbDrag);
+    window.addEventListener('pointercancel', stopThumbDrag);
+  };
+
+  const handleTrackPointerDown = (event: PointerEvent) => {
+    if (!tabContainer || maxScrollDistance <= 0 || !scrollbarTrack) {
+      return;
+    }
+
+    if (event.target === scrollbarThumb) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const rect = scrollbarTrack.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const available =
+      rect.width - currentThumbWidth > 0 ? rect.width - currentThumbWidth : rect.width;
+    const clamped = Math.min(Math.max(clickX - currentThumbWidth / 2, 0), Math.max(available, 0));
+    const ratio = available <= 0 ? 0 : clamped / available;
+    tabContainer.scrollLeft = ratio * maxScrollDistance;
+
+    triggerScrollVisibility();
+  };
+
+  onMount(() => {
+    if (tabContainer) {
+      tabContainer.addEventListener('scroll', handleContainerScroll, { passive: true });
+    }
+
+    window.addEventListener('resize', handleWindowResize);
+
+    const observer = new ResizeObserver(() => {
+      scheduleScrollbarUpdate();
+    });
+    resizeObserver = observer;
+
+    if (tabContainer) {
+      observer.observe(tabContainer);
+    }
+
+    if (scrollbarTrack) {
+      observer.observe(scrollbarTrack);
+    }
+
+    scheduleScrollbarUpdate();
+
+    return () => {
+      if (tabContainer) {
+        tabContainer.removeEventListener('scroll', handleContainerScroll);
+      }
+
+      window.removeEventListener('resize', handleWindowResize);
+
+      observer.disconnect();
+      stopThumbDrag();
+    };
+  });
+
+  afterUpdate(() => {
+    scheduleScrollbarUpdate();
+  });
+
   onDestroy(() => {
     unsubscribeStore();
     unsubscribeActive();
+
+    if (animationFrame !== null) {
+      cancelAnimationFrame(animationFrame);
+    }
+
+    resizeObserver?.disconnect();
+    stopThumbDrag();
   });
 
   const setActive = (id: string) => {
@@ -33,6 +245,9 @@
 <div
   class="tabs-bar-wrapper"
   class:hidden={stateTabs.length === 0}
+  class:scroll-visible={scrollVisible}
+  on:pointerenter={handleMouseEnter}
+  on:pointerleave={handleMouseLeave}
   role="presentation"
 >
   <div
@@ -73,6 +288,19 @@
       {/each}
     {/if}
   </div>
+  <div class="tabs-scrollbar" aria-hidden="true">
+    <div
+      class="tabs-scrollbar-track"
+      bind:this={scrollbarTrack}
+      on:pointerdown={handleTrackPointerDown}
+    >
+      <span
+        class="tabs-scrollbar-thumb"
+        bind:this={scrollbarThumb}
+        on:pointerdown={startThumbDrag}
+      ></span>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -94,7 +322,7 @@
     min-width: 0;
     display: flex;
     align-items: stretch;
-    height: 36px;                         /* 9 * 4px */
+    height: 100%;
     background-color: var(--nc-level-1);
     overflow-x: auto;
     overflow-y: hidden;
@@ -103,6 +331,9 @@
     padding: 0;
     position: relative;
     user-select: none;
+    box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .tabs-empty {
@@ -127,8 +358,8 @@
     transition: background-color 0.12s ease, color 0.12s ease;
     border-radius: 8px 8px 0 0;
     flex-shrink: 0;
-    border: 1px solid var(--nc-border-subtle);
-    border-bottom-color: var(--nc-border-subtle);
+    border: 1px solid var(--nc-level-5);
+    border-bottom-color: var(--nc-level-5);
     user-select: none;
     -webkit-user-select: none;
   }
@@ -199,33 +430,61 @@
   }
 
   .tabs-bar::-webkit-scrollbar {
-    height: 4px;
+    display: none;
   }
 
-  .tabs-bar:not(:hover)::-webkit-scrollbar {
-    height: 0;
+  .tabs-scrollbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.2s ease;
   }
 
-  .tabs-bar::-webkit-scrollbar-track {
-    background: transparent;
+  .tabs-scrollbar-track {
+    width: 100%;
+    min-width: 120px;
+    height: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--nc-level-3) 70%, var(--nc-level-1) 30%);
+    box-shadow: inset 0 0 0 1px var(--nc-border-subtle);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    position: relative;
+    overflow: hidden;
   }
 
-  .tabs-bar::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    border-radius: 2px;
-    transition: background-color 0.2s ease;
+  .tabs-scrollbar-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--nc-accent) 65%, var(--nc-level-1) 35%);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    pointer-events: none;
   }
 
-  .tabs-bar:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(128, 128, 128, 0.4);
+  .tabs-bar-wrapper.scroll-visible .tabs-scrollbar {
+    opacity: 1;
+    pointer-events: auto;
   }
 
-  .tabs-bar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(128, 128, 128, 0.6);
-  }
-
-  .tabs-bar::-webkit-scrollbar-thumb:active {
-    background-color: rgba(128, 128, 128, 0.8);
+  .tabs-bar-wrapper.scroll-visible .tabs-scrollbar-track,
+  .tabs-bar-wrapper.scroll-visible .tabs-scrollbar-thumb {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .tabs-bar-wrapper.hidden {

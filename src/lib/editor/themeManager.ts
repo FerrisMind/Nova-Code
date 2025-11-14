@@ -212,7 +212,7 @@ export class ThemeManager {
 
     for (const theme of themes) {
       try {
-        const themeData = await import(`monaco-themes/themes/${theme.file}`);
+        const themeData = await import(/* @vite-ignore */ `monaco-themes/themes/${theme.file}`);
         this.monaco.editor.defineTheme(theme.name.toLowerCase().replace(/\s+/g, '-'), themeData.default || themeData);
       } catch (error) {
         console.warn(`Failed to load theme ${theme.name}:`, error);

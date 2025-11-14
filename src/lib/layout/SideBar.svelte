@@ -2,7 +2,7 @@
   import { onDestroy } from 'svelte';
   import { activityStore, type ActivityId } from '../stores/activityStore';
   import { sidebarViews } from './sidebarRegistry';
-  import { layoutState, setLeftSidebarWidth } from '../stores/layout/layoutStore';
+  import { layoutState, setLeftSidebarWidth, setLeftSidebarVisible } from '../stores/layout/layoutStore';
 
   /**
    * Left SideBar:
@@ -15,7 +15,10 @@
    */
 
   const MIN_WIDTH = 180;
-  const MAX_WIDTH = 600;
+  let MAX_WIDTH = 600;
+
+  // Reactive max width: 62.5% of window width
+  $: MAX_WIDTH = Math.floor(window.innerWidth * 0.625);
 
   // Все левые вьюшки из реестра.
   const leftViews = sidebarViews.filter((v) => v.position === 'left');
@@ -31,6 +34,7 @@
 
   // Drag-resize: обработчик на вертикальном хендле справа.
   let isResizing = false;
+  let hideTimer: number | null = null;
 
   const onHandleMouseDown = (event: MouseEvent) => {
     event.preventDefault();
@@ -42,13 +46,34 @@
     const onMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
       const delta = e.clientX - startX;
-      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + delta));
-      setLeftSidebarWidth(next);
+      const proposedWidth = startWidth + delta;
+      if (proposedWidth < MIN_WIDTH) {
+        // Если ширина меньше минимальной, запускаем таймер на скрытие с задержкой
+        if (hideTimer === null) {
+          hideTimer = window.setTimeout(() => {
+            setLeftSidebarVisible(false);
+            hideTimer = null;
+          }, 500);
+        }
+      } else {
+        // Если ширина достаточная, отменяем таймер
+        if (hideTimer !== null) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        const next = Math.min(MAX_WIDTH, proposedWidth);
+        setLeftSidebarWidth(next);
+      }
     };
 
     const onMouseUp = () => {
       if (!isResizing) return;
       isResizing = false;
+      // Очищаем таймер при отпускании мыши
+      if (hideTimer !== null) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
@@ -60,6 +85,11 @@
   // Отписка от activityStore при уничтожении компонента.
   onDestroy(() => {
     unsubscribeActivity();
+    // Очищаем таймер при уничтожении компонента
+    if (hideTimer !== null) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
   });
 </script>
 
@@ -88,7 +118,6 @@
   .sidebar {
     position: relative;
     background-color: var(--nc-level-1);
-    border-right: 1px solid var(--nc-border-subtle);
     color: var(--nc-fg-muted);
     display: flex;
     flex-direction: column;

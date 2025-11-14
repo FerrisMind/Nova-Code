@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
+  import Icon from '../common/Icon.svelte';
+  import { toggleLeftSidebar, toggleBottomPanel } from '../stores/layout/layoutStore';
+  import { editorStore } from '../stores/editorStore';
+  import { openCommandPalette } from '../stores/commandPaletteStore';
 
   let appWindow = getCurrentWindow();
 
@@ -32,6 +36,18 @@
       console.error('Failed to close window', e);
     }
   };
+
+  const handleToggleSidebar = () => {
+    toggleLeftSidebar();
+  };
+
+  const handleToggleBottomPanel = () => {
+    toggleBottomPanel();
+  };
+
+  const handleLayoutCustomization = () => {
+    editorStore.openSettings();
+  };
 </script>
 
 <div class="titlebar" data-tauri-drag-region>
@@ -41,10 +57,24 @@
     </div>
   </div>
 
-  <div class="titlebar-center"></div>
+  <div class="titlebar-center">
+    <button class="command-palette" on:click={openCommandPalette} aria-label="Command Palette">
+      <Icon name="lucide:Search" size={14} />
+      <span class="command-palette-text">Новая папка</span>
+    </button>
+  </div>
 
   <!-- Блок с контролами окна фиксирован справа -->
   <div class="titlebar-right" data-tauri-drag-region="false">
+    <button class="layout-btn" on:click={handleToggleSidebar} aria-label="Toggle Sidebar">
+      <Icon name="lucide:Sidebar" size={16} />
+    </button>
+    <button class="layout-btn" on:click={handleToggleBottomPanel} aria-label="Toggle Bottom Panel">
+      <Icon name="lucide:PanelBottom" size={16} />
+    </button>
+    <button class="layout-btn" on:click={handleLayoutCustomization} aria-label="Layout Customization">
+      <Icon name="lucide:LayoutPanelLeft" size={16} />
+    </button>
     <button class="win-btn" on:click={handleMinimize} aria-label="Minimize">
       <span class="line"></span>
     </button>
@@ -70,13 +100,12 @@
   }
 
   .titlebar {
-    height: 32px;                /* 8 * 4px */
+    height: 40px;                /* Reduced by 4px */
     padding: 0;                  /* без горизонтального паддинга — контролы реально у края */
     display: flex;
     align-items: center;
     background-color: var(--nc-bg);
     color: var(--nc-fg-muted);
-    border-bottom: 1px solid var(--nc-border-subtle);
     -webkit-user-select: none;
     user-select: none;
   }
@@ -90,8 +119,8 @@
   }
 
   .app-icon {
-    width: 16px;                 /* 4 * 4px */
-    height: 16px;                /* 4 * 4px */
+    width: 24px;                 /* Increased size */
+    height: 24px;                /* Increased size */
     border-radius: 4px;          /* 1 * 4px */
   }
 
@@ -105,12 +134,44 @@
 
   .titlebar-center {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .command-palette {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--nc-tab-bg-active);
+    color: var(--nc-fg-muted);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    max-width: 800px;
+    height: 28px;
+    border: 1px solid var(--nc-highlight-subtle);
+    font-size: 12px;
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .command-palette:hover {
+    background-color: var(--nc-tab-bg-hover);
+    border-color: var(--nc-fg-muted);
+  }
+
+  .command-palette-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--nc-fg-muted);
   }
 
   .titlebar-right {
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 4px;
     margin-left: auto;           /* выталкиваем вправо */
   }
 
@@ -122,7 +183,7 @@
 
   .win-btn {
     width: 48px;                 /* 12 * 4px */
-    height: 32px;                /* 8 * 4px */
+    height: 40px;                /* Match titlebar height */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -142,6 +203,26 @@
   .win-btn.win-close:hover {
     background-color: #ef4444;
     color: #ffffff;
+  }
+
+  .layout-btn {
+    width: 32px;                 /* Smaller than win-btn */
+    height: 32px;                /* Smaller than win-btn */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--nc-fg-muted);
+    padding: 0;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .layout-btn:hover {
+    background-color: var(--nc-tab-bg-active);
+    color: var(--nc-fg);
   }
 
   .line {

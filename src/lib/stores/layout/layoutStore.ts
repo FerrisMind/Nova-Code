@@ -58,6 +58,16 @@ export const toggleLeftSidebar = () => {
 };
 
 /**
+ * Установить видимость левой боковой панели.
+ */
+export const setLeftSidebarVisible = (visible: boolean) => {
+  internal.update((state) => ({
+    ...state,
+    leftSidebarVisible: visible
+  }));
+};
+
+/**
  * Переключить видимость правой боковой панели.
  * Правая панель опциональна и готова для Outline/Timeline-подобных вьюшек.
  */

@@ -26,6 +26,13 @@
   let history: CommandDefinition[] = [];
   let activeIndex = 0;
 
+  // Dragging state
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let containerX = 0;
+  let containerY = 0;
+
   // Подписка на стор видимости палитры.
   const unsubscribeOpen = commandPaletteOpen.subscribe((value) => {
     isOpen = value;
@@ -35,6 +42,10 @@
       allCommands = getAllCommands();
       rebuildFiltered();
       activeIndex = 0;
+
+      // Set initial position to center
+      containerX = (window.innerWidth - 520) / 2;
+      containerY = 80;
 
       // Фокус на инпут в следующем тике.
       queueMicrotask(() => {
@@ -229,6 +240,27 @@
       container.scrollTop = eBottom - container.clientHeight;
     }
   }
+
+  // Dragging functions
+  function startDrag(event: MouseEvent): void {
+    isDragging = true;
+    dragStartX = event.clientX - containerX;
+    dragStartY = event.clientY - containerY;
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', stopDrag);
+  }
+
+  function onDrag(event: MouseEvent): void {
+    if (!isDragging) return;
+    containerX = event.clientX - dragStartX;
+    containerY = event.clientY - dragStartY;
+  }
+
+  function stopDrag(): void {
+    isDragging = false;
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', stopDrag);
+  }
 </script>
 
 {#if isOpen}
@@ -247,8 +279,10 @@
       aria-modal="true"
       aria-label="Command Palette"
       tabindex="-1"
+      style="left: {containerX}px; top: {containerY}px;"
       on:click|stopPropagation
       on:keydown={onKeyDown}
+      on:mousedown={startDrag}
     >
       <input
         id="nova-command-palette-input"
@@ -257,6 +291,7 @@
         placeholder="Type a command or search (inspired by VS Code Command Palette)"
         bind:value={query}
         on:input={onInput}
+        on:mousedown|stopPropagation
       />
 
       <div class="nova-command-palette-list">
@@ -306,13 +341,10 @@
     inset: 0;
     z-index: 9000; /* Выше основного layout, но ниже потенциальных системных окон */
     background-color: rgba(0, 0, 0, 0.35);
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 80px; /* 20 * 4px */
   }
 
   .nova-command-palette-container {
+    position: absolute;
     width: 520px; /* 130 * 4px */
     max-height: 420px; /* 105 * 4px */
     background-color: var(--nc-bg-elevated, #111827);
@@ -323,6 +355,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px; /* 1 * 4px */
+    cursor: move;
   }
 
   .nova-command-palette-input {

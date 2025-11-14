@@ -49,7 +49,7 @@
 
   <div class="activity-bottom">
     <button class="activity-btn profile" title="Account">
-      <Icon name="lucide:User" size={18} />
+      <Icon name="lucide:User" size={20} />
     </button>
 
     <!-- Нижняя кнопка настроек: lucide-иконка, согласованная с sidebarRegistry -->
@@ -59,21 +59,20 @@
       class:active={$activityStore === 'settings' && $layoutState.leftSidebarVisible}
       on:click={handleSettingsClick}
     >
-      <Icon name="lucide:Settings" size={18} />
+      <Icon name="lucide:Settings" size={20} />
     </button>
   </div>
 </div>
 
 <style>
   .activity-bar {
-    width: 48px;                         /* 12 * 4px */
+    width: 44px;                         /* Reduced by 4px */
     background-color: var(--nc-level-0);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 8px 0;                      /* 2 * 4px */
-    gap: 4px;                            /* 1 * 4px */
-    border-right: 1px solid var(--nc-border-subtle);
+    gap: 4px;                            /* Back to 4px */
     border-radius: 12px 0 0 12px;
     box-sizing: border-box;
   }
@@ -85,8 +84,8 @@
   .activity-items {
     display: flex;
     flex-direction: column;
-    gap: 4px;                            /* 1 * 4px */
-    margin-top: 0;
+    gap: 4px;                            /* Back to 4px */
+    margin-top: -4px;                     /* Raised by 4px */
   }
 
   .activity-bottom {
@@ -94,14 +93,14 @@
     padding-bottom: 4px;                 /* 1 * 4px */
     display: flex;
     flex-direction: column;
-    gap: 4px;                            /* такое же, как между основными иконками */
+    gap: 4px;                            /* Back to 4px */
     align-items: center;
   }
 
   .activity-btn {
-    width: 36px;                         /* 9 * 4px */
-    height: 36px;                        /* 9 * 4px */
-    border-radius: 8px;                  /* 2 * 4px */
+    width: 32px;                         /* Reduced proportionally */
+    height: 32px;                        /* Reduced proportionally */
+    border-radius: 7px;                  /* Reduced proportionally */
     border: none;
     background: transparent;
     color: var(--nc-fg-muted);
