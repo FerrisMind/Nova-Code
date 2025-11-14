@@ -248,3 +248,28 @@ export function syncWithActiveTab(tabId: string | null): void {
     };
   });
 }
+
+/**
+ * Expand parents and select the provided node in the tree.
+ */
+export function revealNode(node: FileNode | null): void {
+  if (!node) return;
+
+  const files = getWorkspaceFilesSnapshot();
+  const target = findNodeById(files, node.id) ?? findNodeByPath(files, node.path);
+  if (!target || target.type !== 'file') return;
+
+  const parentDirs = collectParentDirs(files, target.id) ?? [];
+
+  internal.update((state) => {
+    const nextExpanded = new Set(state.expanded);
+    for (const dirId of parentDirs) {
+      nextExpanded.add(dirId);
+    }
+    return {
+      ...state,
+      expanded: nextExpanded,
+      selectedFileId: target.id
+    };
+  });
+}

@@ -92,10 +92,22 @@ import type { FileNode } from '../types/fileNode';
         fileTreeActions.openToSide(node);
         break;
       case 'revealInExplorer':
-        // Контрактная точка: при необходимости можно фокусировать/скроллить.
+        fileTreeActions.revealInExplorer(node);
+        break;
+      case 'newFile':
+        fileTreeActions.newFile(node);
+        break;
+      case 'newFolder':
+        fileTreeActions.newFolder(node);
+        break;
+      case 'rename':
+        fileTreeActions.rename(node);
+        break;
+      case 'delete':
+        fileTreeActions.deleteNode(node);
         break;
       default:
-        // Остальные действия будут реализованы через Tauri FS-адаптер.
+        // Other actions will route through the Tauri FS adapter.
         break;
     }
   }
@@ -154,7 +166,7 @@ import type { FileNode } from '../types/fileNode';
       {/if}
     {:else}
       <button
-        class={`row file-row ${isSelected(node) ? 'is-selected' : ''}`}
+        class={`row file-row ${isSelected(node) ? 'is-selected' : ''} ${contextVisible && contextNode?.id === node.id ? 'context-focus' : ''}`}
         style={`padding-left:${baseIndent + depth * perDepth}px`}
         on:click={() => onFileClick(node)}
         on:contextmenu={(e) => onContextMenu(e, node)}
@@ -218,6 +230,14 @@ import type { FileNode } from '../types/fileNode';
 
   .file-row.is-selected {
     background-color: var(--nc-tab-bg-active);
+    color: var(--nc-fg);
+    border-radius: 4px;
+    padding: 0 8px;
+  }
+
+  .file-row.context-focus {
+    /* Match the hover styling so the row stays highlighted while the context menu is open. */
+    background-color: var(--nc-level-5);
     color: var(--nc-fg);
     border-radius: 4px;
     padding: 0 8px;

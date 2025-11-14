@@ -205,7 +205,6 @@
     flex: 1;
     overflow: hidden;
     background-color: var(--nc-tab-bg-active);
-    border-left: 1px solid var(--nc-border-subtle);
     border-radius: 12px;
     margin: 0 4px;
     border-bottom-left-radius: 12px;

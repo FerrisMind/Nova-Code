@@ -22,14 +22,26 @@
 // - serde / serde_json
 // -----------------------------------------------------------------------------
 
+use notify::{event::Event, recommended_watcher, RecommendedWatcher, RecursiveMode, Watcher};
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::{fs, io::Write, path::PathBuf, time::UNIX_EPOCH};
+use std::{
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+    process::Command,
+    sync::{mpsc, Mutex},
+    thread,
+    time::UNIX_EPOCH,
+};
 use tauri::{AppHandle, Emitter, Manager};
 
 #[derive(Debug)]
 struct AppPaths {
     config_dir: PathBuf,
 }
+
+static FILE_WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
 
 impl AppPaths {
     fn new(handle: &tauri::AppHandle) -> Result<Self, String> {
@@ -158,11 +170,7 @@ fn metadata_timestamp(metadata: &fs::Metadata) -> Option<i64> {
         .map(|duration| duration.as_secs() as i64)
 }
 
-fn build_file_entry(
-    path: &std::path::Path,
-    root: &std::path::Path,
-    depth: usize,
-) -> Result<FileEntry, String> {
+fn build_file_entry(path: &Path, root: &Path, depth: usize) -> Result<FileEntry, String> {
     let metadata =
         fs::metadata(path).map_err(|e| format!("Failed to stat {}: {e}", path.display()))?;
     let relative = path.strip_prefix(root).unwrap_or(path);
@@ -196,11 +204,7 @@ fn build_file_entry(
     })
 }
 
-fn read_workspace_entries(
-    dir: &std::path::Path,
-    root: &std::path::Path,
-    depth: usize,
-) -> Result<Vec<FileEntry>, String> {
+fn read_workspace_entries(dir: &Path, root: &Path, depth: usize) -> Result<Vec<FileEntry>, String> {
     let mut entries = Vec::new();
     let dir_iter =
         fs::read_dir(dir).map_err(|e| format!("Failed to read {}: {e}", dir.display()))?;
@@ -244,7 +248,101 @@ async fn read_file(path: String) -> Result<String, String> {
     if !resolved.exists() || !resolved.is_file() {
         return Err(format!("File {} not found", resolved.display()));
     }
-    fs::read_to_string(&resolved).map_err(|e| format!("Failed to read {}: {e}", resolved.display()))
+
+    let data =
+        fs::read(&resolved).map_err(|e| format!("Failed to read {}: {e}", resolved.display()))?;
+
+    String::from_utf8(data).map_err(|_| {
+        format!(
+            "Failed to read {}: stream did not contain valid UTF-8",
+            resolved.display()
+        )
+    })
+}
+
+#[tauri::command]
+async fn create_file(path: String) -> Result<(), String> {
+    let resolved = resolve_path(&path)?;
+    if let Some(parent) = resolved.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directory {}: {e}", parent.display()))?;
+    }
+    fs::File::create(&resolved)
+        .map_err(|e| format!("Failed to create {}: {e}", resolved.display()))?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn create_directory(path: String) -> Result<(), String> {
+    let resolved = resolve_path(&path)?;
+    fs::create_dir_all(&resolved)
+        .map_err(|e| format!("Failed to create directory {}: {e}", resolved.display()))
+}
+
+#[tauri::command]
+async fn rename_file(old_path: String, new_path: String) -> Result<(), String> {
+    let from = resolve_path(&old_path)?;
+    let to = resolve_path(&new_path)?;
+    if let Some(parent) = to.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directory {}: {e}", parent.display()))?;
+    }
+    fs::rename(&from, &to).map_err(|e| format!("Failed to rename: {e}"))
+}
+
+#[tauri::command]
+async fn delete_file(path: String, use_trash: bool) -> Result<(), String> {
+    let resolved = resolve_path(&path)?;
+    if use_trash {
+        trash::delete(&resolved).map_err(|e| format!("Failed to move to trash: {e}"))?;
+    } else if resolved.is_dir() {
+        fs::remove_dir_all(&resolved)
+            .map_err(|e| format!("Failed to delete {}: {e}", resolved.display()))?;
+    } else {
+        fs::remove_file(&resolved)
+            .map_err(|e| format!("Failed to delete {}: {e}", resolved.display()))?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn reveal_in_explorer(path: String) -> Result<(), String> {
+    let resolved = resolve_path(&path)?;
+    if !resolved.exists() {
+        return Err(format!("File {} not found", resolved.display()));
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("explorer")
+            .arg("/select,")
+            .arg(resolved)
+            .status()
+            .map_err(|e| format!("Failed to open Explorer: {e}"))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .arg("-R")
+            .arg(&resolved)
+            .status()
+            .map_err(|e| format!("Failed to reveal file: {e}"))?;
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        let dir = resolved
+            .parent()
+            .ok_or_else(|| "Cannot reveal root path".to_string())?;
+        Command::new("xdg-open")
+            .arg(dir)
+            .status()
+            .map_err(|e| format!("Failed to open directory: {e}"))?;
+    }
+
+    Ok(())
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -268,6 +366,43 @@ async fn write_file(app: AppHandle, request: WriteFileRequest) -> Result<(), Str
         .map_err(|e| format!("Failed to write {}: {e}", resolved.display()))?;
     app.emit("file-changed", request.path)
         .map_err(|e| format!("Failed to emit file change event: {e}"))?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn start_file_watcher(app: AppHandle) -> Result<(), String> {
+    let mut guard = FILE_WATCHER
+        .lock()
+        .map_err(|e| format!("Watcher lock poisoned: {e}"))?;
+
+    if guard.is_some() {
+        return Ok(());
+    }
+
+    let (tx, rx) = mpsc::channel::<Result<Event, notify::Error>>();
+
+    let mut watcher = recommended_watcher(move |res| {
+        let _ = tx.send(res);
+    })
+    .map_err(|e| format!("Failed to create watcher: {e}"))?;
+
+    let watch_path = std::env::current_dir().map_err(|e| format!("Failed to resolve cwd: {e}"))?;
+    watcher
+        .watch(&watch_path, RecursiveMode::Recursive)
+        .map_err(|e| format!("Failed to watch {}: {e}", watch_path.display()))?;
+
+    let app_handle = app.clone();
+    thread::spawn(move || {
+        while let Ok(event_result) = rx.recv() {
+            if let Ok(event) = event_result {
+                for path in event.paths {
+                    let _ = app_handle.emit("file-changed", path.to_string_lossy().to_string());
+                }
+            }
+        }
+    });
+
+    *guard = Some(watcher);
     Ok(())
 }
 
@@ -397,11 +532,18 @@ async fn settings_import(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage::<AppPathsState>(AppPathsState)
         .invoke_handler(tauri::generate_handler![
             read_workspace,
             read_file,
+            create_file,
+            create_directory,
+            rename_file,
+            delete_file,
+            reveal_in_explorer,
             write_file,
+            start_file_watcher,
             settings_profiles_load,
             settings_profiles_save,
             settings_history_load,

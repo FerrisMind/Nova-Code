@@ -1,23 +1,51 @@
 // src/lib/sidebar/fileTreeActions.ts
-// -----------------------------------------------------------------------------
-// Контракты действий для файлового дерева (Explorer).
-//
-// Ответственность:
-// - Описание идентификаторов действий контекстного меню;
-// - Минимальные реализации open / openToSide поверх editorStore / editorGroupsStore;
-// - Контрактные точки для FS-операций (newFile/newFolder/rename/delete) без
-//   прямой зависимости от Tauri (будут реализованы через FS-адаптер).
-//
-// Архитектура и API вдохновлены VS Code Explorer и согласованы с текущим
-// layout Nova Code. Реализация проверена по актуальным практикам VS Code,
-// Svelte 5 и Tauri v2 через context7 и официальную документацию.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------- 
+// Команды файлового Tree в Explorer: открытие, новые файлы/папки, переименование и удаление.
+// ----------------------------------------------------------------------------- 
 
 import type { FileNode } from '../types/fileNode';
 import { editorStore } from '../stores/editorStore';
 import { splitRightFromActive } from '../stores/layout/editorGroupsStore';
+import { revealNode } from '../stores/fileTreeStore';
+import { fileService } from '../services/fileService';
+import { workspaceStore } from '../stores/workspaceStore';
 
-// Идентификаторы действий, доступных в контекстном меню дерева файлов.
+type PathString = string;
+
+const normalize = (value: string): string => value.replace(/\\/g, '/');
+
+const getParentPath = (value: string): string => {
+  const normalized = normalize(value).replace(/\/+$/, '');
+  const idx = normalized.lastIndexOf('/');
+  if (idx <= 0) {
+    return normalized || '.';
+  }
+  return normalized.slice(0, idx);
+};
+
+const joinPath = (dir: string, name: string): string => {
+  const normalizedDir = normalize(dir).replace(/\/+$/, '');
+  if (!normalizedDir || normalizedDir === '.') {
+    return name;
+  }
+  return `${normalizedDir}/${name}`;
+};
+
+const computeTargetDir = (node: FileNode | null): PathString => {
+  if (!node) {
+    return '.';
+  }
+  if (node.type === 'dir') {
+    return node.path;
+  }
+  return getParentPath(node.path);
+};
+
+const handleError = (action: string, error: unknown): void => {
+  console.error(`${action} failed`, error);
+  alert(`${action} failed: ${error}`);
+};
+
 export type FileTreeActionId =
   | 'open'
   | 'openToSide'
@@ -27,11 +55,6 @@ export type FileTreeActionId =
   | 'rename'
   | 'delete';
 
-/**
- * Открыть файл в текущей (активной) группе редактора.
- * - Использует editorStore.ensureTabForFile.
- * - Активирует вкладку.
- */
 export function open(node: FileNode): void {
   if (node.type !== 'file') return;
   editorStore.ensureTabForFile(node.id || node.path, {
@@ -40,63 +63,72 @@ export function open(node: FileNode): void {
   });
 }
 
-/**
- * Открыть файл в правой группе (Open to Side).
- * - Минимальная реализация:
- *   - Гарантирует вкладку для файла.
- *   - Вызывает splitRightFromActive() для переноса активной вкладки вправо.
- * - Поведение аккуратно интегрировано с одногрупповым режимом:
- *   - Если правой группы ещё нет, она будет создана;
- *   - Если нет активной вкладки, splitRightFromActive() ничего не сломает.
- */
 export function openToSide(node: FileNode): void {
   if (node.type !== 'file') return;
 
-  // Гарантируем вкладку (в базовой группе).
   const tab = editorStore.ensureTabForFile(node.id || node.path, {
     activate: true,
     groupId: 1
   });
 
   if (!tab) return;
-
-  // splitRightFromActive:
-  // - создаст новую группу и переместит активную вкладку вправо.
-  // - текущее API editorGroupsStore уже учитывает эти сценарии.
   splitRightFromActive();
 }
 
-/**
- * revealInExplorer:
- * - В текущем Explorer дерево уже отображается.
- * - Функция остаётся для совместимости и будущих сценариев (например, вызов
- *   из поиска или других панелей).
- */
 export function revealInExplorer(_node: FileNode): void {
-  // TODO: При интеграции с глобальными командами можно:
-  // - синхронизировать selection/scroll к нужному узлу;
-  // - использовать fileTreeStore.syncWithActiveTab или прямой выбор.
+  if (!_node) return;
+  fileService.revealInExplorer(_node.path).catch((err) => handleError('Reveal', err));
+  revealNode(_node);
 }
 
-/**
- * Ниже — контрактные точки для действий, требующих реального FS:
- * - newFile / newFolder / rename / delete.
- * Они НЕ бросают ошибок и НЕ вызываются из UI до реализации.
- * Реализация будет добавлена через Tauri FS-адаптер и команды.
- */
+export async function newFile(node: FileNode | null): Promise<void> {
+  const dir = computeTargetDir(node);
+  const path = joinPath(dir, `new-file-${Date.now()}.txt`);
 
-export function newFile(_node: FileNode | null): void {
-  // TODO: Реализовать через Tauri FS-адаптер (create file + обновление workspaceStore).
+  try {
+    await fileService.createFile(path);
+    await workspaceStore.refresh();
+  } catch (error) {
+    handleError('Create file', error);
+  }
 }
 
-export function newFolder(_node: FileNode | null): void {
-  // TODO: Реализовать через Tauri FS-адаптер (create dir + обновление workspaceStore).
+export async function newFolder(node: FileNode | null): Promise<void> {
+  const dir = computeTargetDir(node);
+  const path = joinPath(dir, `new-folder-${Date.now()}`);
+
+  try {
+    await fileService.createDirectory(path);
+    await workspaceStore.refresh();
+  } catch (error) {
+    handleError('Create folder', error);
+  }
 }
 
-export function rename(_node: FileNode): void {
-  // TODO: Реализовать через Tauri FS-адаптер (rename + обновление workspaceStore).
+export async function rename(node: FileNode): Promise<void> {
+  const newName = window.prompt('Rename to', node.name);
+  if (!newName || !newName.trim()) return;
+  const trimmed = newName.trim();
+  const targetDir = getParentPath(node.path);
+  const newPath = joinPath(targetDir, trimmed);
+
+  try {
+    await fileService.renameFile(node.path, newPath);
+    await workspaceStore.refresh();
+  } catch (error) {
+    handleError('Rename', error);
+  }
 }
 
-export function deleteNode(_node: FileNode): void {
-  // TODO: Реализовать через Tauri FS-адаптер (delete + обновление workspaceStore).
+export async function deleteNode(node: FileNode): Promise<void> {
+  const useTrash = window.confirm(
+    'Move to Trash? Press Cancel to delete permanently.'
+  );
+
+  try {
+    await fileService.deleteFile(node.path, useTrash);
+    await workspaceStore.refresh();
+  } catch (error) {
+    handleError('Delete', error);
+  }
 }

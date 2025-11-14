@@ -301,7 +301,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     const fileNode = findFileById(filesTreeProvider(), id);
     if (!fileNode || fileNode.type !== 'file') return;
 
-    await fileService.writeFile(id, value);
+    await fileService.writeFile(fileNode.path, value);
     markDirty(id, false);
   };
 

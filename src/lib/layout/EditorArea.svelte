@@ -94,12 +94,26 @@
    * Получение строк и значения для активного файла.
    * Сейчас используем mocks; далее здесь будет интеграция с workspace/Tauri.
    */
-  const getContent = async (fileId: string) => {
-    const value = await fileService.readFile(fileId);
-    return {
-      lines: value.split(/\r?\n/),
-      value
-    };
+  const getContent = async (fileId: string, filePath?: string) => {
+    if (!filePath) {
+      throw new Error('missing file path for editor');
+    }
+
+    try {
+      const value = await fileService.readFile(filePath);
+      return {
+        lines: value.split(/\r?\n/),
+        value,
+        error: null
+      };
+    } catch (err) {
+      console.warn('[editor] failed to load file', filePath, err);
+      return {
+        lines: [],
+        value: '',
+        error: (err instanceof Error ? err.message : String(err)) || 'Failed to load file'
+      };
+    }
   };
 
   function handleEditorContentChange(fileId: string, value: string) {
@@ -134,7 +148,15 @@
         </div>
       {:else}
         <!-- Локально вычисляем контент для активного файла. -->
-        {#await Promise.resolve(getContent(current.id)) then content}
+        {#await Promise.resolve(getContent(current.id, current.path)) then content}
+          {#if content?.error}
+            <div class="editor-error">
+              <h2>Cannot open file</h2>
+              <p class="path">{current.path || current.id}</p>
+              <p class="message">{content.error}</p>
+              <p class="hint">The file may have been removed or renamed. Close this tab or re-open from Explorer.</p>
+            </div>
+          {:else}
           <MonacoHost
             fileId={current.id}
             uri={`file://${current.path || current.id}`}
@@ -163,6 +185,7 @@
               handleEditorContentChange(e.detail.fileId, e.detail.value)
             }
           />
+          {/if}
         {/await}
       {/if}
     {/key}
@@ -178,6 +201,37 @@
     overflow: hidden;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+  }
+
+  .editor-error {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--nc-fg-muted);
+  }
+
+  .editor-error h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--nc-fg);
+  }
+
+  .editor-error .path {
+    font-family: monospace;
+    opacity: 0.85;
+  }
+
+  .editor-error .message {
+    color: var(--nc-accent);
+    font-size: 13px;
+  }
+
+  .editor-error .hint {
+    font-size: 12px;
+    opacity: 0.7;
   }
 
   .settings-wrapper {

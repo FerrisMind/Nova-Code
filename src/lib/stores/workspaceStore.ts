@@ -13,30 +13,60 @@ interface WorkspaceState {
   files: FileNode[];
   loading: boolean;
   error?: string;
+  root: string | null;
 }
 
-const initialState: WorkspaceState = {
-  name: 'Nova Workspace',
-  files: [],
-  loading: true
+const deriveWorkspaceName = (root: string | null): string => {
+  if (!root || root === '.' || root === './') {
+    return 'Nova Workspace';
+  }
+  const normalized = root.replace(/\\/g, '/').replace(/\/+$/, '');
+  const segments = normalized.split('/');
+  return segments.at(-1) || 'Workspace';
 };
 
-const internal = writable<WorkspaceState>(initialState);
+let currentRoot: string | null = fileService.getWorkspaceRoot() || '.';
+
+const internal = writable<WorkspaceState>({
+  name: deriveWorkspaceName(currentRoot),
+  files: [],
+  loading: true,
+  root: currentRoot
+});
 
 const loadWorkspaceFiles = async () => {
-  try {
-    const files = await fileService.listWorkspaceFiles();
+  if (!currentRoot) {
     internal.set({
-      name: 'Nova Workspace',
+      name: 'No Folder Opened',
+      files: [],
+      loading: false,
+      root: null
+    });
+    return;
+  }
+
+  internal.update((state) => ({
+    ...state,
+    loading: true,
+    root: currentRoot,
+    error: undefined
+  }));
+
+  try {
+    const files = await fileService.listWorkspaceFiles(currentRoot);
+    internal.set({
+      name: deriveWorkspaceName(currentRoot),
       files,
-      loading: false
+      loading: false,
+      root: currentRoot
     });
   } catch (error) {
     internal.set({
-      name: 'Nova Workspace',
+      name: deriveWorkspaceName(currentRoot),
       files: [],
       loading: false,
-      error: String(error)
+      error: String(error),
+      root: currentRoot
     });
   }
 };
@@ -53,6 +83,7 @@ const setupWatcher = async () => {
 };
 
 void setupWatcher();
+void fileService.startFileWatcher();
 void loadWorkspaceFiles();
 
 export const stopWorkspaceWatching = () => {
@@ -64,7 +95,16 @@ export const stopWorkspaceWatching = () => {
 
 export const workspaceStore = {
   subscribe: internal.subscribe,
-  refresh: loadWorkspaceFiles
+  refresh: loadWorkspaceFiles,
+  openFolder: (root: string) => {
+    currentRoot = root;
+    fileService.setWorkspaceRoot(root);
+    void loadWorkspaceFiles();
+  },
+  closeFolder: () => {
+    currentRoot = null;
+    void loadWorkspaceFiles();
+  }
 };
 
 /**

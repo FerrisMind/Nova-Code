@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 
-export type ActivityId = 'explorer' | 'search' | 'git' | 'extensions' | 'settings';
+export type ActivityId = 'explorer' | 'search' | 'scm' | 'extensions' | 'settings';
 
 const createActivityStore = () => {
   const { subscribe, set } = writable<ActivityId>('explorer');

@@ -33,7 +33,7 @@ export interface SidebarViewConfig {
 export const sidebarViews: SidebarViewConfig[] = [
   {
     id: 'explorer',
-    icon: 'lucide:Folders',
+    icon: 'lucide:Files',
     title: 'Explorer',
     component: ExplorerView,
     position: 'left'

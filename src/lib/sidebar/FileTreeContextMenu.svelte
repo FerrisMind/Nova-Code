@@ -67,22 +67,19 @@ import type { FileNode } from '../types/fileNode';
     <button class="ctx-item" type="button" on:click={() => trigger('revealInExplorer')}>
       Reveal in Explorer
     </button>
-    {#if node.type === 'file'}
-      <div class="ctx-separator"></div>
-      <!-- Контрактные пункты под будущий Tauri FS-адаптер; пока не используются -->
-      <button class="ctx-item" type="button" disabled>
-        New File
-      </button>
-      <button class="ctx-item" type="button" disabled>
-        New Folder
-      </button>
-      <button class="ctx-item" type="button" disabled>
-        Rename
-      </button>
-      <button class="ctx-item" type="button" disabled>
-        Delete
-      </button>
-    {/if}
+    <div class="ctx-separator"></div>
+    <button class="ctx-item" type="button" on:click={() => trigger('newFile')}>
+      New File
+    </button>
+    <button class="ctx-item" type="button" on:click={() => trigger('newFolder')}>
+      New Folder
+    </button>
+    <button class="ctx-item" type="button" on:click={() => trigger('rename')}>
+      Rename
+    </button>
+    <button class="ctx-item" type="button" on:click={() => trigger('delete')}>
+      Delete
+    </button>
   </div>
 {/if}
 

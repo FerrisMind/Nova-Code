@@ -11,14 +11,14 @@
   },
   "app": {
     "windows": [
-      {
-        "title": "nova-code",
-        "width": 800,
-        "height": 600,
-        "resizable": true,
+    {
+      "title": "nova-code",
+      "width": 800,
+      "height": 600,
+      "resizable": true,
         "decorations": false
-      }
-    ],
+    }
+  ],
     "security": {
       "csp": null
     }
