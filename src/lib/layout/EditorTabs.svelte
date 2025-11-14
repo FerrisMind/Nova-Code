@@ -323,7 +323,7 @@
     display: flex;
     align-items: stretch;
     height: 100%;
-    background-color: var(--nc-level-1);
+    background-color: var(--nc-level-minus1);
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
@@ -354,7 +354,7 @@
     font-size: 12px;                      /* 3 * 4px */
     color: var(--nc-fg-muted);
     cursor: pointer;
-    background-color: var(--nc-level-1);
+    background-color: var(--nc-level-minus1);
     transition: background-color 0.12s ease, color 0.12s ease;
     border-radius: 8px 8px 0 0;
     flex-shrink: 0;
@@ -453,8 +453,7 @@
     min-width: 120px;
     height: 6px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--nc-level-3) 70%, var(--nc-level-1) 30%);
-    box-shadow: inset 0 0 0 1px var(--nc-border-subtle);
+    background: transparent;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -469,7 +468,7 @@
     transform: translateY(-50%);
     height: 6px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--nc-accent) 65%, var(--nc-level-1) 35%);
+    background: var(--nc-accent);
     opacity: 0;
     transition: opacity 0.2s ease, transform 0.2s ease;
     cursor: pointer;

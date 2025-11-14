@@ -180,9 +180,9 @@ export class ThemeManager {
         { token: 'number', foreground: isDark ? 'B5CEA8' : '09885A' }
       ],
       colors: {
-        'editor.background': palette.backgroundLevels[4],
+        'editor.background': palette.backgroundLevels[1],
         'editor.foreground': palette.textColor,
-        'editor.lineHighlightBackground': palette.backgroundLevels[2],
+        'editor.lineHighlightBackground': palette.backgroundLevels[5],
         'editorCursor.foreground': palette.textColor,
         'editor.selectionBackground': isDark ? '#264F78' : '#ADD6FF',
         'editorLineNumber.foreground': isDark ? '#858585' : '#237893',

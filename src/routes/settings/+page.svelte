@@ -25,7 +25,7 @@
 <style>
   .settings-page-root {
     min-height: 100vh;
-    background: var(--nc-level-2);
+    background: var(--nc-level-1);
     color: var(--nc-palette-text);
     display: flex !important;
     justify-content: center !important;

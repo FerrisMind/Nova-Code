@@ -55,6 +55,7 @@
     root.setAttribute('data-theme', state.mode);
 
     // Уровни фона (palette → CSS custom properties).
+    root.style.setProperty('--nc-level-minus1', palette.backgroundLevelMinus1); // Level -1: Таббар
     root.style.setProperty('--nc-level-0', levels[0]); // Base / shell
     root.style.setProperty('--nc-level-1', levels[1]); // Рабочая область/карточки
     root.style.setProperty('--nc-level-2', levels[2]); // Рабочая область/карточки
@@ -63,7 +64,7 @@
     root.style.setProperty('--nc-level-5', levels[5]); // Hover
 
     // Активный таб
-    root.style.setProperty('--nc-tab-bg-active', levels[4]);
+    root.style.setProperty('--nc-tab-bg-active', levels[1]);
 
     // Текст в соответствии со спецификацией.
     root.style.setProperty('--nc-palette-text', textColor);
@@ -243,11 +244,11 @@
     --nc-tab-bg: var(--nc-level-0);
     
     /* Акцент остается фиксированным */
-    --nc-accent: #3b82f6;
-    --nc-accent-soft: rgba(59, 130, 246, 0.18);
-    --nc-highlight: rgba(59, 130, 246, 0.55);
-    --nc-highlight-subtle: rgba(59, 130, 246, 0.12);
-    --nc-tab-bg-active: var(--nc-level-5);
+    --nc-accent: #6F9DFF;
+    --nc-accent-soft: rgba(111, 157, 255, 0.18);
+    --nc-highlight: rgba(111, 157, 255, 0.55);
+    --nc-highlight-subtle: rgba(111, 157, 255, 0.12);
+    --nc-tab-bg-active: var(--nc-level-1);
     --nc-activity-bg: var(--nc-level-0);
   }
 
@@ -264,11 +265,11 @@
     --nc-tab-bg: var(--nc-level-0);
     
     /* Акцент остается фиксированным */
-    --nc-accent: #2563eb;
-    --nc-accent-soft: rgba(37, 99, 235, 0.12);
-    --nc-highlight: rgba(37, 99, 235, 0.16);
-    --nc-highlight-subtle: rgba(37, 99, 235, 0.08);
-    --nc-tab-bg-active: var(--nc-level-5);
+    --nc-accent: #4F6FAF;
+    --nc-accent-soft: rgba(79, 111, 175, 0.12);
+    --nc-highlight: rgba(79, 111, 175, 0.16);
+    --nc-highlight-subtle: rgba(79, 111, 175, 0.08);
+    --nc-tab-bg-active: var(--nc-level-1);
     --nc-activity-bg: var(--nc-level-0);
   }
 

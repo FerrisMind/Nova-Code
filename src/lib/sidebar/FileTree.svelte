@@ -210,13 +210,17 @@ import type { FileNode } from '../types/fileNode';
   }
 
   .file-row:hover {
-    background-color: var(--nc-tab-bg-active);
+    background-color: var(--nc-level-5);
     color: var(--nc-fg);
+    border-radius: 4px;
+    padding: 0 8px;
   }
 
   .file-row.is-selected {
     background-color: var(--nc-tab-bg-active);
     color: var(--nc-fg);
+    border-radius: 4px;
+    padding: 0 8px;
   }
 
   .name {

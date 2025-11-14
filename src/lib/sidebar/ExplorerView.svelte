@@ -80,7 +80,7 @@ import type { FileNode } from '../types/fileNode';
   .explorer-tree {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 0; /* 2 * 4px */
+    padding: 8px 4px; /* 2 * 4px */
   }
 
   .explorer-tree::-webkit-scrollbar {
