@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { activityStore, type ActivityId } from '../stores/activityStore';
   import { sidebarViews } from './sidebarRegistry';
   import { layoutState, setLeftSidebarWidth, setLeftSidebarVisible } from '../stores/layout/layoutStore';
@@ -14,11 +14,26 @@
    * - не знает о конкретных компонентах, только видимость/размеры контейнеров.
    */
 
-  const MIN_WIDTH = 180;
+  const MIN_WIDTH = 220;
   let MAX_WIDTH = 600;
+  let windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
 
   // Reactive max width: 62.5% of window width
-  $: MAX_WIDTH = Math.floor(window.innerWidth * 0.625);
+  $: MAX_WIDTH = Math.floor(windowWidth * 0.625);
+
+  // Функция обновления размеров окна
+  const updateWindowWidth = () => {
+    windowWidth = window.innerWidth;
+    const newMaxWidth = Math.floor(windowWidth * 0.625);
+    // Если текущая ширина сайдбара больше нового максимума, подгоняем
+    if ($layoutState.leftSidebarWidth > newMaxWidth) {
+      setLeftSidebarWidth(newMaxWidth);
+    }
+    // Если текущая ширина меньше минимума, устанавливаем минимум
+    if ($layoutState.leftSidebarWidth < MIN_WIDTH) {
+      setLeftSidebarWidth(MIN_WIDTH);
+    }
+  };
 
   // Все левые вьюшки из реестра.
   const leftViews = sidebarViews.filter((v) => v.position === 'left');
@@ -82,9 +97,18 @@
     window.addEventListener('mouseup', onMouseUp);
   };
 
+  onMount(() => {
+    // Инициализируем ширину окна
+    updateWindowWidth();
+    // Добавляем обработчик изменения размера окна
+    window.addEventListener('resize', updateWindowWidth);
+  });
+
   // Отписка от activityStore при уничтожении компонента.
   onDestroy(() => {
     unsubscribeActivity();
+    // Удаляем обработчик изменения размера окна
+    window.removeEventListener('resize', updateWindowWidth);
     // Очищаем таймер при уничтожении компонента
     if (hideTimer !== null) {
       clearTimeout(hideTimer);
@@ -106,6 +130,7 @@
          Делаем его тем же паттерном, что и у BottomPanel (тонкий, прозрачно-реактивный). -->
     <div
       class="resize-handle"
+      class:resizing={isResizing}
       role="button"
       aria-label="Resize sidebar"
       tabindex="0"
@@ -137,11 +162,13 @@
     width: 4px;                /* Handle sits in gap between panels */
     height: 100%;
     cursor: col-resize;
-    background: transparent;
+    background-color: transparent;
+    border-radius: 5px;
     z-index: 1;
   }
 
-  .resize-handle:hover {
-    background-color: var(--nc-highlight-subtle);
+  .resize-handle:hover,
+  .resize-handle.resizing {
+    background-color: rgba(128, 128, 128, 0.6);
   }
 </style>

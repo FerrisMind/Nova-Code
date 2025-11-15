@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import Icon from '../common/Icon.svelte';
-  import { toggleLeftSidebar, toggleBottomPanel } from '../stores/layout/layoutStore';
+  import { toggleLeftSidebar, toggleBottomPanel, toggleRightSidebar } from '../stores/layout/layoutStore';
   import { editorStore } from '../stores/editorStore';
   import { openCommandPalette } from '../stores/commandPaletteStore';
 
@@ -41,6 +41,10 @@
     toggleLeftSidebar();
   };
 
+  const handleToggleRightSidebar = () => {
+    toggleRightSidebar();
+  };
+
   const handleToggleBottomPanel = () => {
     toggleBottomPanel();
   };
@@ -66,14 +70,17 @@
 
   <!-- Блок с контролами окна фиксирован справа -->
   <div class="titlebar-right" data-tauri-drag-region="false">
+    <button class="layout-btn" on:click={handleLayoutCustomization} aria-label="Layout Customization">
+      <Icon name="lucide:LayoutPanelLeft" size={16} />
+    </button>
     <button class="layout-btn" on:click={handleToggleSidebar} aria-label="Toggle Sidebar">
       <Icon name="lucide:Sidebar" size={16} />
     </button>
     <button class="layout-btn" on:click={handleToggleBottomPanel} aria-label="Toggle Bottom Panel">
       <Icon name="lucide:PanelBottom" size={16} />
     </button>
-    <button class="layout-btn" on:click={handleLayoutCustomization} aria-label="Layout Customization">
-      <Icon name="lucide:LayoutPanelLeft" size={16} />
+    <button class="layout-btn" on:click={handleToggleRightSidebar} aria-label="Toggle Right Sidebar">
+      <Icon name="lucide:PanelRight" size={16} />
     </button>
     <button class="win-btn" on:click={handleMinimize} aria-label="Minimize">
       <span class="line"></span>

@@ -31,8 +31,8 @@ const initialState: LayoutState = {
   // с bottomPanelStore, чтобы не ломать существующий API.
   bottomPanelVisible: false,
 
-  leftSidebarWidth: 260,
-  rightSidebarWidth: 260,
+  leftSidebarWidth: 280,
+  rightSidebarWidth: 280,
   bottomPanelHeight: 180
 };
 
@@ -64,6 +64,16 @@ export const setLeftSidebarVisible = (visible: boolean) => {
   internal.update((state) => ({
     ...state,
     leftSidebarVisible: visible
+  }));
+};
+
+/**
+ * Установить видимость правой боковой панели.
+ */
+export const setRightSidebarVisible = (visible: boolean) => {
+  internal.update((state) => ({
+    ...state,
+    rightSidebarVisible: visible
   }));
 };
 

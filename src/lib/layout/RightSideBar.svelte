@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
   import { sidebarViews } from './sidebarRegistry';
-  import { layoutState, setRightSidebarWidth } from '../stores/layout/layoutStore';
+  import { layoutState, setRightSidebarWidth, setRightSidebarVisible } from '../stores/layout/layoutStore';
 
   /**
    * RightSideBar:
@@ -15,20 +16,36 @@
    * - готова к расширению до отдельного activityStore справа без ломки API.
    */
 
-  const MIN_WIDTH = 180;
-  const MAX_WIDTH = 600;
+  const MIN_WIDTH = 220;
+  let windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+
+  // Reactive max width: 70% of window width
+  const MAX_WIDTH = $derived(Math.floor(windowWidth * 0.7));
+
+  // Функция обновления размеров окна
+  const updateWindowWidth = () => {
+    windowWidth = window.innerWidth;
+    const newMaxWidth = Math.floor(windowWidth * 0.7);
+    // Если текущая ширина сайдбара больше нового максимума, подгоняем
+    if ($layoutState.rightSidebarWidth > newMaxWidth) {
+      setRightSidebarWidth(newMaxWidth);
+    }
+    // Если текущая ширина меньше минимума, устанавливаем минимум
+    if ($layoutState.rightSidebarWidth < MIN_WIDTH) {
+      setRightSidebarWidth(MIN_WIDTH);
+    }
+  };
 
   // Все правые вьюшки. На данный момент реальные right-views не зарегистрированы,
   // поэтому панель остаётся пассивной до появления конкретных компонентов.
-  const rightViews = sidebarViews.filter((v) => v.position === 'right');
+  const rightViews = $derived(sidebarViews.filter((v) => v.position === 'right'));
 
   // Пока активным считается первый зарегистрированный right-view (если он есть).
-  $: activeRightView = rightViews[0];
+  const activeRightView = $derived(rightViews[0]);
 
   let isResizing = false;
 
   const onHandleMouseDown = (event: MouseEvent) => {
-    if (!activeRightView) return;
     event.preventDefault();
     isResizing = true;
 
@@ -37,8 +54,7 @@
 
     const onMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-      // Хендл слева: положительное смещение влево увеличивает ширину.
-      const delta = startX - e.clientX;
+      const delta = e.clientX - startX;
       const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + delta));
       setRightSidebarWidth(next);
     };
@@ -53,48 +69,42 @@
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   };
+
+  onMount(() => {
+    // Инициализируем ширину окна
+    updateWindowWidth();
+    // Добавляем обработчик изменения размера окна
+    window.addEventListener('resize', updateWindowWidth);
+  });
+
+  onDestroy(() => {
+    // Удаляем обработчик изменения размера окна
+    window.removeEventListener('resize', updateWindowWidth);
+  });
 </script>
 
-{#if $layoutState.rightSidebarVisible && activeRightView}
+{#if $layoutState.rightSidebarVisible}
   <div
     class="right-sidebar"
     style={`width: ${$layoutState.rightSidebarWidth}px`}
   >
-    <svelte:component this={activeRightView.component} />
-
-    <!-- Ручка слева для изменения ширины правой панели: интерактивный элемент button -->
-    <button
-      class="resize-handle-left"
-      type="button"
-      aria-label="Resize right sidebar"
-      on:mousedown={onHandleMouseDown}
-    ></button>
+    {#if activeRightView}
+      {@const Component = activeRightView.component}
+      <Component />
+    {/if}
   </div>
 {/if}
 
 <style>
   .right-sidebar {
     position: relative;
-    background-color: var(--nc-bg);
-    border-left: 1px solid var(--nc-border-subtle);
+    background-color: var(--nc-level-1);
     color: var(--nc-fg-muted);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
-  }
-
-  .resize-handle-left {
-    position: absolute;
-    top: 0;
-    left: -2px;
-    width: 4px;
-    height: 100%;
-    cursor: col-resize;
-    background: transparent;
-  }
-
-  .resize-handle-left:hover {
-    background-color: var(--nc-highlight-subtle);
+    border-radius: 12px;
+    margin-right: 4px;
   }
 </style>

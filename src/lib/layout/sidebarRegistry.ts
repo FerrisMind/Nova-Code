@@ -4,6 +4,7 @@ import ExplorerView from '../sidebar/ExplorerView.svelte';
 import SearchView from '../sidebar/SearchView.svelte';
 import GitView from '../sidebar/GitView.svelte';
 import ExtensionsView from '../sidebar/ExtensionsView.svelte';
+import OutlineView from '../sidebar/OutlineView.svelte';
 
 /**
  * Реестр конфигураций боковых представлений.
@@ -60,5 +61,12 @@ export const sidebarViews: SidebarViewConfig[] = [
     title: 'Extensions',
     component: ExtensionsView,
     position: 'left'
+  },
+  {
+    id: 'outline',
+    icon: 'lucide:List',
+    title: 'Outline',
+    component: OutlineView,
+    position: 'right'
   }
 ];

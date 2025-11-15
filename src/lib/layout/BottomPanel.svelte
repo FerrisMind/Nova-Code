@@ -41,7 +41,7 @@
   // Drag-resize сверху: двигаем границу и обновляем bottomPanelHeight.
   const MIN_HEIGHT = 120;
   const MAX_HEIGHT = 480;
-  let isResizing = false;
+  let isResizing = $state(false);
 
   const onHandleMouseDown = (event: MouseEvent) => {
     event.preventDefault();
@@ -85,6 +85,7 @@
          тонкая прозрачная зона по границе, проявляется только по hover. -->
     <div
       class="resize-handle-top"
+      class:resizing={isResizing}
       role="button"
       aria-label="Resize bottom panel"
       tabindex="0"
@@ -143,11 +144,13 @@
     right: 0;
     height: 4px;         /* тонкая зона захвата */
     cursor: row-resize;
-    background: transparent;
+    background-color: transparent;
+    border-radius: 5px;
   }
 
-  .resize-handle-top:hover {
-    background-color: var(--nc-highlight-subtle);
+  .resize-handle-top:hover,
+  .resize-handle-top.resizing {
+    background-color: rgba(128, 128, 128, 0.6);
   }
 
   .bottom-header {

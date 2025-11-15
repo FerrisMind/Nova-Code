@@ -9,7 +9,7 @@
   import BottomPanel from '../lib/layout/BottomPanel.svelte';
   import StatusBar from '../lib/layout/StatusBar.svelte';
   import CommandPalette from '../lib/commands/CommandPalette.svelte';
-  import { layoutState, toggleLeftSidebar } from '../lib/stores/layout/layoutStore';
+  import { layoutState, toggleLeftSidebar, setRightSidebarWidth, setRightSidebarVisible } from '../lib/stores/layout/layoutStore';
   import { initDefaultCommands } from '../lib/commands/defaultCommands';
   import { openCommandPalette } from '../lib/stores/commandPaletteStore';
 
@@ -30,6 +30,10 @@
     mode: 'dark',
     palette: 'dark-default'
   });
+
+  // Right sidebar resizing state
+  let isRightResizing = $state(false);
+  let rightHideTimer: number | null = null;
 
   /**
    * Установить CSS-переменные для текущей темы и палитры
@@ -80,9 +84,9 @@
     document.documentElement.className = `theme-${state.mode}`;
   };
 
-  // Применить цвета при монтировании и при изменении темы
+  // Apply colors when mounting and on theme change
   onMount(() => {
-    // Инициализация темы
+    // Theme initialization
     const currentState = theme.getState();
     themeState = currentState;
     applyThemeColors(currentState);
@@ -92,30 +96,30 @@
       applyThemeColors(newState);
     });
 
-    // Инициализация базовых команд (идемпотентна).
+    // Initialize base commands (idempotent).
     initDefaultCommands();
 
-    // Глобальные хоткеи workbench-уровня:
-    // - Ctrl+B: toggle left sidebar (VS Code-like) — уже использовался.
-    // - F1 / Ctrl+Shift+P / Cmd+Shift+P: открыть Command Palette.
+    // Global workbench hotkeys:
+    // - Ctrl+B: toggle left sidebar (VS Code-like).
+    // - F1 / Ctrl+Shift+P / Cmd+Shift+P: open Command Palette.
     const onKeyDown = (e: KeyboardEvent) => {
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
 
-      // Ctrl+B — переключение левого сайдбара.
+      // Ctrl+B — toggle left sidebar.
       if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
         toggleLeftSidebar();
         return;
       }
 
-      // F1 — открыть палитру команд.
+      // F1 — open command palette.
       if (e.key === 'F1') {
         e.preventDefault();
         openCommandPalette();
         return;
       }
 
-      // Ctrl+Shift+P / Cmd+Shift+P — открыть палитру команд.
+      // Ctrl+Shift+P / Cmd+Shift+P — open command palette.
       if (isCtrlOrCmd && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
         e.preventDefault();
         openCommandPalette();
@@ -130,6 +134,57 @@
       window.removeEventListener('keydown', onKeyDown);
     };
   });
+
+  // Right sidebar resize handler
+  const MIN_RIGHT_WIDTH = 220;
+  const MAX_RIGHT_WIDTH_RATIO = 0.625;
+
+  const handleRightSidebarResize = (event: MouseEvent) => {
+    event.preventDefault();
+    isRightResizing = true;
+
+    const startX = event.clientX;
+    const startWidth = $layoutState.rightSidebarWidth;
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isRightResizing) return;
+      const delta = startX - e.clientX;
+      const proposedWidth = startWidth + delta;
+      if (proposedWidth < MIN_RIGHT_WIDTH) {
+        // Если ширина меньше минимальной, запускаем таймер на скрытие с задержкой
+        if (rightHideTimer === null) {
+          rightHideTimer = window.setTimeout(() => {
+            setRightSidebarVisible(false);
+            rightHideTimer = null;
+          }, 500);
+        }
+      } else {
+        // Если ширина достаточная, отменяем таймер
+        if (rightHideTimer !== null) {
+          clearTimeout(rightHideTimer);
+          rightHideTimer = null;
+        }
+        const maxWidth = Math.floor(window.innerWidth * MAX_RIGHT_WIDTH_RATIO);
+        const next = Math.min(maxWidth, proposedWidth);
+        setRightSidebarWidth(next);
+      }
+    };
+
+    const onMouseUp = () => {
+      if (!isRightResizing) return;
+      isRightResizing = false;
+      // Очищаем таймер при отпускании мыши
+      if (rightHideTimer !== null) {
+        clearTimeout(rightHideTimer);
+        rightHideTimer = null;
+      }
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
 </script>
 
 <div class={`nova-root theme-${themeState.mode}`}>
@@ -150,6 +205,18 @@
         </div>
         {@render children?.()}
       </div>
+
+      <!-- Resize handle для правой панели (между editor region и правой панелью) -->
+      {#if $layoutState.rightSidebarVisible}
+        <div
+          class="right-resize-handle"
+          class:resizing={isRightResizing}
+          role="button"
+          aria-label="Resize right sidebar"
+          tabindex="0"
+          onmousedown={handleRightSidebarResize}
+        ></div>
+      {/if}
 
       <!-- Правая боковая панель (опциональная, управляется layoutStore) -->
       <RightSideBar />
@@ -193,6 +260,7 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+    position: relative;
   }
 
   .nova-center.sidebar-hidden .nova-editor-region {
@@ -206,7 +274,7 @@
     overflow: hidden;
     background-color: var(--nc-tab-bg-active);
     border-radius: 12px;
-    margin: 0 4px;
+    margin: 0 0 0 4px;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
   }
@@ -228,6 +296,22 @@
   .nova-editor-stack > :global(.editor-area-root) {
     flex: 1;
     min-height: 0;
+  }
+
+  /* Right sidebar resize handle */
+  .right-resize-handle {
+    flex-shrink: 0;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    background-color: transparent;
+    border-radius: 5px;
+    z-index: 1;
+  }
+
+  .right-resize-handle:hover,
+  .right-resize-handle.resizing {
+    background-color: rgba(128, 128, 128, 0.6);
   }
 
   .theme-dark {
