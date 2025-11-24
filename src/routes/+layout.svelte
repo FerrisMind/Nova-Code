@@ -193,7 +193,7 @@
   <div class="nova-main">
     <ActivityBar />
 
-    <div class="nova-center" class:sidebar-hidden={!$layoutState.leftSidebarVisible}>
+    <div class="nova-center" class:sidebar-hidden={!$layoutState.leftSidebarVisible} class:right-sidebar-visible={$layoutState.rightSidebarVisible}>
       <SideBar />
 
       <!-- EditorRegion + BottomPanel делят вертикаль; справа опциональный RightSideBar -->
@@ -263,8 +263,16 @@
     position: relative;
   }
 
+  .nova-center.right-sidebar-visible {
+    gap: 0px;
+  }
+
   .nova-center.sidebar-hidden .nova-editor-region {
     margin-left: 0;
+  }
+
+  .nova-center:not(.right-sidebar-visible) .nova-editor-region {
+    margin-right: 4px;
   }
 
   .nova-editor-region {
