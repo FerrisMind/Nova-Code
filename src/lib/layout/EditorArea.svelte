@@ -17,18 +17,21 @@
   // - подписка на change-события MonacoHost для isDirty / синхронизации с Tauri.
   // - подключение diff-режима и IntelliSense-провайдеров на базе EditorCore.
 
-  import { onDestroy } from 'svelte';
-  import { activeEditor, editorStore } from '../stores/editorStore';
-  import { fileService } from '../services/fileService';
-  import MonacoHost from '../editor/MonacoHost.svelte';
-  import { editorSettings } from '../stores/editorSettingsStore';
-  import SettingsShell from '$lib/settings/layout/SettingsShell.svelte';
-  import WelcomeScreen from './WelcomeScreen.svelte';
-  import { editorBehaviorStore } from '../stores/editorBehaviorStore';
+  import { onDestroy } from "svelte";
+  import { activeEditor, editorStore } from "../stores/editorStore";
+  import { fileService } from "../services/fileService";
+  import MonacoHost from "../editor/MonacoHost.svelte";
+  import { editorSettings } from "../stores/editorSettingsStore";
+  import SettingsShell from "$lib/settings/layout/SettingsShell.svelte";
+  import WelcomeScreen from "./WelcomeScreen.svelte";
+  import { editorBehaviorStore } from "../stores/editorBehaviorStore";
+  import Breadcrumbs from "./Breadcrumbs.svelte";
 
-  let current = $state(null as import('../stores/editorStore').EditorTab | null);
+  let current = $state(
+    null as import("../stores/editorStore").EditorTab | null,
+  );
   let editorOptions = $state(editorSettings.getSettings());
-  let backgroundColor = $state('var(--nc-level-1)');
+  let backgroundColor = $state("var(--nc-level-1)");
 
   let autoSaveEnabled = editorBehaviorStore.getAutoSave();
   let autoSaveDelay = editorBehaviorStore.getAutoSaveDelay();
@@ -48,7 +51,7 @@
     try {
       await editorStore.updateContent(pendingSave.fileId, pendingSave.value);
     } catch (error) {
-      console.error('[auto-save] failed to persist', error);
+      console.error("[auto-save] failed to persist", error);
     }
     pendingSave = null;
     clearAutoSaveTimer();
@@ -64,7 +67,7 @@
 
   const unsub = activeEditor.subscribe(($active) => {
     current = $active;
-    backgroundColor = $active ? 'var(--nc-tab-bg-active)' : 'var(--nc-level-1)';
+    backgroundColor = $active ? "var(--nc-tab-bg-active)" : "var(--nc-level-1)";
   });
 
   // Подписка на изменения настроек редактора
@@ -96,7 +99,7 @@
    */
   const getContent = async (fileId: string, filePath?: string) => {
     if (!filePath) {
-      throw new Error('missing file path for editor');
+      throw new Error("missing file path for editor");
     }
 
     try {
@@ -104,14 +107,16 @@
       return {
         lines: value.split(/\r?\n/),
         value,
-        error: null
+        error: null,
       };
     } catch (err) {
-      console.warn('[editor] failed to load file', filePath, err);
+      console.warn("[editor] failed to load file", filePath, err);
       return {
         lines: [],
-        value: '',
-        error: (err instanceof Error ? err.message : String(err)) || 'Failed to load file'
+        value: "",
+        error:
+          (err instanceof Error ? err.message : String(err)) ||
+          "Failed to load file",
       };
     }
   };
@@ -139,14 +144,12 @@
     <WelcomeScreen />
   {:else}
     {#key current.id}
-      {#if current.id === 'settings'}
+      {#if current.id === "settings"}
         <div class="settings-wrapper">
-          <SettingsShell
-            id="editor-settings-shell"
-            compactMode={false}
-          />
+          <SettingsShell id="editor-settings-shell" compactMode={false} />
         </div>
       {:else}
+        <Breadcrumbs />
         <!-- Локально вычисляем контент для активного файла. -->
         {#await Promise.resolve(getContent(current.id, current.path)) then content}
           {#if content?.error}
@@ -154,37 +157,42 @@
               <h2>Cannot open file</h2>
               <p class="path">{current.path || current.id}</p>
               <p class="message">{content.error}</p>
-              <p class="hint">The file may have been removed or renamed. Close this tab or re-open from Explorer.</p>
+              <p class="hint">
+                The file may have been removed or renamed. Close this tab or
+                re-open from Explorer.
+              </p>
             </div>
           {:else}
-          <MonacoHost
-            fileId={current.id}
-            uri={`file://${current.path || current.id}`}
-            value={content.value}
-            language={current.language}
-            options={{
-              theme: editorOptions.theme,
-              tabSize: editorOptions.tabSize,
-              insertSpaces: editorOptions.insertSpaces,
-              wordWrap: editorOptions.wordWrap,
-              wordWrapColumn: editorOptions.wordWrapColumn,
-              minimap: {
-                enabled: editorOptions.minimap
-              },
-              folding: editorOptions.folding,
-              bracketPairColorization: {
-                enabled: editorOptions.bracketPairColorization
-              },
-              fontSize: editorOptions.fontSize,
-              fontFamily: editorOptions.fontFamily,
-              fontLigatures: editorOptions.fontLigatures,
-              renderWhitespace: editorOptions.renderWhitespace,
-              lineNumbers: editorOptions.lineNumbers
-            }}
-            on:change={(e) =>
-              handleEditorContentChange(e.detail.fileId, e.detail.value)
-            }
-          />
+            <MonacoHost
+              fileId={current.id}
+              uri={`file://${current.path || current.id}`}
+              value={content.value}
+              language={current.language}
+              options={{
+                theme: editorOptions.theme,
+                tabSize: editorOptions.tabSize,
+                insertSpaces: editorOptions.insertSpaces,
+                wordWrap: editorOptions.wordWrap,
+                wordWrapColumn: editorOptions.wordWrapColumn,
+                minimap: {
+                  enabled: editorOptions.minimap,
+                },
+                folding: editorOptions.folding,
+                bracketPairColorization: {
+                  enabled: editorOptions.bracketPairColorization,
+                },
+                fontSize: editorOptions.fontSize,
+                fontFamily: editorOptions.fontFamily,
+                fontLigatures: editorOptions.fontLigatures,
+                renderWhitespace: editorOptions.renderWhitespace,
+                lineNumbers: editorOptions.lineNumbers,
+                autoClosingBrackets: "always",
+                autoClosingQuotes: "always",
+                autoClosingOvertype: "always",
+              }}
+              on:change={(e) =>
+                handleEditorContentChange(e.detail.fileId, e.detail.value)}
+            />
           {/if}
         {/await}
       {/if}
@@ -197,6 +205,7 @@
     position: relative;
     flex: 1;
     display: flex;
+    flex-direction: column;
     color: var(--nc-fg);
     overflow: hidden;
     border-bottom-left-radius: 12px;

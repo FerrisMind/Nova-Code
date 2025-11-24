@@ -12,19 +12,19 @@
   // цветовой/типографической системой Nova Code.
   // ---------------------------------------------------------------------------
 
-import type { FileNode } from '../types/fileNode';
-  import Icon from '../common/Icon.svelte';
-  import { getLanguageIcon } from '../mocks/languageIcons';
+  import type { FileNode } from "../types/fileNode";
+  import Icon from "../common/Icon.svelte";
+  import { getLanguageIcon } from "../mocks/languageIcons";
   import {
     fileTreeState,
     toggleDir,
     selectFile,
-    type FileNodeId
-  } from '../stores/fileTreeStore';
-  import { editorStore } from '../stores/editorStore';
-  import * as fileTreeActions from './fileTreeActions';
-  import FileTreeContextMenu from './FileTreeContextMenu.svelte';
-  import { createEventDispatcher } from 'svelte';
+    type FileNodeId,
+  } from "../stores/fileTreeStore";
+  import { editorStore } from "../stores/editorStore";
+  import * as fileTreeActions from "./fileTreeActions";
+  import FileTreeContextMenu from "./FileTreeContextMenu.svelte";
+  import { createEventDispatcher } from "svelte";
 
   export let nodes: FileNode[] = [];
   export let depth: number = 0;
@@ -50,13 +50,9 @@ import type { FileNode } from '../types/fileNode';
     selectFile(node.id as FileNodeId);
     editorStore.ensureTabForFile(node.id || node.path, {
       activate: true,
-      groupId: 1
+      groupId: 1,
     });
-    dispatch('open', { node });
-  }
-
-  function isSelected(node: FileNode): boolean {
-    return $fileTreeState?.selectedFileId === node.id;
+    dispatch("open", { node });
   }
 
   function onContextMenu(event: MouseEvent, node: FileNode): void {
@@ -68,31 +64,34 @@ import type { FileNode } from '../types/fileNode';
   }
 
   function handleContextAction(
-    event: CustomEvent<{ id: fileTreeActions.FileTreeActionId; node: FileNode }>
+    event: CustomEvent<{
+      id: fileTreeActions.FileTreeActionId;
+      node: FileNode;
+    }>,
   ): void {
     const { id, node } = event.detail;
     contextVisible = false;
 
     switch (id) {
-      case 'open':
+      case "open":
         fileTreeActions.open(node);
         break;
-      case 'openToSide':
+      case "openToSide":
         fileTreeActions.openToSide(node);
         break;
-      case 'revealInExplorer':
+      case "revealInExplorer":
         fileTreeActions.revealInExplorer(node);
         break;
-      case 'newFile':
+      case "newFile":
         fileTreeActions.newFile(node);
         break;
-      case 'newFolder':
+      case "newFolder":
         fileTreeActions.newFolder(node);
         break;
-      case 'rename':
+      case "rename":
         fileTreeActions.rename(node);
         break;
-      case 'delete':
+      case "delete":
         fileTreeActions.deleteNode(node);
         break;
       default:
@@ -109,7 +108,7 @@ import type { FileNode } from '../types/fileNode';
 
 <div class="file-tree">
   {#each nodes as node (node.id)}
-    {#if node.type === 'dir'}
+    {#if node.type === "dir"}
       <div
         class="row dir-row"
         style={`padding-left:${baseIndent + depth * perDepth}px`}
@@ -118,18 +117,23 @@ import type { FileNode } from '../types/fileNode';
         aria-expanded={$fileTreeState.expanded.has(node.id)}
         on:click={() => onDirClick(node)}
         on:keydown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
+          if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             onDirClick(node);
           }
-          if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+          if (
+            event.key === "ContextMenu" ||
+            (event.shiftKey && event.key === "F10")
+          ) {
             event.preventDefault();
-            const rect = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
-            const syntheticEvent = new MouseEvent('contextmenu', {
+            const rect = (
+              event.currentTarget as HTMLDivElement
+            ).getBoundingClientRect();
+            const syntheticEvent = new MouseEvent("contextmenu", {
               bubbles: true,
               cancelable: true,
               clientX: rect.left,
-              clientY: rect.top
+              clientY: rect.top,
             });
             onContextMenu(syntheticEvent, node);
           }
@@ -137,7 +141,9 @@ import type { FileNode } from '../types/fileNode';
         on:contextmenu={(e) => onContextMenu(e, node)}
       >
         <Icon
-          name={$fileTreeState.expanded.has(node.id) ? 'lucide:chevron-down' : 'lucide:chevron-right'}
+          name={$fileTreeState.expanded.has(node.id)
+            ? "lucide:chevron-down"
+            : "lucide:chevron-right"}
           size={14}
           className="chevron"
         />
@@ -150,7 +156,10 @@ import type { FileNode } from '../types/fileNode';
       {/if}
     {:else}
       <button
-        class={`row file-row ${isSelected(node) ? 'is-selected' : ''} ${contextVisible && contextNode?.id === node.id ? 'context-focus' : ''}`}
+        class="row file-row"
+        class:is-selected={$fileTreeState?.selectedFileId === node.id}
+        class:is-active={$editorStore?.activeEditorId === node.id}
+        class:context-focus={contextVisible && contextNode?.id === node.id}
         style={`padding-left:${baseIndent + depth * perDepth}px`}
         on:click={() => onFileClick(node)}
         on:contextmenu={(e) => onContextMenu(e, node)}
@@ -221,7 +230,15 @@ import type { FileNode } from '../types/fileNode';
   }
 
   .file-row.is-selected {
-    background-color: var(--nc-tab-bg-active);
+    background-color: var(--nc-level-5);
+    color: var(--nc-fg);
+    border-radius: 4px;
+    padding: 0 8px;
+  }
+
+  .file-row.is-active {
+    /* Постоянная подсветка активного файла (как hover, но не отключается) */
+    background-color: var(--nc-level-5);
     color: var(--nc-fg);
     border-radius: 4px;
     padding: 0 8px;

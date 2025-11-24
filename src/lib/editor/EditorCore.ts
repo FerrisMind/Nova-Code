@@ -75,6 +75,9 @@ export interface EditorCoreOptions {
   fontLigatures?: boolean;
   renderWhitespace?: 'selection' | 'boundary' | 'trailing' | 'all' | 'none';
   lineNumbers?: 'on' | 'off' | 'relative' | 'interval';
+  autoClosingBrackets?: 'always' | 'languageDefined' | 'beforeWhitespace' | 'never';
+  autoClosingQuotes?: 'always' | 'languageDefined' | 'beforeWhitespace' | 'never';
+  autoClosingOvertype?: 'always' | 'auto' | 'never';
 }
 
 /**
@@ -399,6 +402,9 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         minimap,
         bracketPairColorization,
         theme,
+        autoClosingBrackets,
+        autoClosingQuotes,
+        autoClosingOvertype,
         ...editorOptions
       } = state.options;
 
@@ -414,6 +420,9 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         lineNumbers: editorOptions.lineNumbers ?? 'on',
         bracketPairColorization: bracketPairColorization ?? { enabled: true },
         readOnly: editorOptions.readOnly ?? false,
+        autoClosingBrackets: autoClosingBrackets ?? 'always',
+        autoClosingQuotes: autoClosingQuotes ?? 'always',
+        autoClosingOvertype: autoClosingOvertype ?? 'always',
         theme,
         scrollbar: {
           vertical: 'auto',

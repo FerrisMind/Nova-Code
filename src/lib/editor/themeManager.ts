@@ -196,26 +196,32 @@ export class ThemeManager {
   /**
    * Загрузить популярные темы из monaco-themes
    */
+  /**
+   * Загрузить популярные темы из monaco-themes
+   */
   async loadPopularThemes(): Promise<void> {
     if (!this.monaco) return;
 
-    const themes = [
-      { name: 'Monokai', file: 'Monokai.json', base: 'vs-dark' },
-      { name: 'Dracula', file: 'Dracula.json', base: 'vs-dark' },
-      { name: 'One Dark Pro', file: 'One Dark Pro.json', base: 'vs-dark' },
-      { name: 'Material Dark', file: 'Material.json', base: 'vs-dark' },
-      { name: 'Nord', file: 'Nord.json', base: 'vs-dark' },
-      { name: 'GitHub Light', file: 'GitHub Light.json', base: 'vs' },
-      { name: 'Solarized Light', file: 'Solarized Light.json', base: 'vs' },
-      { name: 'Atom One Light', file: 'Atom One Light.json', base: 'vs' }
-    ];
+    // Explicitly import themes to avoid Vite dynamic import issues with node_modules
+    // Only importing themes that actually exist in the package
+    const themes = {
+      'monokai': await import('monaco-themes/themes/Monokai.json'),
+      'dracula': await import('monaco-themes/themes/Dracula.json'),
+      'nord': await import('monaco-themes/themes/Nord.json'),
+      'github-light': await import('monaco-themes/themes/GitHub Light.json'),
+      'github-dark': await import('monaco-themes/themes/GitHub Dark.json'),
+      'solarized-light': await import('monaco-themes/themes/Solarized-light.json'),
+      'solarized-dark': await import('monaco-themes/themes/Solarized-dark.json'),
+      'night-owl': await import('monaco-themes/themes/Night Owl.json')
+    };
 
-    for (const theme of themes) {
+    for (const [id, themeModule] of Object.entries(themes)) {
       try {
-        const themeData = await import(/* @vite-ignore */ `monaco-themes/themes/${theme.file}`);
-        this.monaco.editor.defineTheme(theme.name.toLowerCase().replace(/\s+/g, '-'), themeData.default || themeData);
+        // The JSON is the default export or the module itself depending on setup
+        const themeData = themeModule.default || themeModule;
+        this.monaco.editor.defineTheme(id, themeData as any);
       } catch (error) {
-        console.warn(`Failed to load theme ${theme.name}:`, error);
+        console.warn(`Failed to load theme ${id}:`, error);
       }
     }
   }

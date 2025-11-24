@@ -1,25 +1,35 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
-  import { onDestroy } from 'svelte';
+  import { get } from "svelte/store";
+  import { onDestroy } from "svelte";
   // Tauri v2: dialog API lives in plugin package
-  import { open } from '@tauri-apps/plugin-dialog';
-  import FileTree from './FileTree.svelte';
-  import { activeEditor, editorStore } from '../stores/editorStore';
-  import { syncWithActiveTab } from '../stores/fileTreeStore';
-  import { workspaceStore } from '../stores/workspaceStore';
-  import { fileService } from '../services/fileService';
+  import { open } from "@tauri-apps/plugin-dialog";
+  import FileTree from "./FileTree.svelte";
+  import { activeEditor, editorStore } from "../stores/editorStore";
+  import { syncWithActiveTab } from "../stores/fileTreeStore";
+  import { workspaceStore } from "../stores/workspaceStore";
+  import { fileService } from "../services/fileService";
 
   const unsubscribeActive = activeEditor.subscribe((editor) => {
     syncWithActiveTab(editor?.id ?? null);
   });
 
+  const unsubscribeWorkspace = workspaceStore.subscribe((ws) => {
+    if (!ws.loading && ws.files.length > 0) {
+      const editor = get(activeEditor);
+      if (editor) {
+        syncWithActiveTab(editor.id);
+      }
+    }
+  });
+
   onDestroy(() => {
     unsubscribeActive();
+    unsubscribeWorkspace();
   });
 
   const joinWorkspacePath = (root: string, fileName: string): string => {
-    const cleaned = root.replace(/\\/g, '/').replace(/\/+$/, '');
-    if (!cleaned || cleaned === '.') {
+    const cleaned = root.replace(/\\/g, "/").replace(/\/+$/, "");
+    if (!cleaned || cleaned === ".") {
       return fileName;
     }
     return `${cleaned}/${fileName}`;
@@ -36,7 +46,7 @@
 
     const workspaceState = get(workspaceStore);
     if (!workspaceState.root) {
-      alert('Open a folder before dropping files.');
+      alert("Open a folder before dropping files.");
       return;
     }
 
@@ -50,7 +60,7 @@
         await fileService.writeFile(targetPath, contents);
         savedPaths.push(targetPath);
       } catch (error) {
-        console.error('Drop import failed', error);
+        console.error("Drop import failed", error);
       }
     }
 
@@ -65,15 +75,15 @@
   const handleOpenFolder = async () => {
     const selection = await open({
       directory: true,
-      multiple: false
+      multiple: false,
     });
 
     const path =
-      typeof selection === 'string'
+      typeof selection === "string"
         ? selection
         : Array.isArray(selection)
-        ? selection[0]
-        : null;
+          ? selection[0]
+          : null;
 
     if (path) {
       workspaceStore.openFolder(path);

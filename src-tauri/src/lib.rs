@@ -24,13 +24,17 @@
 
 use notify::{event::Event, recommended_watcher, RecommendedWatcher, RecursiveMode, Watcher};
 use once_cell::sync::Lazy;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::Write,
+    io::{BufRead, BufReader, Write},
     path::{Path, PathBuf},
     process::Command,
-    sync::{mpsc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        mpsc, Arc, Mutex,
+    },
     thread,
     time::UNIX_EPOCH,
 };
@@ -103,6 +107,16 @@ pub struct SettingsExportPayload {
 pub struct AppliedChangeLike {
     pub id: String,
     pub value: serde_json::Value,
+}
+
+/// Search result hit for project-wide search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchHit {
+    pub file: String,
+    pub line: u32,
+    pub column: u32,
+    pub match_text: String,
+    pub line_text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -206,11 +220,18 @@ fn build_file_entry(path: &Path, root: &Path, depth: usize) -> Result<FileEntry,
 
 fn read_workspace_entries(dir: &Path, root: &Path, depth: usize) -> Result<Vec<FileEntry>, String> {
     let mut entries = Vec::new();
-    let dir_iter =
-        fs::read_dir(dir).map_err(|e| format!("Failed to read {}: {e}", dir.display()))?;
-    for entry in dir_iter {
-        let entry = entry.map_err(|e| format!("Failed to iterate {}: {e}", dir.display()))?;
-        entries.push(build_file_entry(&entry.path(), root, depth)?);
+    // If we fail to read the directory (e.g. Access Denied), just return empty list
+    // instead of failing the whole operation.
+    let dir_iter = match fs::read_dir(dir) {
+        Ok(iter) => iter,
+        Err(_) => return Ok(Vec::new()),
+    };
+
+    for entry in dir_iter.flatten() {
+        // Try to build entry, skip if fails (e.g. metadata access denied)
+        if let Ok(file_entry) = build_file_entry(&entry.path(), root, depth) {
+            entries.push(file_entry);
+        }
     }
     entries.sort_by(|a, b| {
         let a_dir = a.node_type == "dir";
@@ -252,12 +273,9 @@ async fn read_file(path: String) -> Result<String, String> {
     let data =
         fs::read(&resolved).map_err(|e| format!("Failed to read {}: {e}", resolved.display()))?;
 
-    String::from_utf8(data).map_err(|_| {
-        format!(
-            "Failed to read {}: stream did not contain valid UTF-8",
-            resolved.display()
-        )
-    })
+    // Use lossy conversion to handle non-UTF8 files (like system files or binary)
+    // This replaces invalid sequences with  instead of failing
+    Ok(String::from_utf8_lossy(&data).into_owned())
 }
 
 #[tauri::command]
@@ -407,6 +425,225 @@ async fn start_file_watcher(app: AppHandle) -> Result<(), String> {
 }
 
 // -----------------------------------------------------------------------------
+// Search: Project-wide file search with regex support
+// -----------------------------------------------------------------------------
+
+/// Search request payload
+#[derive(Debug, Clone, Deserialize)]
+struct SearchFilesRequest {
+    root: String,
+    query: String,
+    use_regex: bool,
+    case_sensitive: bool,
+}
+
+/// Global flag for cancelling active search operations
+static SEARCH_CANCELLED: Lazy<Arc<AtomicBool>> = Lazy::new(|| Arc::new(AtomicBool::new(false)));
+
+#[tauri::command]
+async fn cancel_search() -> Result<(), String> {
+    SEARCH_CANCELLED.store(true, Ordering::Relaxed);
+    Ok(())
+}
+
+#[tauri::command]
+async fn search_files(app: AppHandle, request: SearchFilesRequest) -> Result<(), String> {
+    // Reset cancellation flag
+    SEARCH_CANCELLED.store(false, Ordering::Relaxed);
+
+    let root_path = resolve_path(&request.root)?;
+    if !root_path.exists() || !root_path.is_dir() {
+        return Err(format!(
+            "Search root {} is not a directory",
+            root_path.display()
+        ));
+    }
+
+    let query = request.query.clone();
+    let use_regex = request.use_regex;
+    let case_sensitive = request.case_sensitive;
+
+    // Spawn search in background thread to avoid blocking
+    thread::spawn(move || {
+        let _ = perform_search(app, root_path, query, use_regex, case_sensitive);
+    });
+
+    Ok(())
+}
+
+fn perform_search(
+    app: AppHandle,
+    root: PathBuf,
+    query: String,
+    use_regex: bool,
+    case_sensitive: bool,
+) -> Result<(), String> {
+    // Compile regex if needed
+    let regex_pattern = if use_regex {
+        let pattern = if case_sensitive {
+            query.clone()
+        } else {
+            format!("(?i){}", query)
+        };
+        match Regex::new(&pattern) {
+            Ok(re) => Some(re),
+            Err(e) => {
+                let _ = app.emit("search-error", format!("Invalid regex: {}", e));
+                return Err(format!("Invalid regex: {}", e));
+            }
+        }
+    } else {
+        None
+    };
+
+    // Prepare simple string search
+    let search_query = if !use_regex && !case_sensitive {
+        query.to_lowercase()
+    } else {
+        query.clone()
+    };
+
+    // Walk directory tree
+    let walker = walkdir::WalkDir::new(&root)
+        .follow_links(false)
+        .max_depth(10)
+        .into_iter()
+        .filter_entry(|e| {
+            // Skip hidden directories and common excludes
+            let file_name = e.file_name().to_string_lossy();
+            !file_name.starts_with('.')
+                && file_name != "node_modules"
+                && file_name != "target"
+                && file_name != "dist"
+                && file_name != "build"
+        });
+
+    let mut result_count = 0;
+    const MAX_RESULTS: usize = 1000;
+
+    for entry in walker {
+        // Check if search was cancelled
+        if SEARCH_CANCELLED.load(Ordering::Relaxed) {
+            let _ = app.emit("search-cancelled", ());
+            return Ok(());
+        }
+
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        // Only search files
+        if !entry.file_type().is_file() {
+            continue;
+        }
+
+        let path = entry.path();
+
+        // Skip binary files by extension
+        if let Some(ext) = path.extension() {
+            let ext_str = ext.to_string_lossy().to_lowercase();
+            if matches!(
+                ext_str.as_str(),
+                "png"
+                    | "jpg"
+                    | "jpeg"
+                    | "gif"
+                    | "ico"
+                    | "woff"
+                    | "woff2"
+                    | "ttf"
+                    | "eot"
+                    | "exe"
+                    | "dll"
+                    | "so"
+                    | "dylib"
+            ) {
+                continue;
+            }
+        }
+
+        // Try to read file as UTF-8
+        let file = match fs::File::open(path) {
+            Ok(f) => f,
+            Err(_) => continue,
+        };
+
+        let reader = BufReader::new(file);
+        let relative_path = path
+            .strip_prefix(&root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+
+        // Search line by line
+        for (line_num, line_result) in reader.lines().enumerate() {
+            if SEARCH_CANCELLED.load(Ordering::Relaxed) {
+                let _ = app.emit("search-cancelled", ());
+                return Ok(());
+            }
+
+            let line = match line_result {
+                Ok(l) => l,
+                Err(_) => break, // Skip non-UTF8 files
+            };
+
+            let line_number = (line_num + 1) as u32;
+
+            // Perform search
+            let matches = if let Some(ref re) = regex_pattern {
+                re.find_iter(&line)
+                    .map(|mat| (mat.start(), mat.end() - mat.start()))
+                    .collect::<Vec<_>>()
+            } else {
+                // Simple string search
+                let search_in = if case_sensitive {
+                    line.clone()
+                } else {
+                    line.to_lowercase()
+                };
+
+                let mut matches = Vec::new();
+                let mut start = 0;
+                while let Some(pos) = search_in[start..].find(&search_query) {
+                    let absolute_pos = start + pos;
+                    matches.push(absolute_pos);
+                    start = absolute_pos + search_query.len();
+                }
+                matches
+                    .into_iter()
+                    .map(|pos| (pos, search_query.len()))
+                    .collect::<Vec<_>>()
+            };
+
+            // Emit results
+            for (pos, len) in matches {
+                let match_text = line.chars().skip(pos).take(len).collect::<String>();
+
+                let hit = SearchHit {
+                    file: relative_path.clone(),
+                    line: line_number,
+                    column: (pos + 1) as u32,
+                    match_text,
+                    line_text: line.clone(),
+                };
+
+                let _ = app.emit("search-hit", &hit);
+                result_count += 1;
+
+                if result_count >= MAX_RESULTS {
+                    let _ = app.emit("search-complete", result_count);
+                    return Ok(());
+                }
+            }
+        }
+    }
+
+    let _ = app.emit("search-complete", result_count);
+    Ok(())
+}
+
+// -----------------------------------------------------------------------------
 // Tauri commands: Profiles
 // -----------------------------------------------------------------------------
 
@@ -544,6 +781,8 @@ pub fn run() {
             reveal_in_explorer,
             write_file,
             start_file_watcher,
+            search_files,
+            cancel_search,
             settings_profiles_load,
             settings_profiles_save,
             settings_history_load,

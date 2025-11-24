@@ -34,12 +34,20 @@ interface FileTreeState {
 // -----------------------------------------------------------------------------
 
 /**
+ * Normalize path for comparison (handle Windows backslashes).
+ */
+function normalizePath(path: string): string {
+  return path.replace(/\\/g, '/').toLowerCase();
+}
+
+/**
  * Рекурсивный поиск узла по id в дереве файлов.
  * Чистая утилита, использующая FileNode из mocks/workspaceStore.
  */
 function findNodeById(nodes: FileNode[], id: FileNodeId): FileNode | null {
+  const targetId = normalizePath(id);
   for (const node of nodes) {
-    if (node.id === id) return node;
+    if (normalizePath(node.id) === targetId) return node;
     if (node.type === 'dir' && node.children) {
       const found = findNodeById(node.children, id);
       if (found) return found;
@@ -53,8 +61,9 @@ function findNodeById(nodes: FileNode[], id: FileNodeId): FileNode | null {
  * Используется как запасной вариант сопоставления активной вкладки и FileNode.
  */
 function findNodeByPath(nodes: FileNode[], path: string): FileNode | null {
+  const targetPath = normalizePath(path);
   for (const node of nodes) {
-    if (node.path === path) return node;
+    if (normalizePath(node.path) === targetPath) return node;
     if (node.type === 'dir' && node.children) {
       const found = findNodeByPath(node.children, path);
       if (found) return found;
@@ -207,6 +216,7 @@ export function selectFile(id: FileNodeId): void {
  * - при изменениях layout/groups, если потребуется.
  */
 export function syncWithActiveTab(tabId: string | null): void {
+  // console.log('[fileTreeStore] syncWithActiveTab called', tabId);
   const files = getWorkspaceFilesSnapshot();
 
   if (!tabId) {
@@ -220,23 +230,27 @@ export function syncWithActiveTab(tabId: string | null): void {
 
   // Пытаемся найти FileNode напрямую по id.
   let node = findNodeById(files, tabId);
+  // console.log('[fileTreeStore] findNodeById result', node?.id);
 
   // Если не нашли по id, пробуем по path активного редактора.
   if (!node) {
     const $active = get(activeEditor);
     if ($active?.path) {
       node = findNodeByPath(files, $active.path);
+      // console.log('[fileTreeStore] findNodeByPath result', node?.id);
     }
   }
 
   if (!node || node.type !== 'file') {
     // Если вкладка не соответствует файлу в дереве, не ломаем состояние.
+    // console.log('[fileTreeStore] node not found or not a file');
     return;
   }
 
   const parentDirs = collectParentDirs(files, node.id) ?? [];
 
   internal.update((state) => {
+    // console.log('[fileTreeStore] updating state with selectedFileId', node!.id);
     const nextExpanded = new Set(state.expanded);
     for (const dirId of parentDirs) {
       nextExpanded.add(dirId);
@@ -244,7 +258,7 @@ export function syncWithActiveTab(tabId: string | null): void {
     return {
       ...state,
       expanded: nextExpanded,
-      selectedFileId: node.id
+      selectedFileId: node!.id
     };
   });
 }

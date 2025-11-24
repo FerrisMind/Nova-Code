@@ -176,6 +176,89 @@ export function initDefaultCommands(): void {
   });
 
   // ---------------------------------------------------------------------------
+  // Stage 2: Enhanced Commands
+  // ---------------------------------------------------------------------------
+
+  // Toggle word wrap in editor
+  commands.push({
+    id: 'editor.action.toggleWordWrap',
+    label: 'Toggle Word Wrap',
+    category: 'Editor',
+    run: () => {
+      // This will be implemented with EditorCore integration
+      console.log('Toggle word wrap - implement via EditorCore');
+    }
+  });
+
+  // Switch theme command
+  commands.push({
+    id: 'workbench.action.selectTheme',
+    label: 'Switch Theme',
+    category: 'Preferences',
+    run: () => {
+      // This will open theme selector in settings
+      activityStore.setActivity('settings');
+      console.log('Switch theme - open settings theme selector');
+    }
+  });
+
+  // Toggle terminal (bottom panel)
+  commands.push({
+    id: 'workbench.action.terminal.toggleTerminal',
+    label: 'Toggle Terminal',
+    category: 'Terminal',
+    keybinding: 'Ctrl+`',
+    run: () => {
+      toggleBottomPanel();
+    }
+  });
+
+  // Project-wide search
+  commands.push({
+    id: 'workbench.action.findInFiles',
+    label: 'Find in Files',
+    category: 'Search',
+    keybinding: 'Ctrl+Shift+F',
+    run: () => {
+      activityStore.setActivity('search');
+    }
+  });
+
+  // Open settings
+  commands.push({
+    id: 'workbench.action.openSettings',
+    label: 'Open Settings',
+    category: 'Preferences',
+    run: () => {
+      editorStore.openSettings();
+    }
+  });
+
+  // Go to line
+  commands.push({
+    id: 'editor.action.gotoLine',
+    label: 'Go to Line...',
+    category: 'Editor',
+    keybinding: 'Ctrl+G',
+    run: () => {
+      // This will be implemented with Monaco integration
+      console.log('Go to line - implement via Monaco action');
+    }
+  });
+
+  // Go to symbol
+  commands.push({
+    id: 'editor.action.quickOutline',
+    label: 'Go to Symbol in Editor...',
+    category: 'Editor',
+    keybinding: 'Ctrl+Shift+O',
+    run: () => {
+      // This will be implemented with Monaco integration
+      console.log('Go to symbol - implement via Monaco action');
+    }
+  });
+
+  // ---------------------------------------------------------------------------
   // Регистрация всех определённых команд
   // ---------------------------------------------------------------------------
 

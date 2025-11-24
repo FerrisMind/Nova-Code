@@ -14,20 +14,21 @@
   //
   // Готов к расширению: diff-режим, IntelliSense, кастомные языки.
 
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import {
     createEditorCore,
     type EditorCoreOptions,
-    type EditorCoreApi
-  } from './EditorCore';
+    type EditorCoreApi,
+  } from "./EditorCore";
   import {
     setupBasicLanguageSupport,
-    setupDefaultProviders
-  } from './intellisense';
-  import './monacoEnvironment';
-  import { themeManager } from './themeManager';
-  import { theme, type ThemeState } from '../stores/themeStore';
-  import { getPaletteById } from '../stores/THEME_PALETTES';
+    setupDefaultProviders,
+  } from "./intellisense";
+  import "./monacoEnvironment";
+  import { themeManager } from "./themeManager";
+  import { theme, type ThemeState } from "../stores/themeStore";
+  import { getPaletteById } from "../stores/THEME_PALETTES";
+  import InlineSearch from "$lib/components/search/InlineSearch.svelte";
 
   // Входные параметры.
   let {
@@ -35,7 +36,7 @@
     uri,
     value,
     language,
-    options
+    options,
   }: {
     fileId: string;
     uri: string;
@@ -50,9 +51,10 @@
 
   let containerElement: HTMLDivElement;
   let core: EditorCoreApi | null = null;
+  let monacoEditor = $state<any>(null); // Monaco editor instance for InlineSearch
 
   // Текущая тема
-  let currentTheme: ThemeState = { mode: 'dark', palette: 'dark-default' };
+  let currentTheme: ThemeState = { mode: "dark", palette: "dark-default" };
 
   /**
    * Инициализация Monaco + EditorCore.
@@ -66,7 +68,7 @@
     (async () => {
       // Динамический импорт полного Monaco API.
       // Типы берём из 'monaco-editor', реализация подхватывается bundler'ом.
-      const monaco = await import('monaco-editor');
+      const monaco = await import("monaco-editor");
       if (isDisposed) return;
 
       // Базовая конфигурация языков и легкие IntelliSense-провайдеры.
@@ -80,26 +82,38 @@
       await themeManager.loadPopularThemes();
 
       // Создаем и регистрируем темы для всех палитр
-      const palettes = ['light-default', 'light-alt-1', 'light-alt-2', 'light-alt-3', 'dark-default', 'dark-alt-1', 'dark-alt-2', 'dark-alt-3'] as const;
-      palettes.forEach(paletteId => {
+      const palettes = [
+        "light-default",
+        "light-alt-1",
+        "light-alt-2",
+        "light-alt-3",
+        "dark-default",
+        "dark-alt-1",
+        "dark-alt-2",
+        "dark-alt-3",
+      ] as const;
+      palettes.forEach((paletteId) => {
         const themeData = themeManager.createThemeFromPalette(paletteId);
         const themeId = `nova-${paletteId}`;
         monaco.editor.defineTheme(themeId, {
           base: themeData.base,
           inherit: themeData.inherit,
           rules: themeData.rules,
-          colors: themeData.colors
+          colors: themeData.colors,
         });
       });
 
       core = createEditorCore(monaco as any);
       core.attachTo(containerElement, options);
 
+      // Get the Monaco editor instance for InlineSearch
+      monacoEditor = (core as any).editor || (core as any).state?.editor;
+
       core.setModel({
         fileId,
         uri,
         value,
-        language
+        language,
       });
 
       // Применяем начальную тему
@@ -111,7 +125,7 @@
       unsubscribe = core.onDidChangeContent((changedFileId, changedValue) => {
         // Хост отвечает за один fileId; фильтруем для надёжности.
         if (changedFileId === fileId) {
-          dispatch('change', { fileId: changedFileId, value: changedValue });
+          dispatch("change", { fileId: changedFileId, value: changedValue });
         }
       });
 
@@ -148,13 +162,13 @@
    */
   $effect(() => {
     if (!core) return;
-    if (!fileId || !uri || typeof value !== 'string') return;
+    if (!fileId || !uri || typeof value !== "string") return;
 
     core.setModel({
       fileId,
       uri,
       value,
-      language
+      language,
     });
   });
 
@@ -170,7 +184,7 @@
   export function triggerCommand(
     source: string,
     commandId: string,
-    payload?: unknown
+    payload?: unknown,
   ) {
     core?.triggerCommand(source, commandId, payload);
   }
@@ -180,9 +194,19 @@
   Контейнер под Monaco Editor.
   Layout управляет размерами/скроллом; здесь только 100% растяжение.
 -->
-<div bind:this={containerElement} class="monaco-host"></div>
+<div class="monaco-host-wrapper">
+  <div bind:this={containerElement} class="monaco-host"></div>
+  <InlineSearch editor={monacoEditor} />
+</div>
 
 <style>
+  .monaco-host-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
   .monaco-host {
     position: relative;
     width: 100%;

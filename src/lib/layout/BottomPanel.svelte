@@ -89,7 +89,7 @@
       role="button"
       aria-label="Resize bottom panel"
       tabindex="0"
-      on:mousedown={onHandleMouseDown}
+      onmousedown={onHandleMouseDown}
     ></div>
     <div class="bottom-header">
       <div class="tabs">
@@ -97,7 +97,7 @@
         <div class="tab">OUTPUT</div>
       </div>
       <div class="actions">
-        <button class="icon-btn" on:click={toggle} title="Hide Panel">
+        <button class="icon-btn" onclick={toggle} title="Hide Panel">
           <Icon name="terminal" size={14} />
         </button>
       </div>

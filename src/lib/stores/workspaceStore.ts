@@ -104,6 +104,15 @@ export const workspaceStore = {
   closeFolder: () => {
     currentRoot = null;
     void loadWorkspaceFiles();
+  },
+  getWorkspaceRoot: (): string | null => {
+    return currentRoot;
+  },
+  resolvePath: (relativePath: string): string | null => {
+    if (!currentRoot) return null;
+    // Normalize path separators
+    const normalized = relativePath.replace(/\\/g, '/');
+    return `${currentRoot}/${normalized}`;
   }
 };
 
