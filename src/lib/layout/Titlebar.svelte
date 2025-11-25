@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import Icon from '../common/Icon.svelte';
   import { toggleLeftSidebar, toggleBottomPanel, toggleRightSidebar } from '../stores/layout/layoutStore';
@@ -7,10 +7,43 @@
   import { openCommandPalette } from '../stores/commandPaletteStore';
 
   let appWindow = getCurrentWindow();
+  let isMaximized = false;
+
+  // Реактивная переменная для отслеживания состояния
+  $: maximizeIcon = isMaximized ? "lucide:Minimize" : "lucide:Maximize";
+  $: maximizeLabel = isMaximized ? "Restore" : "Maximize";
 
   // Обновляем ссылку на окно при монтировании (на случай окружения без Tauri при билде)
   onMount(() => {
     appWindow = getCurrentWindow();
+
+    // Функция для обновления состояния окна
+    const updateWindowState = async () => {
+      try {
+        const maximized = await appWindow.isMaximized();
+        isMaximized = maximized; // Это вызовет реактивное обновление
+      } catch (e) {
+        console.error('Failed to check window state', e);
+      }
+    };
+
+    // Проверяем начальное состояние
+    updateWindowState();
+
+    // Слушаем изменения состояния окна
+    let unlisten: (() => void) | undefined;
+    appWindow.listen('tauri://window-resized', updateWindowState).then((cleanup) => {
+      unlisten = cleanup;
+    }).catch((e) => {
+      console.error('Failed to listen for window resize', e);
+    });
+
+    // Очищаем слушатель при размонтировании
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
   });
 
   const handleMinimize = async () => {
@@ -24,6 +57,9 @@
   const handleMaximize = async () => {
     try {
       await appWindow.toggleMaximize();
+      // Обновляем состояние после изменения
+      const maximized = await appWindow.isMaximized();
+      isMaximized = maximized; // Это вызовет реактивное обновление
     } catch (e) {
       console.error('Failed to toggle maximize', e);
     }
@@ -54,7 +90,7 @@
   };
 </script>
 
-<div class="titlebar" data-tauri-drag-region>
+<div class="titlebar" data-tauri-drag-region on:dblclick={handleMaximize} role="banner" aria-label="Window title bar">
   <div class="titlebar-left">
     <div class="app-icon">
       <img src="/app-icon.png" alt="App Icon" />
@@ -83,13 +119,15 @@
       <Icon name="lucide:PanelRight" size={16} />
     </button>
     <button class="win-btn" on:click={handleMinimize} aria-label="Minimize">
-      <span class="line"></span>
+      <Icon name="lucide:Minus" size={16} />
     </button>
-    <button class="win-btn" on:click={handleMaximize} aria-label="Maximize">
-      <span class="square"></span>
+    <button class="win-btn" on:click={handleMaximize} aria-label={maximizeLabel}>
+      {#key maximizeIcon}
+        <Icon name={maximizeIcon} size={14} />
+      {/key}
     </button>
     <button class="win-btn win-close" on:click={handleClose} aria-label="Close">
-      <span class="cross"></span>
+      <Icon name="lucide:X" size={16} />
     </button>
   </div>
 </div>
@@ -101,8 +139,7 @@
   }
 
   :global([data-tauri-drag-region="false"]),
-  .win-btn,
-  .win-btn * {
+  .win-btn {
     -webkit-app-region: no-drag;
   }
 
@@ -224,7 +261,7 @@
     color: var(--nc-fg-muted);
     padding: 0;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 2px;
   }
 
   .layout-btn:hover {
@@ -232,41 +269,4 @@
     color: var(--nc-fg);
   }
 
-  .line {
-    width: 8px;
-    height: 2px;
-    background-color: currentColor;
-  }
-
-  .square {
-    width: 8px;
-    height: 8px;
-    border: 1px solid currentColor;
-    box-sizing: border-box;
-  }
-
-  .cross {
-    position: relative;
-    width: 8px;
-    height: 8px;
-  }
-
-  .cross::before,
-  .cross::after {
-    content: '';
-    position: absolute;
-    left: 3px;
-    top: 0;
-    width: 2px;
-    height: 8px;
-    background-color: currentColor;
-  }
-
-  .cross::before {
-    transform: rotate(45deg);
-  }
-
-  .cross::after {
-    transform: rotate(-45deg);
-  }
 </style>

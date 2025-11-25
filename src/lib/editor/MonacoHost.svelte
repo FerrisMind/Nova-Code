@@ -75,33 +75,35 @@
       setupBasicLanguageSupport(monaco as any);
       setupDefaultProviders(monaco as any);
 
-      // Инициализация менеджера тем
-      themeManager.initialize(monaco as any);
+      // Инициализация менеджера тем (только если не инициализирован)
+      if (!themeManager.isInitialized()) {
+        themeManager.initialize(monaco as any);
 
-      // Загружаем популярные темы
-      await themeManager.loadPopularThemes();
+        // Загружаем популярные темы
+        await themeManager.loadPopularThemes();
 
-      // Создаем и регистрируем темы для всех палитр
-      const palettes = [
-        "light-default",
-        "light-alt-1",
-        "light-alt-2",
-        "light-alt-3",
-        "dark-default",
-        "dark-alt-1",
-        "dark-alt-2",
-        "dark-alt-3",
-      ] as const;
-      palettes.forEach((paletteId) => {
-        const themeData = themeManager.createThemeFromPalette(paletteId);
-        const themeId = `nova-${paletteId}`;
-        monaco.editor.defineTheme(themeId, {
-          base: themeData.base,
-          inherit: themeData.inherit,
-          rules: themeData.rules,
-          colors: themeData.colors,
+        // Создаем и регистрируем темы для всех палитр
+        const palettes = [
+          "light-default",
+          "light-alt-1",
+          "light-alt-2",
+          "light-alt-3",
+          "dark-default",
+          "dark-alt-1",
+          "dark-alt-2",
+          "dark-alt-3",
+        ] as const;
+        palettes.forEach((paletteId) => {
+          const themeData = themeManager.createThemeFromPalette(paletteId);
+          const themeId = `nova-${paletteId}`;
+          monaco.editor.defineTheme(themeId, {
+            base: themeData.base,
+            inherit: themeData.inherit,
+            rules: themeData.rules,
+            colors: themeData.colors,
+          });
         });
-      });
+      }
 
       core = createEditorCore(monaco as any);
       core.attachTo(containerElement, options);

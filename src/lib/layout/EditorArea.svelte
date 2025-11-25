@@ -48,13 +48,38 @@
 
   const flushAutoSave = async () => {
     if (!autoSaveEnabled || !pendingSave) return;
+
     try {
       await editorStore.updateContent(pendingSave.fileId, pendingSave.value);
+      pendingSave = null;
+      clearAutoSaveTimer();
     } catch (error) {
       console.error("[auto-save] failed to persist", error);
+
+      // Check if this is a recoverable error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isRecoverable = !errorMessage.includes('not found') &&
+                           !errorMessage.includes('permission denied') &&
+                           !errorMessage.includes('disk full');
+
+      if (isRecoverable) {
+        // Retry after a short delay for transient errors
+        console.warn("[auto-save] retrying save in 2 seconds");
+        window.setTimeout(() => {
+          if (pendingSave) {
+            void flushAutoSave();
+          }
+        }, 2000);
+      } else {
+        // For permanent errors, clear the pending save and mark as not dirty
+        console.error("[auto-save] permanent error, clearing pending save");
+        if (pendingSave) {
+          editorStore.markDirty(pendingSave.fileId, false);
+          pendingSave = null;
+        }
+        clearAutoSaveTimer();
+      }
     }
-    pendingSave = null;
-    clearAutoSaveTimer();
   };
 
   const scheduleAutoSave = () => {
@@ -142,61 +167,57 @@
 <div class="editor-area" style:background-color={backgroundColor}>
   {#if !current}
     <WelcomeScreen />
+  {:else if current.id === "settings"}
+    <div class="settings-wrapper">
+      <SettingsShell id="editor-settings-shell" compactMode={false} />
+    </div>
   {:else}
-    {#key current.id}
-      {#if current.id === "settings"}
-        <div class="settings-wrapper">
-          <SettingsShell id="editor-settings-shell" compactMode={false} />
+    <Breadcrumbs />
+    <!-- Локально вычисляем контент для активного файла. -->
+    {#await Promise.resolve(getContent(current.id, current.path)) then content}
+      {#if content?.error}
+        <div class="editor-error">
+          <h2>Cannot open file</h2>
+          <p class="path">{current.path || current.id}</p>
+          <p class="message">{content.error}</p>
+          <p class="hint">
+            The file may have been removed or renamed. Close this tab or
+            re-open from Explorer.
+          </p>
         </div>
       {:else}
-        <Breadcrumbs />
-        <!-- Локально вычисляем контент для активного файла. -->
-        {#await Promise.resolve(getContent(current.id, current.path)) then content}
-          {#if content?.error}
-            <div class="editor-error">
-              <h2>Cannot open file</h2>
-              <p class="path">{current.path || current.id}</p>
-              <p class="message">{content.error}</p>
-              <p class="hint">
-                The file may have been removed or renamed. Close this tab or
-                re-open from Explorer.
-              </p>
-            </div>
-          {:else}
-            <MonacoHost
-              fileId={current.id}
-              uri={`file://${current.path || current.id}`}
-              value={content.value}
-              language={current.language}
-              options={{
-                theme: editorOptions.theme,
-                tabSize: editorOptions.tabSize,
-                insertSpaces: editorOptions.insertSpaces,
-                wordWrap: editorOptions.wordWrap,
-                wordWrapColumn: editorOptions.wordWrapColumn,
-                minimap: {
-                  enabled: editorOptions.minimap,
-                },
-                folding: editorOptions.folding,
-                bracketPairColorization: {
-                  enabled: editorOptions.bracketPairColorization,
-                },
-                fontSize: editorOptions.fontSize,
-                fontFamily: editorOptions.fontFamily,
-                fontLigatures: editorOptions.fontLigatures,
-                renderWhitespace: editorOptions.renderWhitespace,
-                lineNumbers: editorOptions.lineNumbers,
-                autoClosingBrackets: "always",
-                autoClosingQuotes: "always",
-                autoClosingOvertype: "always",
-              }}
-              on:change={(e) =>
-                handleEditorContentChange(e.detail.fileId, e.detail.value)}
-            />
-          {/if}
-        {/await}
+        <MonacoHost
+          fileId={current.id}
+          uri={`file://${current.path || current.id}`}
+          value={content.value}
+          language={current.language}
+          options={{
+            theme: editorOptions.theme,
+            tabSize: editorOptions.tabSize,
+            insertSpaces: editorOptions.insertSpaces,
+            wordWrap: editorOptions.wordWrap,
+            wordWrapColumn: editorOptions.wordWrapColumn,
+            minimap: {
+              enabled: editorOptions.minimap,
+            },
+            folding: editorOptions.folding,
+            bracketPairColorization: {
+              enabled: editorOptions.bracketPairColorization,
+            },
+            fontSize: editorOptions.fontSize,
+            fontFamily: editorOptions.fontFamily,
+            fontLigatures: editorOptions.fontLigatures,
+            renderWhitespace: editorOptions.renderWhitespace,
+            lineNumbers: editorOptions.lineNumbers,
+            autoClosingBrackets: "always",
+            autoClosingQuotes: "always",
+            autoClosingOvertype: "always",
+          }}
+          on:change={(e) =>
+            handleEditorContentChange(e.detail.fileId, e.detail.value)}
+        />
       {/if}
-    {/key}
+    {/await}
   {/if}
 </div>
 

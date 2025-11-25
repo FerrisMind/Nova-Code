@@ -1,191 +1,489 @@
 /**
  * Маппинг расширений файлов на devicon классы
- * Основано на официальном репозитории devicons/devicon
+ * Основано на официальном репозитории devicons/devicon v2.16+
  * https://github.com/devicons/devicon
+ * 
+ * Формат: "devicon:{tech}-{variant} colored" где variant: plain, original, line
+ * Для файлов без devicon иконки используется lucide fallback
  */
 
-export function getLanguageIcon(filename: string): string {
-  const ext = filename.split('.').pop()?.toLowerCase() || '';
+// Набор технологий, доступных в devicon (актуальный список)
+const DEVICON_TECHNOLOGIES = new Set([
+  'aarch64', 'adonisjs', 'aftereffects', 'akka', 'algolia', 'alpinejs', 'amazonwebservices',
+  'anaconda', 'android', 'androidstudio', 'angular', 'angularjs', 'angularmaterial', 'ansible',
+  'antdesign', 'apache', 'apacheairflow', 'apachekafka', 'apachespark', 'apl', 'appcelerator',
+  'apple', 'appwrite', 'archlinux', 'arduino', 'argocd', 'astro', 'atom', 'azure', 'azuredevops',
+  'azuresqldatabase', 'babel', 'backbonejs', 'ballerina', 'bamboo', 'bash', 'beats', 'behance',
+  'bitbucket', 'blazor', 'blender', 'bootstrap', 'bower', 'bulma', 'bun', 'c', 'cairo', 'cakephp',
+  'canva', 'capacitor', 'carbon', 'cassandra', 'centos', 'ceylon', 'chrome', 'circleci', 'clarity',
+  'clion', 'clojure', 'clojurescript', 'cloudflare', 'cloudflareworkers', 'cmake', 'codeac',
+  'codeigniter', 'codepen', 'coffeescript', 'composer', 'confluence', 'consul', 'contao',
+  'corejs', 'cosmosdb', 'couchbase', 'couchdb', 'cplusplus', 'csharp', 'css3', 'cucumber', 'cypressio',
+  'd3js', 'dart', 'datagrip', 'dataspell', 'dbeaver', 'debian', 'deno', 'devicon', 'digitalocean',
+  'discordjs', 'django', 'djangorest', 'docker', 'doctrine', 'dot-net', 'dotnetcore', 'dreamweaver',
+  'dropwizard', 'drupal', 'dynamodb', 'eclipse', 'ecto', 'elasticsearch', 'electron', 'eleventy',
+  'elixir', 'elm', 'emacs', 'embeddedc', 'ember', 'envoy', 'erlang', 'eslint', 'express', 'facebook',
+  'fastapi', 'fastify', 'faunadb', 'feathersjs', 'fedora', 'figma', 'filezilla', 'firebase',
+  'firefox', 'flask', 'flutter', 'fortran', 'foundation', 'framermotion', 'framework7', 'fsharp',
+  'gatling', 'gatsby', 'gcc', 'gentoo', 'ghost', 'gimp', 'git', 'gitbook', 'github', 'githubactions',
+  'githubcodespaces', 'gitlab', 'gitpod', 'gitter', 'go', 'godot', 'goland', 'google', 'googlecloud',
+  'gradle', 'grafana', 'grails', 'graphql', 'groovy', 'grpc', 'grunt', 'gulp', 'hadoop', 'handlebars',
+  'hardhat', 'harvester', 'haskell', 'haxe', 'helm', 'heroku', 'hibernate', 'homebrew', 'html5',
+  'hugo', 'hydrogen', 'idea', 'ie10', 'ifttt', 'illustrator', 'influxdb', 'inkscape', 'insomnia',
+  'intellij', 'ionic', 'jaegertracing', 'jamstack', 'jasmine', 'java', 'javascript', 'jeet', 'jekyll',
+  'jenkins', 'jest', 'jetbrains', 'jetpackcompose', 'jira', 'jquery', 'json', 'julia', 'junit',
+  'jupyter', 'k3os', 'k3s', 'k6', 'kaggle', 'karma', 'kdeneon', 'keras', 'kibana', 'knexjs',
+  'knockout', 'kotlin', 'krakenjs', 'kubernetes', 'labview', 'laravel', 'latex', 'less', 'linkedin',
+  'linux', 'liquibase', 'lit', 'livewire', 'llvm', 'lodash', 'logstash', 'lua', 'lumen', 'magento',
+  'mariadb', 'markdown', 'materializecss', 'materialui', 'matlab', 'matplotlib', 'maven', 'maya',
+  'meteor', 'microservices', 'microsoftsqlserver', 'minitab', 'mobx', 'mocha', 'modx', 'molecule',
+  'mongodb', 'mongoose', 'moodle', 'msdos', 'mysql', 'nano', 'neo4j', 'neovim', 'nestjs', 'netlify',
+  'networkx', 'nextjs', 'nginx', 'nhibernate', 'nim', 'nixos', 'nodejs', 'nomad', 'norg', 'notion',
+  'npm', 'nuget', 'numpy', 'nuxtjs', 'oauth', 'objectivec', 'ocaml', 'ohmyzsh', 'okta', 'openal',
+  'openapi', 'opencl', 'opencv', 'opengl', 'openstack', 'opensuse', 'opentelemetry', 'opera',
+  'oracle', 'ory', 'p5js', 'packer', 'pandas', 'passenger', 'perl', 'pfsense', 'phalcon', 'phoenix',
+  'photonengine', 'photoshop', 'php', 'phpstorm', 'pinia', 'pinescript', 'pkgconfig', 'playwright',
+  'plotly', 'pnpm', 'podman', 'poetry', 'polygon', 'portainer', 'postcss', 'postgresql', 'postman',
+  'powershell', 'premierepro', 'prisma', 'processing', 'prolog', 'prometheus', 'protractor', 'pulsar',
+  'pulumi', 'puppet', 'purescript', 'pycharm', 'pypi', 'pytest', 'python', 'pytorch', 'qodana',
+  'qt', 'quarkus', 'quasar', 'qwik', 'r', 'rabbitmq', 'rails', 'railway', 'rancher', 'raspberrypi',
+  'reach', 'react', 'reactbootstrap', 'reactnavigation', 'reactrouter', 'readthedocs', 'realm',
+  'rect', 'redhat', 'redis', 'redux', 'renpy', 'replit', 'rider', 'rocksdb', 'rockylinux', 'rollup',
+  'ros', 'rspec', 'rstudio', 'ruby', 'rubymine', 'rust', 'rxjs', 'safari', 'salesforce', 'sanity',
+  'sass', 'scala', 'scalingo', 'scikitlearn', 'sdl', 'selenium', 'sema', 'sentry', 'sequelize',
+  'shopware', 'shotgrid', 'sketch', 'slack', 'socketio', 'solidity', 'sonarqube', 'sourcetree',
+  'spacy', 'spack', 'splunk', 'spring', 'spss', 'spyder', 'sqlalchemy', 'sqldeveloper', 'sqlite',
+  'ssh', 'stackoverflow', 'storybook', 'streamlit', 'stylus', 'subversion', 'supabase', 'svelte',
+  'swagger', 'swift', 'swiper', 'symfony', 'tailwindcss', 'tauri', 'tensorflow', 'terraform',
+  'testinglibrary', 'texlive', 'thealgorithms', 'threedsmax', 'threejs', 'titaniumsdk', 'tomcat',
+  'tortoisegit', 'towergit', 'traefikproxy', 'travis', 'trello', 'trpc', 'twitter', 'typescript',
+  'typo3', 'ubuntu', 'unifiedmodelinglanguage', 'unity', 'unix', 'unrealengine', 'uwsgi', 'v8',
+  'vaadin', 'vagrant', 'vala', 'vault', 'vercel', 'vim', 'visualbasic', 'visualstudio', 'vite',
+  'vitejs', 'vitess', 'vitest', 'vscode', 'vsphere', 'vuejs', 'vuestorefront', 'vuetify', 'vyper',
+  'wasm', 'webflow', 'weblate', 'webpack', 'webstorm', 'windows11', 'windows8', 'woocommerce',
+  'wordpress', 'xcode', 'xml', 'yaml', 'yarn', 'yii', 'yunohost', 'zend', 'zig', 'zsh'
+]);
+
+// Маппинг расширений файлов на devicon технологии
+const EXTENSION_TO_DEVICON: Record<string, string> = {
+  // JavaScript / TypeScript
+  'js': 'javascript-plain',
+  'mjs': 'javascript-plain',
+  'cjs': 'javascript-plain',
+  'jsx': 'react-original',
+  'ts': 'typescript-plain',
+  'tsx': 'react-original',
   
-  // Settings tab
+  // Web
+  'html': 'html5-plain',
+  'htm': 'html5-plain',
+  'css': 'css3-plain',
+  'scss': 'sass-original',
+  'sass': 'sass-original',
+  'less': 'less-plain-wordmark',
+  'styl': 'stylus-original',
+  
+  // Frameworks
+  'svelte': 'svelte-plain',
+  'vue': 'vuejs-plain',
+  'astro': 'astro-plain',
+  
+  // Backend
+  'py': 'python-plain',
+  'pyw': 'python-plain',
+  'pyx': 'python-plain',
+  'pyi': 'python-plain',
+  'ipynb': 'jupyter-plain',
+  'rb': 'ruby-plain',
+  'gemspec': 'ruby-plain',
+  'erb': 'rails-plain',
+  'php': 'php-plain',
+  'java': 'java-plain',
+  'kt': 'kotlin-plain',
+  'kts': 'kotlin-plain',
+  'scala': 'scala-plain',
+  'groovy': 'groovy-plain',
+  'gradle': 'gradle-plain',
+  'go': 'go-plain',
+  'rs': 'rust-original',
+  'swift': 'swift-plain',
+  'dart': 'dart-plain',
+  'ex': 'elixir-plain',
+  'exs': 'elixir-plain',
+  'erl': 'erlang-plain',
+  'hrl': 'erlang-plain',
+  'clj': 'clojure-plain',
+  'cljs': 'clojurescript-plain',
+  'hs': 'haskell-plain',
+  'lhs': 'haskell-plain',
+  'cabal': 'haskell-plain',
+  'ml': 'ocaml-plain',
+  'mli': 'ocaml-plain',
+  'fs': 'fsharp-plain',
+  'fsx': 'fsharp-plain',
+  'lua': 'lua-plain',
+  'pl': 'perl-plain',
+  'pm': 'perl-plain',
+  'r': 'r-plain',
+  'R': 'r-plain',
+  'jl': 'julia-plain',
+  'nim': 'nim-plain',
+  'zig': 'zig-plain',
+  
+  // C family
+  'c': 'c-plain',
+  'h': 'c-plain',
+  'cpp': 'cplusplus-plain',
+  'cc': 'cplusplus-plain',
+  'cxx': 'cplusplus-plain',
+  'hpp': 'cplusplus-plain',
+  'hxx': 'cplusplus-plain',
+  'cs': 'csharp-plain',
+  'm': 'objectivec-plain',
+  'mm': 'objectivec-plain',
+  
+  // Data / Config
+  'json': 'json-plain',
+  'jsonc': 'json-plain',
+  'json5': 'json-plain',
+  'yaml': 'yaml-plain',
+  'yml': 'yaml-plain',
+  'xml': 'xml-plain',
+  
+  // Markdown / Docs
+  'md': 'markdown-original',
+  'mdx': 'markdown-original',
+  'tex': 'latex-original',
+  'latex': 'latex-original',
+  
+  // Shell
+  'sh': 'bash-plain',
+  'bash': 'bash-plain',
+  'zsh': 'bash-plain',
+  'fish': 'bash-plain',
+  'ps1': 'powershell-plain',
+  'psm1': 'powershell-plain',
+  'bat': 'windows11-original',
+  'cmd': 'windows11-original',
+  
+  // Database
+  'pgsql': 'postgresql-plain',
+  'mysql': 'mysql-plain',
+  'sqlite': 'sqlite-plain',
+  'prisma': 'prisma-original',
+  'graphql': 'graphql-plain',
+  'gql': 'graphql-plain',
+  
+  // DevOps / Infra
+  'dockerfile': 'docker-plain',
+  'tf': 'terraform-plain',
+  'tfvars': 'terraform-plain',
+  'hcl': 'terraform-plain',
+  'vagrantfile': 'vagrant-plain',
+  'jenkinsfile': 'jenkins-plain',
+  
+  // Mobile
+  'xcodeproj': 'xcode-plain',
+  'pbxproj': 'xcode-plain',
+  
+  // Game dev
+  'gd': 'godot-plain',
+  'gdscript': 'godot-plain',
+  'unity': 'unity-plain',
+  
+  // Other
+  'wasm': 'wasm-original',
+  'sol': 'solidity-plain',
+  'cmake': 'cmake-plain',
+  'make': 'cmake-plain',
+  'makefile': 'cmake-plain',
+};
+
+// Fallback иконки для расширений без devicon (используют lucide)
+const EXTENSION_FALLBACK: Record<string, string> = {
+  // Config files
+  'toml': 'lucide:Cog',
+  'ini': 'lucide:Cog',
+  'cfg': 'lucide:Cog',
+  'conf': 'lucide:Cog',
+  'env': 'lucide:Cog',
+  'config': 'lucide:Cog',
+  'properties': 'lucide:Cog',
+  
+  // Assembly
+  'asm': 'lucide:Cpu',
+  's': 'lucide:Cpu',
+  
+  // Languages without devicon
+  'd': 'lucide:Code',
+  'cr': 'lucide:Gem',
+  'v': 'lucide:Code',
+  
+  // Protocol Buffers
+  'proto': 'lucide:FileCode',
+  
+  // ReStructuredText
+  'rst': 'lucide:FileText',
+  
+  // SQL (generic)
+  'sql': 'lucide:Database',
+  
+  // Archives
+  'zip': 'lucide:Archive',
+  'tar': 'lucide:Archive',
+  'gz': 'lucide:Archive',
+  'rar': 'lucide:Archive',
+  '7z': 'lucide:Archive',
+  'bz2': 'lucide:Archive',
+  'xz': 'lucide:Archive',
+  
+  // Images
+  'png': 'lucide:Image',
+  'jpg': 'lucide:Image',
+  'jpeg': 'lucide:Image',
+  'gif': 'lucide:Image',
+  'webp': 'lucide:Image',
+  'ico': 'lucide:Image',
+  'bmp': 'lucide:Image',
+  'tiff': 'lucide:Image',
+  'svg': 'lucide:Shapes',
+  
+  // Video
+  'mp4': 'lucide:Video',
+  'webm': 'lucide:Video',
+  'avi': 'lucide:Video',
+  'mkv': 'lucide:Video',
+  'mov': 'lucide:Video',
+  'wmv': 'lucide:Video',
+  'flv': 'lucide:Video',
+  
+  // Audio
+  'mp3': 'lucide:Music',
+  'wav': 'lucide:Music',
+  'ogg': 'lucide:Music',
+  'flac': 'lucide:Music',
+  'aac': 'lucide:Music',
+  'm4a': 'lucide:Music',
+  
+  // Documents
+  'doc': 'lucide:FileText',
+  'docx': 'lucide:FileText',
+  'rtf': 'lucide:FileText',
+  'xls': 'lucide:Table',
+  'xlsx': 'lucide:Table',
+  'ppt': 'lucide:Presentation',
+  'pptx': 'lucide:Presentation',
+  'pdf': 'lucide:FileType',
+  
+  // Other
+  'lock': 'lucide:Lock',
+  'log': 'lucide:FileWarning',
+  'csv': 'lucide:Table',
+  'tsv': 'lucide:Table',
+  'txt': 'lucide:FileText',
+  
+  // Fonts
+  'ttf': 'lucide:Type',
+  'otf': 'lucide:Type',
+  'woff': 'lucide:Type',
+  'woff2': 'lucide:Type',
+  'eot': 'lucide:Type',
+};
+
+// Специальные файлы по имени
+const FILENAME_TO_DEVICON: Record<string, string> = {
+  // Docker
+  'Dockerfile': 'docker-plain',
+  'docker-compose.yml': 'docker-plain',
+  'docker-compose.yaml': 'docker-plain',
+  '.dockerignore': 'docker-plain',
+  
+  // Git
+  '.gitignore': 'git-plain',
+  '.gitattributes': 'git-plain',
+  '.gitmodules': 'git-plain',
+  
+  // Node.js / npm
+  'package.json': 'npm-original-wordmark',
+  'package-lock.json': 'npm-original-wordmark',
+  'yarn.lock': 'yarn-plain',
+  'pnpm-lock.yaml': 'pnpm-plain',
+  '.npmrc': 'npm-original-wordmark',
+  '.nvmrc': 'nodejs-plain',
+  
+  // Config files
+  'tsconfig.json': 'typescript-plain',
+  'jsconfig.json': 'javascript-plain',
+  '.eslintrc': 'eslint-plain',
+  '.eslintrc.js': 'eslint-plain',
+  '.eslintrc.json': 'eslint-plain',
+  '.eslintrc.cjs': 'eslint-plain',
+  'eslint.config.js': 'eslint-plain',
+  'eslint.config.mjs': 'eslint-plain',
+  '.prettierrc': 'json-plain',
+  'prettier.config.js': 'javascript-plain',
+  '.babelrc': 'babel-plain',
+  'babel.config.js': 'babel-plain',
+  'webpack.config.js': 'webpack-plain',
+  'rollup.config.js': 'rollup-plain',
+  'rollup.config.ts': 'rollup-plain',
+  'rollup.config.mjs': 'rollup-plain',
+  'vite.config.js': 'vitejs-plain',
+  'vite.config.ts': 'vitejs-plain',
+  'svelte.config.js': 'svelte-plain',
+  'next.config.js': 'nextjs-plain',
+  'next.config.mjs': 'nextjs-plain',
+  'nuxt.config.js': 'nuxtjs-plain',
+  'nuxt.config.ts': 'nuxtjs-plain',
+  'astro.config.mjs': 'astro-plain',
+  'tailwind.config.js': 'tailwindcss-plain',
+  'tailwind.config.ts': 'tailwindcss-plain',
+  'postcss.config.js': 'postcss-plain',
+  'postcss.config.cjs': 'postcss-plain',
+  'config.js': 'javascript-plain',
+  'config.ts': 'typescript-plain',
+  'config.mjs': 'javascript-plain',
+  'config.cjs': 'javascript-plain',
+  
+  // Rust
+  'Cargo.toml': 'rust-plain',
+  'Cargo.lock': 'rust-plain',
+  
+  // Python
+  'requirements.txt': 'python-plain',
+  'Pipfile': 'python-plain',
+  'Pipfile.lock': 'python-plain',
+  'pyproject.toml': 'python-plain',
+  'setup.py': 'python-plain',
+  'setup.cfg': 'python-plain',
+  '.python-version': 'python-plain',
+  
+  // Ruby / iOS
+  'Gemfile': 'ruby-plain',
+  'Gemfile.lock': 'ruby-plain',
+  'Rakefile': 'ruby-plain',
+  '.ruby-version': 'ruby-plain',
+  'Podfile': 'ruby-plain',
+  'Podfile.lock': 'ruby-plain',
+  
+  // Go
+  'go.mod': 'go-plain',
+  'go.sum': 'go-plain',
+  
+  // Java / Kotlin
+  'pom.xml': 'maven-plain',
+  'build.gradle': 'gradle-plain',
+  'build.gradle.kts': 'gradle-plain',
+  'settings.gradle': 'gradle-plain',
+  'settings.gradle.kts': 'gradle-plain',
+  
+  // PHP
+  'composer.json': 'composer-plain',
+  'composer.lock': 'composer-plain',
+  
+  // CI/CD
+  '.travis.yml': 'travis-plain',
+  '.gitlab-ci.yml': 'gitlab-plain',
+  'Jenkinsfile': 'jenkins-plain',
+  'azure-pipelines.yml': 'azure-plain',
+  
+  // Terraform
+  'main.tf': 'terraform-plain',
+  'variables.tf': 'terraform-plain',
+  'outputs.tf': 'terraform-plain',
+  'terraform.tfvars': 'terraform-plain',
+  
+  // Kubernetes
+  'Chart.yaml': 'helm-plain',
+  'values.yaml': 'kubernetes-plain',
+  
+  // Editor configs
+  '.editorconfig': 'vscode-plain',
+  
+  // Makefile
+  'Makefile': 'cmake-plain',
+  'makefile': 'cmake-plain',
+  'CMakeLists.txt': 'cmake-plain',
+  
+// README / docs
+'CHANGELOG.md': 'markdown-original',
+  
+  // Settings
+  'Settings': 'linux-plain',
+};
+
+export function getLanguageIcon(filename: string): string {
+  // Settings tab - специальный случай
   if (filename === 'Settings') {
     return 'lucide:Settings';
   }
-  
-  // TypeScript - blue #007acc
-  if (ext === 'ts' || ext === 'tsx') {
-    return 'devicon:typescript-plain colored';
-  }
-  
-  // JavaScript - yellow #f0db4f
-  if (ext === 'js' || ext === 'jsx' || ext === 'mjs' || ext === 'cjs') {
-    return 'devicon:javascript-plain colored';
-  }
-  
-  // Svelte - orange/red #ff3e00
-  if (ext === 'svelte') {
-    return 'devicon:svelte-plain colored';
-  }
-  
-  // Rust - orange/brown
-  if (ext === 'rs') {
-    return 'devicon:rust-plain colored';
-  }
-  
-  // Python - yellow/blue #ffd845
-  if (ext === 'py' || ext === 'pyw' || ext === 'pyx') {
-    return 'devicon:python-plain colored';
-  }
-  
-  // HTML - orange #e54d26
-  if (ext === 'html' || ext === 'htm') {
-    return 'devicon:html5-plain colored';
-  }
-  
-  // CSS - blue #3d8fc6
-  if (ext === 'css') {
-    return 'devicon:css3-plain colored';
-  }
-  
-  // SASS/SCSS - pink #c69
-  if (ext === 'sass' || ext === 'scss') {
-    return 'devicon:sass-original colored';
-  }
-  
-  // JSON
-  if (ext === 'json' || ext === 'jsonc') {
-    return 'devicon:json-plain colored';
-  }
-  
-  // Markdown
-  if (ext === 'md' || ext === 'mdx') {
-    return 'devicon:markdown-original colored';
-  }
-  
-  // Go - cyan #00acd7
-  if (ext === 'go') {
-    return 'devicon:go-plain colored';
-  }
-  
-  // C/C++ - blue tones
-  if (ext === 'c' || ext === 'h') {
-    return 'devicon:c-plain colored';
-  }
-  if (ext === 'cpp' || ext === 'cc' || ext === 'cxx' || ext === 'hpp' || ext === 'hxx') {
-    return 'devicon:cplusplus-plain colored';
-  }
-  
-  // C# - purple #68217a
-  if (ext === 'cs') {
-    return 'devicon:csharp-plain colored';
-  }
-  
-  // Java - red #ea2d2e
-  if (ext === 'java') {
-    return 'devicon:java-plain colored';
-  }
-  
-  // PHP - purple/blue #777bb3
-  if (ext === 'php') {
-    return 'devicon:php-plain colored';
-  }
-  
-  // Ruby - red #d91404
-  if (ext === 'rb') {
-    return 'devicon:ruby-plain colored';
-  }
-  
-  // Swift - orange #f05138
-  if (ext === 'swift') {
-    return 'devicon:swift-plain colored';
-  }
-  
-  // Kotlin - purple #c711e1
-  if (ext === 'kt' || ext === 'kts') {
-    return 'devicon:kotlin-plain colored';
-  }
-  
-  // Vue - green #41b883
-  if (ext === 'vue') {
-    return 'devicon:vuejs-plain colored';
-  }
-  
-  // React (уже обработано через tsx/jsx, но для явности)
-  
-  // Docker - blue #019bc6
-  if (filename === 'Dockerfile' || filename.startsWith('Dockerfile.')) {
-    return 'devicon:docker-plain colored';
-  }
-  
-  // YAML - red #cb171e
-  if (ext === 'yml' || ext === 'yaml') {
-    return 'devicon:yaml-plain colored';
-  }
-  
-  // TOML
-  if (ext === 'toml') {
-    return 'devicon:toml-plain colored';
-  }
-  
-  // XML - blue #005fad
-  if (ext === 'xml') {
-    return 'devicon:xml-plain colored';
-  }
-  
-  // SQL - blue tones #00618a
-  if (ext === 'sql') {
-    return 'devicon:mysql-plain colored';
-  }
-  
-  // Shell scripts - dark gray
-  if (ext === 'sh' || ext === 'bash' || ext === 'zsh') {
-    return 'devicon:bash-plain colored';
-  }
-  
-  // PowerShell - dark blue #1e2a3a
-  if (ext === 'ps1' || ext === 'psm1') {
-    return 'devicon:powershell-plain colored';
-  }
-  
-  // Git - orange #f34f29
-  if (filename === '.gitignore' || filename === '.gitattributes') {
-    return 'devicon:git-plain colored';
-  }
-  
-  // npm/node - red/green #cb3837 / #5fa04e
-  if (filename === 'package.json' || filename === 'package-lock.json') {
-    return 'devicon:nodejs-plain colored';
-  }
-  
-  // Cargo (Rust) - use rust icon
-  if (filename === 'Cargo.toml' || filename === 'Cargo.lock') {
-    return 'devicon:rust-plain colored';
-  }
-  
-  // Svelte config
-  if (filename === 'svelte.config.js') {
-    return 'devicon:svelte-plain colored';
-  }
-  
-  // Vite - purple/yellow #006bff
-  if (filename.includes('vite.config')) {
-    return 'devicon:vite-original colored';
+
+  const fileNameOnly = filename.split('/').pop() || filename;
+  const ext =
+    fileNameOnly.includes('.')
+      ? fileNameOnly.split('.').pop()?.toLowerCase() || ''
+      : filename.startsWith('.') && filename.lastIndexOf('.') > 0
+        ? filename.split('.').pop()?.toLowerCase() || ''
+        : '';
+
+  const baseName = filename.startsWith('.') ? filename : fileNameOnly;
+  const normalizedBaseName = baseName.toLowerCase();
+
+  // Проверяем .env файлы (включая .env.local, .env.production и т.д.)
+  if (normalizedBaseName === '.env' || normalizedBaseName.startsWith('.env.')) {
+    return 'lucide:Cog';
   }
 
-  const lucideFallbacks: Record<string, string> = {
-    toml: 'lucide:FileText',
-    lock: 'lucide:Lock',
-    log: 'lucide:FileWarning',
-    csv: 'lucide:Rows',
-    txt: 'lucide:FileText',
-    yaml: 'lucide:FileCode',
-    yml: 'lucide:FileCode'
-  };
+  if (normalizedBaseName.startsWith('license')) {
+    return 'lucide:Copyright';
+  }
 
-  if (lucideFallbacks[ext]) {
-    return lucideFallbacks[ext];
+  if (normalizedBaseName.startsWith('readme')) {
+    return 'lucide:Info';
+  }
+  
+  if (fileNameOnly.endsWith('.lock') || baseName.endsWith('.lock')) {
+    return 'lucide:Lock';
+  }
+  
+  // Проверяем специальные имена файлов
+  if (FILENAME_TO_DEVICON[filename]) {
+    return `devicon:${FILENAME_TO_DEVICON[filename]} colored`;
+  }
+  
+  // Для файлов с точкой в начале (dotfiles)
+  if (FILENAME_TO_DEVICON[baseName]) {
+    return `devicon:${FILENAME_TO_DEVICON[baseName]} colored`;
+  }
+  
+  // Проверяем расширение в devicon маппинге
+  if (EXTENSION_TO_DEVICON[ext]) {
+    return `devicon:${EXTENSION_TO_DEVICON[ext]} colored`;
+  }
+  
+  // Проверяем fallback иконки (lucide)
+  if (EXTENSION_FALLBACK[ext]) {
+    return EXTENSION_FALLBACK[ext];
   }
 
   // Default fallback - любые неизвестные файлы
   return 'lucide:File';
 }
+
+/**
+ * Проверяет, есть ли devicon для данной технологии
+ */
+export function hasDevicon(tech: string): boolean {
+  return DEVICON_TECHNOLOGIES.has(tech.toLowerCase());
+}
+
+// Реэкспорт функций для работы с цветами иконок
+export { 
+  getIconColor, 
+  getIconColorFromDevicon, 
+  applyIconColor,
+  BASE_ICON_COLORS,
+  LIGHT_THEME_ICON_COLORS,
+  DARK_THEME_ICON_COLORS,
+  type ThemeMode 
+} from '../stores/ICON_COLORS_PALETTE';

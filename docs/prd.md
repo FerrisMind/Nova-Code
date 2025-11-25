@@ -1,55 +1,41 @@
-# Product Requirements Document: Nova Code
+# Product Requirements Document: Nova Code (MVP)
 
-## Обзор
-Nova Code — легковесный редактор кода, построенный на Tauri v2, Svelte 5 и Monaco Editor. Продукт нацелен на разработчиков, которым нужна быстрая альтернатива VS Code с минимальным потреблением ресурсов, нативной производительностью и возможностью расширения через плагины.
+## Цель
+Лёгкий настольный редактор кода (клон VS Code core) на Tauri v2 + Svelte 5 + Monaco Editor, закрывающий базовые сценарии редактирования и навигации без Git/расширений/отладчика/IntelliSense/split/minimap/автосохранения/мультикурсора.
 
 ## Проблема
-Существующие редакторы кода (VS Code, Atom) построены на Electron, что приводит к высокому потреблению RAM (300–800 МБ в idle), медленному запуску (2–5 сек) и избыточному использованию CPU. Разработчикам на слабых машинах или работающим с множеством окон нужна производительная альтернатива без потери функциональности.
+Электрон-редакторы потребляют 300–800 МБ RAM и стартуют 3–5 с. Nova Code должен запускаться <1 с и удерживать <150 МБ RAM в idle, предоставляя знакомый UX.
 
-## Целевая аудитория
-- Frontend/backend разработчики на macOS/Linux/Windows
-- DevOps-инженеры, работающие с конфигами и скриптами
-- Студенты и джуниоры с ограниченными аппаратными ресурсами
-- Пользователи VS Code, ищущие более легкую альтернативу
+## Пользователи
+- Разработчики, привыкшие к VS Code UI, но желающие лёгкий офлайн-редактор.
+- Кросс-платформенность: macOS/Linux/Windows.
 
-## Цели и метрики успеха
-- Запуск приложения < 1 сек (vs 3–5 сек в VS Code)
-- Потребление RAM в idle < 150 МБ (vs 300–500 МБ)
-- Поддержка 20+ языков программирования через встроенный syntax highlighting
-- 10 000 скачиваний за первые 3 месяца
-- 80%+ положительных отзывов (GitHub stars/reviews)
-
-## Решение
-Нативный десктопный редактор с Monaco Editor как ядром, Tauri v2 для минимального overhead, Svelte 5 для реактивного UI. Ключевые возможности: работа с файлами/папками, syntax highlighting, автодополнение, встроенный терминал, Git-интеграция, система расширений через WebAssembly или JavaScript плагины.
-
-## Функциональные требования
-- Открытие файлов/папок через drag-and-drop или file picker
-- Syntax highlighting для JS/TS/Python/Rust/Go/HTML/CSS/JSON/Markdown
-- Автодополнение и IntelliSense через Language Server Protocol (LSP)
-- Встроенный терминал (bash/zsh/PowerShell в зависимости от ОС)
-- Git-интеграция: diff view, stage/commit/push из UI
-- Поиск/замена по файлам (regex support)
-- Split view (до 4 панелей)
-- Кастомные темы (light/dark + импорт VS Code themes)
-- Горячие клавиши (конфигурируемые)
-- Настройки через JSON-конфиг
+## Функциональные требования (MVP)
+- **Редактор (Monaco):** подсветка JS/TS/Python/Rust/HTML/CSS/JSON/MD; line numbers; folding; auto-closing brackets/quotes; базовое completion (без LSP); soft wrap toggle; dirty-маркер; закрытие вкладок с подтверждением.
+- **Файловый проводник:** дерево; read/create/delete/rename; подсветка активного файла; поиск по имени; watcher обновляет дерево; открытие файлов через дерево/палитру.
+- **Поиск/замена:** Ctrl+F поиск в файле; Ctrl+H замена (regex/whole word/case, replace all); Cmd/Ctrl+Shift+F поиск по проекту с отменой и переходом к матчу.
+- **UI:** Sidebar с Explorer; Command Palette (Cmd/Ctrl+Shift+P) с командами открытия, тем, wrap, терминала, настроек, goto line/symbol; Status Bar (путь/язык, позиция каретки, CRLF/LF, таб/пробел, wrap, тема, терминал); Breadcrumbs (путь + outline).
+- **Терминал:** встроенный xterm.js, PTY (bash/zsh/pwsh/cmd), рабочая директория — корень workspace; toggle Ctrl+`; поддержка resize/scrollback.
+- **Настройки/темы:** light/dark; шрифты редактора и размер; tabSize/insertSpaces; wrap; auto-close brackets/quotes; keybindings; хранить last_workspace/last_active_file; применение без перезапуска.
 
 ## Нефункциональные требования
-- Запуск < 1 сек на средней машине (i5, 8GB RAM)
-- Поддержка файлов до 50 МБ без фризов
-- Кросс-платформенность: macOS (x64/ARM), Linux (x64), Windows (x64)
-- Размер дистрибутива < 50 МБ
-- Автообновления через Tauri Updater
-- Локализация: английский, русский
+- Производительность: старт <1 с; открытие файла <300 мс; первые результаты project search <1 с.
+- Память: idle <150 МБ.
+- Размер дистрибутива: <50 МБ.
+- UX: все destructive действия с подтверждением; клавиатурная навигация в дереве и палитре; latency UI <50 мс.
 
-## Исключённое из scope (v1)
-- Debugging (breakpoints, watch variables)
-- Remote development (SSH, containers)
-- Встроенный Jupyter Notebook
-- Marketplace для плагинов (загрузка локально)
-- Collaborative editing
+## Ограничения (Out of Scope)
+- Git интеграция, расширения/плагины, отладчик, IntelliSense/LSP, minimap, split view, автосохранение, мультикурсор, remote dev, marketplace.
 
-## Открытые вопросы
-- Какие LSP-серверы поддерживать из коробки (vs установка пользователем)?
-- Формат плагинов: JS-модули или WASM?
-- Нужна ли синхронизация настроек через cloud?
+## Метрики успеха
+- Время запуска (p50/p95).
+- Пиковое потребление RAM в idle.
+- SLA на открытие файла и поиск.
+- Пользовательские тесты: ≥80% задач выполняются без блокеров (по скрипту из MVP-функций).
+
+## Открытые вопросы (после MVP)
+- Расширение языков (Go, Java, C++).
+- Git и diff UI.
+- Плагины/темы совместимые с VS Code marketplace.
+- LSP/IntelliSense и split view.
+

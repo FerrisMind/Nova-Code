@@ -1,22 +1,18 @@
 <script lang="ts">
   // src/lib/settings/controls/RangeInput.svelte
   // ----------------------------------------------------------------------------
-  // Комбинированный слайдер + числовой input для number-настроек.
-  //
-  // Реализует контракт из [`controls.api.md`](src/lib/settings/controls/controls.api.md:1):
-  // - работает поверх SettingDefinition<number>;
-  // - использует только definition.get()/set() или переданный onChange;
-  // - без заглушек, без обращения к глобальным сторам напрямую;
-  // - минималистичный, аккуратный UI с плавными анимациями.
-  //
-  // Архитектура и стили синхронизированы с актуальными практиками Svelte 5
-  // (подтверждено через Context7 + официальную документацию).
+  // Обёртка для shadcn-svelte Slider с number input, сохраняет оригинальный API.
   // ----------------------------------------------------------------------------
 
-  import { createEventDispatcher } from 'svelte';
-  import type { SettingDefinition, SettingId, SettingValue } from '$lib/settings/types';
+  import { createEventDispatcher } from "svelte";
+  import { Slider } from "$lib/components/ui/slider";
+  import type {
+    SettingDefinition,
+    SettingId,
+    SettingValue,
+  } from "$lib/settings/types";
 
-  type SettingChangeSource = 'user' | 'profile' | 'quickAction' | 'command';
+  type SettingChangeSource = "user" | "profile" | "quickAction" | "command";
 
   interface SettingChangeMeta {
     settingId: SettingId;
@@ -41,31 +37,31 @@
     change: { value: number; meta: SettingChangeMeta };
   }>();
 
-  export let definition: RangeInputProps['definition'];
-  export let value: RangeInputProps['value'] = undefined;
-  export let onChange: RangeInputProps['onChange'] = undefined;
-  export let min: RangeInputProps['min'];
-  export let max: RangeInputProps['max'];
-  export let step: RangeInputProps['step'] = 1;
-  export let disabled: RangeInputProps['disabled'] = false;
-  export let showScale: RangeInputProps['showScale'] = false;
-  export let compact: RangeInputProps['compact'] = false;
-  export let id: RangeInputProps['id'] = '';
-  export let idPrefix: RangeInputProps['idPrefix'] = 'setting-range';
+  let {
+    definition,
+    value = undefined,
+    onChange = undefined,
+    min,
+    max,
+    step = 1,
+    disabled = false,
+    showScale = false,
+    compact = false,
+    id = "",
+    idPrefix = "setting-range",
+  }: RangeInputProps = $props();
 
   if (min === undefined || max === undefined) {
-    // Строгий контракт: компонент требует явных границ,
-    // чтобы избежать неявного поведения.
-    throw new Error('RangeInput requires explicit min and max props.');
+    throw new Error("RangeInput requires explicit min and max props.");
   }
 
   const resolveId = () => {
     if (id) return id;
-    return `${idPrefix}-${definition.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    return `${idPrefix}-${definition.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
   };
 
   const normalizeNumber = (raw: unknown): number => {
-    if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+    if (typeof raw === "number" && Number.isFinite(raw)) return raw;
     const parsed = Number(String(raw).trim());
     return Number.isFinite(parsed) ? parsed : NaN;
   };
@@ -96,18 +92,29 @@
     }
   };
 
-  let inputBuffer: string = String(currentNumber());
+  let sliderValue = $state(currentNumber());
+  let inputBuffer = $state(String(currentNumber()));
 
-  const syncBufferFromCurrent = () => {
-    inputBuffer = String(currentNumber());
+  const syncFromCurrent = () => {
+    const current = currentNumber();
+    sliderValue = current;
+    inputBuffer = String(current);
   };
 
-  const commitValue = (nextRaw: unknown, source: SettingChangeSource = 'user') => {
+  // Синхронизация при изменении value
+  $effect(() => {
+    syncFromCurrent();
+  });
+
+  const commitValue = (
+    nextRaw: unknown,
+    source: SettingChangeSource = "user",
+  ) => {
     const parsed = normalizeNumber(nextRaw);
     const clamped = clamp(applyStep(parsed));
     const meta: SettingChangeMeta = {
       settingId: definition.id,
-      source
+      source,
     };
 
     if (onChange) {
@@ -116,14 +123,14 @@
       definition.set(clamped as SettingValue);
     }
 
+    sliderValue = clamped;
     inputBuffer = String(clamped);
-    dispatch('change', { value: clamped, meta });
+    dispatch("change", { value: clamped, meta });
   };
 
-  const handleSliderInput = (event: Event) => {
+  const handleSliderChange = (val: number[]) => {
     if (disabled) return;
-    const target = event.currentTarget as HTMLInputElement;
-    commitValue(target.value, 'user');
+    commitValue(val[0], "user");
   };
 
   const handleNumberInput = (event: Event) => {
@@ -134,41 +141,39 @@
 
   const handleNumberBlur = () => {
     if (disabled) {
-      syncBufferFromCurrent();
+      syncFromCurrent();
       return;
     }
-    commitValue(inputBuffer, 'user');
+    commitValue(inputBuffer, "user");
   };
 
   const handleNumberKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       event.preventDefault();
       if (!disabled) {
-        commitValue(inputBuffer, 'user');
+        commitValue(inputBuffer, "user");
       }
-    } else if (event.key === 'Escape') {
+    } else if (event.key === "Escape") {
       event.preventDefault();
-      syncBufferFromCurrent();
+      syncFromCurrent();
     }
   };
-
-  // Обновляем буфер, если source-of-truth изменился извне.
-  $: syncBufferFromCurrent();
 </script>
 
-<div class="nc-range-root {compact ? 'compact' : ''} {disabled ? 'disabled' : ''}">
+<div
+  class="nc-range-root {compact ? 'compact' : ''} {disabled ? 'disabled' : ''}"
+>
   <div class="nc-range-slider-wrap">
-    <input
-      id={resolveId()}
-      type="range"
-      min={min}
-      max={max}
-      step={step}
-      value={currentNumber()}
-      class="nc-range-slider"
+    <Slider
+      type="single"
+      value={sliderValue}
+      {min}
+      {max}
+      {step}
+      {disabled}
+      onValueChange={handleSliderChange}
       aria-label={definition.label}
-      disabled={disabled}
-      on:input={handleSliderInput}
+      class="nc-slider-custom"
     />
     {#if showScale}
       <div class="nc-range-scale">
@@ -182,14 +187,14 @@
     <input
       class="nc-range-input"
       type="number"
-      min={min}
-      max={max}
-      step={step}
+      {min}
+      {max}
+      {step}
       {disabled}
-      bind:value={inputBuffer}
-      on:input={handleNumberInput}
-      on:blur={handleNumberBlur}
-      on:keydown={handleNumberKeydown}
+      value={inputBuffer}
+      oninput={handleNumberInput}
+      onblur={handleNumberBlur}
+      onkeydown={handleNumberKeydown}
       aria-label={definition.label}
     />
   </div>
@@ -221,69 +226,8 @@
     justify-content: center;
   }
 
-  .nc-range-slider {
-    -webkit-appearance: none;
-    appearance: none;
+  :global(.nc-slider-custom) {
     width: 100%;
-    height: 4px;
-    border-radius: 4px;
-    background: var(--nc-level-2);
-    outline: none;
-    transition:
-      background-color 0.12s ease;
-  }
-
-  .nc-range-root.disabled .nc-range-slider {
-    cursor: default;
-  }
-
-  .nc-range-slider:hover:not(:disabled) {
-    background: var(--nc-level-3);
-  }
-
-  .nc-range-slider:focus-visible {
-    background: var(--nc-level-3);
-  }
-
-  .nc-range-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    background: var(--nc-level-4);
-    cursor: pointer;
-    transition:
-      transform 0.12s ease,
-      background 0.12s ease;
-  }
-
-  .nc-range-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    border: none;
-    background: var(--nc-level-4);
-    cursor: pointer;
-  }
-
-  .nc-range-slider:hover::-webkit-slider-thumb {
-    transform: scale(1.1);
-    background: var(--nc-level-5);
-  }
-
-  .nc-range-slider:hover::-moz-range-thumb {
-    transform: scale(1.1);
-    background: var(--nc-level-5);
-  }
-
-  .nc-range-slider:focus::-webkit-slider-thumb {
-    transform: scale(1.15);
-    background: var(--nc-level-5);
-  }
-
-  .nc-range-slider:focus::-moz-range-thumb {
-    transform: scale(1.15);
   }
 
   .nc-range-scale {

@@ -34,12 +34,30 @@ export class ThemeManager {
   private monaco: typeof monaco | null = null;
   private customThemes = new Map<string, CustomTheme>();
   private currentThemeId: string | null = null;
+  private initialized = false;
+  private themesLoaded = false;
 
   /**
    * Инициализировать менеджер с экземпляром Monaco
    */
   initialize(monacoInstance: typeof monaco) {
+    if (this.initialized) return;
     this.monaco = monacoInstance;
+    this.initialized = true;
+  }
+
+  /**
+   * Проверить, инициализирован ли менеджер
+   */
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  /**
+   * Проверить, загружены ли темы
+   */
+  areThemesLoaded(): boolean {
+    return this.themesLoaded;
   }
 
   /**
@@ -200,7 +218,7 @@ export class ThemeManager {
    * Загрузить популярные темы из monaco-themes
    */
   async loadPopularThemes(): Promise<void> {
-    if (!this.monaco) return;
+    if (!this.monaco || this.themesLoaded) return;
 
     // Explicitly import themes to avoid Vite dynamic import issues with node_modules
     // Only importing themes that actually exist in the package
@@ -224,6 +242,8 @@ export class ThemeManager {
         console.warn(`Failed to load theme ${id}:`, error);
       }
     }
+
+    this.themesLoaded = true;
   }
 }
 

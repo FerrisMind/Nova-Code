@@ -1,17 +1,12 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { activeEditor } from '../stores/editorStore';
-  import { bottomPanelStore } from '../stores/bottomPanelStore';
   import Icon from '../common/Icon.svelte';
   import { cursorPosition } from '../stores/editorCursorStore';
-  import { diagnosticsCount } from '../stores/diagnosticsStore';
   import { activeEditorMeta } from '../stores/editorMetaStore';
 
   // Текущее состояние из editorStore (имя/путь файла).
   let current = null as import('../stores/editorStore').EditorTab | null;
-
-  // Состояние нижней панели.
-  let bottomVisible = true;
 
   // Состояние курсора.
   let cursorLn = 1;
@@ -23,18 +18,10 @@
   let tabSize: number | null = null;
   let insertSpaces: boolean | null = null;
 
-  // Диагностика по активному файлу.
-  let diagErrors = 0;
-  let diagWarnings = 0;
-
   // Подписки на сторы. Используем ручное управление без onMount,
   // чтобы сохранить минималистичный и предсказуемый подход.
   const unsubEditor = activeEditor.subscribe(($active) => {
     current = $active;
-  });
-
-  const unsubBottom = bottomPanelStore.subscribe(($s) => {
-    bottomVisible = $s.visible;
   });
 
   const unsubCursor = cursorPosition.subscribe(($cursor) => {
@@ -49,23 +36,13 @@
     insertSpaces = $meta.insertSpaces;
   });
 
-  const unsubDiag = diagnosticsCount.subscribe(($d) => {
-    diagErrors = $d.errors;
-    diagWarnings = $d.warnings;
-  });
-
   onDestroy(() => {
     unsubEditor();
-    unsubBottom();
     unsubCursor();
     unsubMeta();
-    unsubDiag();
   });
 
-  const toggleBottom = () => bottomPanelStore.toggle();
-
   const projectLabel = 'SvelteKit + Tauri v2';
-  const branch = 'main';
 
   // Отображаемое имя языка для статус-бара (минимальный mapping).
   const mapLanguageIdToLabel = (id: string | null): string => {
@@ -93,42 +70,11 @@
 </script>
 
 <div class="status-bar">
-  <div class="left">
-    <div class="item">
-      <Icon name="lucide:GitBranch" size={14} />
-      <span>{branch}</span>
-    </div>
-    <div class="item file">
-      {#if current}
-        {current.path}
-      {:else}
-        No file selected
-      {/if}
-    </div>
-  </div>
-
   <div class="center">
     <!-- Зарезервировано под будущие интеграции (например, статус Git, задачи). -->
   </div>
 
   <div class="right">
-    <button class="item icon-btn" on:click={toggleBottom} title="Toggle Panel">
-      <Icon name="terminal" size={14} />
-      <span>{bottomVisible ? 'Panel: On' : 'Panel: Off'}</span>
-    </button>
-
-    <!-- Диагностика: реальные значения из diagnosticsStore -->
-    <div class="item diagnostics">
-      <span class:muted={diagErrors === 0}>
-        <Icon name="lucide:CircleX" size={12} />
-        {diagErrors}
-      </span>
-      <span class:muted={diagWarnings === 0}>
-        <Icon name="lucide:AlertTriangle" size={12} />
-        {diagWarnings}
-      </span>
-    </div>
-
     <!-- Позиция курсора: реальные данные из editorCursorStore -->
     <div class="item">
       Ln {cursorLn}, Col {cursorCol}
@@ -179,7 +125,6 @@
     box-sizing: border-box;
   }
 
-  .left,
   .center,
   .right {
     display: flex;
@@ -205,13 +150,7 @@
     white-space: nowrap;
   }
 
-  .file {
-    max-width: 260px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 
-  .icon-btn,
   .meta-btn {
     cursor: pointer;
     border: none;
@@ -221,22 +160,6 @@
     border-radius: 4px;                   /* 1 * 4px */
   }
 
-  .diagnostics {
-    display: inline-flex;
-    gap: 6px;
-  }
-
-  .diagnostics span {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .diagnostics span.muted {
-    opacity: 0.6;
-  }
-
-  .icon-btn:hover,
   .meta-btn:hover,
   .item:hover {
     background-color: var(--nc-tab-bg-active);

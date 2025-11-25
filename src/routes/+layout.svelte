@@ -1,23 +1,29 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import Titlebar from '../lib/layout/Titlebar.svelte';
-  import ActivityBar from '../lib/layout/ActivityBar.svelte';
-  import SideBar from '../lib/layout/SideBar.svelte';
-  import RightSideBar from '../lib/layout/RightSideBar.svelte';
-  import EditorTabs from '../lib/layout/EditorTabs.svelte';
-  import EditorArea from '../lib/layout/EditorArea.svelte';
-  import BottomPanel from '../lib/layout/BottomPanel.svelte';
-  import StatusBar from '../lib/layout/StatusBar.svelte';
-  import CommandPalette from '../lib/commands/CommandPalette.svelte';
-  import { layoutState, toggleLeftSidebar, setRightSidebarWidth, setRightSidebarVisible } from '../lib/stores/layout/layoutStore';
-  import { initDefaultCommands } from '../lib/commands/defaultCommands';
-  import { openCommandPalette } from '../lib/stores/commandPaletteStore';
+  import "../app.css";
+  import { onMount } from "svelte";
+  import Titlebar from "../lib/layout/Titlebar.svelte";
+  import ActivityBar from "../lib/layout/ActivityBar.svelte";
+  import SideBar from "../lib/layout/SideBar.svelte";
+  import RightSideBar from "../lib/layout/RightSideBar.svelte";
+  import EditorTabs from "../lib/layout/EditorTabs.svelte";
+  import EditorArea from "../lib/layout/EditorArea.svelte";
+  import BottomPanel from "../lib/layout/BottomPanel.svelte";
+  import StatusBar from "../lib/layout/StatusBar.svelte";
+  import CommandPalette from "../lib/commands/CommandPalette.svelte";
+  import {
+    layoutState,
+    toggleLeftSidebar,
+    setRightSidebarWidth,
+    setRightSidebarVisible,
+  } from "../lib/stores/layout/layoutStore";
+  import { initDefaultCommands } from "../lib/commands/defaultCommands";
+  import { openCommandPalette } from "../lib/stores/commandPaletteStore";
 
-  import { theme, type ThemeState } from '../lib/stores/themeStore';
+  import { theme, type ThemeState } from "../lib/stores/themeStore";
   import {
     getPaletteById,
-    type ThemePaletteId
-  } from '../lib/stores/THEME_PALETTES';
+    type ThemePaletteId,
+  } from "../lib/stores/THEME_PALETTES";
 
   // Для SvelteKit layout корректно принимаем children через $props (Svelte 5 runes, use context7).
   const { children } = $props();
@@ -27,8 +33,8 @@
    * Значение инициализируется фактическим состоянием стора в onMount.
    */
   let themeState = $state<ThemeState>({
-    mode: 'dark',
-    palette: 'dark-default'
+    mode: "dark",
+    palette: "dark-default",
   });
 
   // Right sidebar resizing state
@@ -45,7 +51,7 @@
    */
   const applyThemeColors = (state: ThemeState) => {
     const palette = getPaletteById(state.palette);
-    const isLight = state.mode === 'light';
+    const isLight = state.mode === "light";
 
     // Мэппинг через уровни фона:
     // - backgroundLevels[0] → базовый фон;
@@ -56,28 +62,28 @@
     const root = document.documentElement;
 
     // Установить data-theme для глобальных селекторов/devicon.
-    root.setAttribute('data-theme', state.mode);
+    root.setAttribute("data-theme", state.mode);
 
     // Уровни фона (palette → CSS custom properties).
-    root.style.setProperty('--nc-level-minus1', palette.backgroundLevelMinus1); // Level -1: Таббар
-    root.style.setProperty('--nc-level-0', levels[0]); // Base / shell
-    root.style.setProperty('--nc-level-1', levels[1]); // Рабочая область/карточки
-    root.style.setProperty('--nc-level-2', levels[2]); // Рабочая область/карточки
-    root.style.setProperty('--nc-level-3', levels[3]); // Кнопки обычные
-    root.style.setProperty('--nc-level-4', levels[4]); // Hover
-    root.style.setProperty('--nc-level-5', levels[5]); // Hover
+    root.style.setProperty("--nc-level-minus1", palette.backgroundLevelMinus1); // Level -1: Таббар
+    root.style.setProperty("--nc-level-0", levels[0]); // Base / shell
+    root.style.setProperty("--nc-level-1", levels[1]); // Рабочая область/карточки
+    root.style.setProperty("--nc-level-2", levels[2]); // Рабочая область/карточки
+    root.style.setProperty("--nc-level-3", levels[3]); // Кнопки обычные
+    root.style.setProperty("--nc-level-4", levels[4]); // Hover
+    root.style.setProperty("--nc-level-5", levels[5]); // Hover
 
     // Активный таб
-    root.style.setProperty('--nc-tab-bg-active', levels[1]);
+    root.style.setProperty("--nc-tab-bg-active", levels[1]);
 
     // Текст в соответствии со спецификацией.
-    root.style.setProperty('--nc-palette-text', textColor);
+    root.style.setProperty("--nc-palette-text", textColor);
 
     // Границы:
     // Для согласованности используем фиксированные значения под тему, без выдуманных цветов.
     root.style.setProperty(
-      '--nc-palette-border',
-      isLight ? '#D0D0D0' : '#3A3A3A'
+      "--nc-palette-border",
+      isLight ? "#D0D0D0" : "#3A3A3A",
     );
 
     // CSS-класс для применения theme-dark / theme-light маппинга.
@@ -106,32 +112,32 @@
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
 
       // Ctrl+B — toggle left sidebar.
-      if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
+      if (e.ctrlKey && (e.key === "b" || e.key === "B")) {
         e.preventDefault();
         toggleLeftSidebar();
         return;
       }
 
       // F1 — open command palette.
-      if (e.key === 'F1') {
+      if (e.key === "F1") {
         e.preventDefault();
         openCommandPalette();
         return;
       }
 
       // Ctrl+Shift+P / Cmd+Shift+P — open command palette.
-      if (isCtrlOrCmd && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+      if (isCtrlOrCmd && e.shiftKey && (e.key === "p" || e.key === "P")) {
         e.preventDefault();
         openCommandPalette();
         return;
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
 
     return () => {
       unsubscribeTheme();
-      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener("keydown", onKeyDown);
     };
   });
 
@@ -178,12 +184,12 @@
         clearTimeout(rightHideTimer);
         rightHideTimer = null;
       }
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
   };
 </script>
 
@@ -193,7 +199,11 @@
   <div class="nova-main">
     <ActivityBar />
 
-    <div class="nova-center" class:sidebar-hidden={!$layoutState.leftSidebarVisible} class:right-sidebar-visible={$layoutState.rightSidebarVisible}>
+    <div
+      class="nova-center"
+      class:sidebar-hidden={!$layoutState.leftSidebarVisible}
+      class:right-sidebar-visible={$layoutState.rightSidebarVisible}
+    >
       <SideBar />
 
       <!-- EditorRegion + BottomPanel делят вертикаль; справа опциональный RightSideBar -->
@@ -244,8 +254,14 @@
     overflow: hidden;
     background-color: var(--nc-bg);
     color: var(--nc-fg);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', -system-ui, sans-serif;
-    font-size: 13px;                      /* базовый размер: 3.25 * 4px ~ комфортно */
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "SF Pro Text",
+      -system-ui,
+      sans-serif;
+    font-size: 13px; /* базовый размер: 3.25 * 4px ~ комфортно */
     line-height: 1.5;
   }
 
@@ -324,18 +340,18 @@
 
   .theme-dark {
     /* Уровни яркости палитры */
-    --nc-bg: var(--nc-level-0, #1a1d2e);              /* Level 0: Базовый фон */
-    --nc-bg-elevated: var(--nc-level-1, #1e2135);    /* Level 1: Рабочая область */
-    --nc-bg-button: var(--nc-level-3, #24273a);      /* Level 3: Кнопки */
-    --nc-bg-hover: var(--nc-level-5, #282d3e);       /* Level 5: Hover-состояния */
-    
+    --nc-bg: var(--nc-level-0, #1a1d2e); /* Level 0: Базовый фон */
+    --nc-bg-elevated: var(--nc-level-1, #1e2135); /* Level 1: Рабочая область */
+    --nc-bg-button: var(--nc-level-3, #24273a); /* Level 3: Кнопки */
+    --nc-bg-hover: var(--nc-level-5, #282d3e); /* Level 5: Hover-состояния */
+
     --nc-fg: var(--nc-palette-text, #e8e8e8);
     --nc-fg-muted: #a8aab0;
     --nc-border-subtle: var(--nc-palette-border, #3a3a3a);
     --nc-tab-bg: var(--nc-level-0);
-    
+
     /* Акцент остается фиксированным */
-    --nc-accent: #6F9DFF;
+    --nc-accent: #6f9dff;
     --nc-accent-soft: rgba(111, 157, 255, 0.18);
     --nc-highlight: rgba(111, 157, 255, 0.55);
     --nc-highlight-subtle: rgba(111, 157, 255, 0.12);
@@ -345,18 +361,18 @@
 
   .theme-light {
     /* Уровни яркости палитры */
-    --nc-bg: var(--nc-level-0, #f5f7fa);              /* Level 0: Базовый фон */
-    --nc-bg-elevated: var(--nc-level-1, #f1f3f6);    /* Level 1: Рабочая область */
-    --nc-bg-button: var(--nc-level-3, #e7eaef);      /* Level 3: Кнопки */
-    --nc-bg-hover: var(--nc-level-5, #dfe3e9);       /* Level 5: Hover-состояния */
-    
-    --nc-fg: var(--nc-palette-text, #2E2E2E);
+    --nc-bg: var(--nc-level-0, #f5f7fa); /* Level 0: Базовый фон */
+    --nc-bg-elevated: var(--nc-level-1, #f1f3f6); /* Level 1: Рабочая область */
+    --nc-bg-button: var(--nc-level-3, #e7eaef); /* Level 3: Кнопки */
+    --nc-bg-hover: var(--nc-level-5, #dfe3e9); /* Level 5: Hover-состояния */
+
+    --nc-fg: var(--nc-palette-text, #2e2e2e);
     --nc-fg-muted: #5a5a5a;
     --nc-border-subtle: var(--nc-palette-border, #d0d0d0);
     --nc-tab-bg: var(--nc-level-0);
-    
+
     /* Акцент остается фиксированным */
-    --nc-accent: #4F6FAF;
+    --nc-accent: #4f6faf;
     --nc-accent-soft: rgba(79, 111, 175, 0.12);
     --nc-highlight: rgba(79, 111, 175, 0.16);
     --nc-highlight-subtle: rgba(79, 111, 175, 0.08);
@@ -433,6 +449,14 @@
     background-color: rgba(80, 80, 80, 0.7);
   }
 
+  /* Rust devicon tuning for dark theme */
+  :global(.theme-dark .devicon-rust-original),
+  :global(.theme-dark .devicon-rust-plain),
+  :global(.theme-dark .devicon-rust-plain-wordmark),
+  :global(.theme-dark .devicon-rust-original-wordmark) {
+    color: #ffb070;
+  }
+
   /* Monaco Editor специфичные стили для скроллбаров */
   :global(.monaco-scrollable-element > .scrollbar) {
     background: transparent !important;
@@ -459,7 +483,9 @@
     background: rgba(160, 160, 160, 0.5) !important;
   }
 
-  :global(.theme-dark .monaco-scrollable-element > .scrollbar > .slider:active) {
+  :global(
+      .theme-dark .monaco-scrollable-element > .scrollbar > .slider:active
+    ) {
     background: rgba(160, 160, 160, 0.7) !important;
   }
 
@@ -467,11 +493,15 @@
     background: rgba(80, 80, 80, 0.3) !important;
   }
 
-  :global(.theme-light .monaco-scrollable-element > .scrollbar > .slider:hover) {
+  :global(
+      .theme-light .monaco-scrollable-element > .scrollbar > .slider:hover
+    ) {
     background: rgba(80, 80, 80, 0.5) !important;
   }
 
-  :global(.theme-light .monaco-scrollable-element > .scrollbar > .slider:active) {
+  :global(
+      .theme-light .monaco-scrollable-element > .scrollbar > .slider:active
+    ) {
     background: rgba(80, 80, 80, 0.7) !important;
   }
 </style>

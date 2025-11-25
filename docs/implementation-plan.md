@@ -1,86 +1,40 @@
-# Implementation Plan: Nova Code
+# Implementation Plan: Nova Code (MVP only)
 
-## Phase 1: MVP (Core Editor) - 6 weeks
+Фокус: доставить 100% требований MVP (редактор, вкладки, проводник, поиск/замена, палитра команд, статус-бар, breadcrumbs, терминал, настройки/темы). Вне scope: Git, расширения, отладчик, мультикурсор, IntelliSense/LSP, minimap, split view, автосохранение.
 
-**Goal:** Deliver a working editor shell with basic file opening/editing and command layers.
+## Acceptance Checklist (должно быть готово к демо)
+- Monaco: подсветка JS/TS/Python/Rust/HTML/CSS/JSON/MD, line numbers, folding, auto close brackets/quotes, базовое completion, soft wrap toggle.
+- Вкладки: множественные файлы, dirty-маркер, закрытие с подтверждением.
+- Файловое дерево: read/create/delete/rename, поиск по имени, подсветка активного файла, watcher обновляет дерево.
+- Поиск/замена: Ctrl+F/Ctrl+H в файле с regex; Cmd/Ctrl+Shift+F по проекту с отменой и переходом к матчу.
+- Command Palette: Cmd/Ctrl+Shift+P, команды (open folder/file, theme switch, terminal toggle, settings, search, wrap toggle, go to line/symbol).
+- Терминал: встроенный xterm.js, запускается в корне, поддерживает bash/zsh/pwsh/cmd, toggle Ctrl+`.
+- UI: Status Bar (позиция, CRLF/LF, таб/пробел, язык, тема, терминал), Breadcrumbs (путь + outline), Sidebar с Explorer.
+- Настройки: light/dark темы, шрифт/размер, tabSize, insertSpaces, wrap, auto close brackets/quotes, keybindings; применяется без перезапуска; хранение last_workspace/last_active_file.
+- SLA: старт <1 c, открытие файла <300 мс, поиск по проекту выдаёт первые результаты <1 с.
 
-**Progress:** ✅ 100% (Phase 1 is complete: Monaco/editor tabs, Explorer, settings, auto-save and real Tauri open/save/list commands form the full workbench loop; the tab bar now uses a themed overlay scrollbar with drag support and selection disabled.)
+## Этап 1 (недели 1–2): каркас и редактор
+- Поднять Tauri v2 + Svelte 5 runes, базовый layout (Sidebar + Editor + StatusBar).
+- Интегрировать Monaco, включить подсветку, folding, lineNumbers, auto-closing, completion без LSP.
+- Сторы `editorStore`, `filesStore`, `settingsStore`; команды Tauri для файлов чтение/сохранение.
+- Вкладки с dirty-маркером; Status Bar обновляет позицию/язык/CRLF/indent.
+- Темы light/dark (CSS vars + Monaco setTheme); SettingsEditor базовых опций.
 
-**Deliverables:**
-- ✅ Tauri v2 + Svelte 5 boilerplate, workbench layout, and command palette scaffolding are in place.
-- ✅ Monaco Editor integration with multi-file models, syntax highlighting, and dirty-state tracking.
-- ✅ File explorer tree + selection sync with the active tab via `fileTreeStore`; workspace data now loads through `workspaceStore` backed by `fileService`, and the workspace refreshes when the watcher fires.
-- ✅ Opening/saving through Tauri commands now updates real files via `fileService` + `editorStore.updateContent`.
-- ✅ Editor tabs support multiple files, group navigation, and close actions with dirty markers.
-- ✅ Tab strip overlay scrollbar now hugs the bottom edge, mirrors the theme palette, auto-hides off-hover, keeps thumb dragging + pointer hit areas in sync, matches the visible tab viewport width, and further clamps its width to the actual tab row so the highlight never spills past the last tab.
-- ✅ Core settings (theme, editor behavior, auto-save) toggle live stores; history/profiles persistence sync is slated for next phases.
-- ✅ Layout is responsive across macOS/Linux/Windows; packaging/build scripts will move forward in Phase 2/3.
+## Этап 2 (недели 3–4): проводник, поиск/замена
+- Реализовать FileTree CRUD (create/delete/rename) + подсветка активного файла, watcher-интеграция.
+- Inline поиск/замена в файле (Ctrl+F/H) с regex; синхронизация с Monaco.
+- Project search (Cmd/Ctrl+Shift+F) + потоковый вывод + Cancel; переход к матчу.
+- Breadcrumbs по пути файла + символам outline.
+- Улучшить Command Palette: команды wrap/theme/terminal/search/open/settings.
 
-**Risks:**
-- Monaco performance in Tauri WebView (validate with bigger files).
-- Linux file watcher reliability (fallback to polling still required).
+## Этап 3 (недели 5–6): терминал и полировка
+- xterm.js + PTY команды (create/send/resize/close); toggle Ctrl+`.
+- Статус-бар интеграция терминала; хранение last_workspace/last_active_file.
+- Производительность: lazy Monaco, debounce поиска, throttle watcher, >50 МБ plain-text предупреждение.
+- QA по чеклисту, устранение багов, упаковка артефактов (dev/prod билд).
 
----
+## Риски и смягчение
+- Производительность Monaco в WebView: тест на больших файлах, включить lazy init.
+- Watcher на Linux: fallback на polling.
+- Терминал на Windows: использовать conPTY; graceful fallback при ошибке запуска shell.
 
-## Фаза 2: LSP + Terminal — 4 недели
-
-**Цель:** Добавить автодополнение и встроенный терминал
-
-**Deliverables:**
-- LSP Manager: запуск/остановка LSP-серверов
-- Поддержка 3 LSP из коробки (TypeScript, Python, Rust)
-- Проксирование JSON-RPC между Monaco и LSP через Tauri
-- Встроенный терминал через xterm.js + PTY на Rust-стороне
-- Split view (горизонтальный/вертикальный)
-- Горячие клавиши (конфигурируемые)
-
-**Риски:**
-- Сложность настройки LSP-серверов (документация для пользователей)
-- Проблемы с PTY на Windows (возможна другая реализация через conPTY)
-
----
-
-## Фаза 3: Git Integration — 3 недели
-
-**Цель:** Базовая работа с Git из UI
-
-**Deliverables:**
-- Git-панель: отображение статуса (modified/staged/untracked)
-- Diff view для изменённых файлов
-- Stage/unstage файлов через UI
-- Commit с message input
-- Push/pull (базовая аутентификация через SSH)
-- Branch switcher (список веток, переключение)
-
-**Риски:**
-- Аутентификация SSH на разных ОС (возможно, использование системного Git)
-- Производительность git_status на больших репозиториях (кэширование)
-
----
-
-## Фаза 4: Polish + Plugins — 3 недели
-
-**Цель:** Стабилизация, оптимизация, система расширений
-
-**Deliverables:**
-- Поиск/замена по файлам (regex support)
-- Темизация: импорт VS Code themes (JSON)
-- Система плагинов: загрузка JavaScript-модулей через API
-- Документация API для разработчиков плагинов
-- Автообновление через Tauri Updater
-- Performance profiling: оптимизация времени запуска и потребления памяти
-- Beta-тестирование: сбор фидбека, багфиксы
-
-**Риски:**
-- Security плагинов (песочница для выполнения кода)
-- Совместимость VS Code themes (не все фичи Monaco могут поддерживаться)
-
----
-
-## Общая длительность: 16 недель (4 месяца)
-
-**Post-launch итерации:**
-- Поддержка дополнительных языков (Java, C++, Go)
-- Remote development (SSH, Docker)
-- Collaborative editing (WebRTC)
-- Marketplace для плагинов

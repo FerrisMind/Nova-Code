@@ -10,6 +10,9 @@
     let fileName: string = "";
     let workspaceRoot: string | null = null;
 
+    // Реактивное вычисление иконки при изменении fileName
+    $: fileIcon = fileName ? getLanguageIcon(fileName) : "lucide:File";
+
     const unsubscribeWorkspace = workspaceStore.subscribe((state) => {
         workspaceRoot = state.root;
     });
@@ -64,14 +67,17 @@
                 />
             </div>
         {/each}
-        <div class="crumb active">
-            <Icon
-                name={getLanguageIcon(fileName)}
-                size={14}
-                className="file-icon"
-            />
-            <span class="text">{fileName}</span>
-        </div>
+        {#key fileName}
+            <div class="crumb active">
+                <Icon
+                    name={fileIcon}
+                    size={14}
+                    className="file-icon"
+                    useAdaptiveColor={true}
+                />
+                <span class="text">{fileName}</span>
+            </div>
+        {/key}
     </div>
 {/if}
 
@@ -79,11 +85,11 @@
     .breadcrumbs {
         display: flex;
         align-items: center;
-        height: 22px;
+        height: 24px;
         padding: 0 16px;
         background-color: var(--nc-tab-bg-active);
         border-bottom: 1px solid var(--nc-bg-elevated);
-        font-size: 11px;
+        font-size: 12px;
         color: var(--nc-fg-muted);
         overflow: hidden;
         white-space: nowrap;
@@ -109,6 +115,8 @@
     .crumb.active {
         color: var(--nc-fg);
         font-weight: 500;
+        display: flex;
+        align-items: center;
     }
 
     .breadcrumbs :global(.separator) {
@@ -117,7 +125,8 @@
         margin: 0 2px;
     }
 
-    :global(.file-icon) {
+    .crumb.active :global(.file-icon) {
         margin-right: 4px;
+        flex-shrink: 0;
     }
 </style>

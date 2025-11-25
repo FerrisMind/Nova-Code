@@ -268,7 +268,7 @@
         title={tab.path}
       >
         <span class="tab-title">
-          <Icon name={getLanguageIcon(tab.title)} size={16} />
+          <Icon name={getLanguageIcon(tab.title)} size={16} useAdaptiveColor={true} />
           {tab.title}
         </span>
         {#if tab.isDirty}
@@ -311,7 +311,7 @@
     width: 100%;
     min-width: 0;
     flex: 0 0 auto;
-    height: 36px;
+    height: 30px;
     overflow: hidden;
     user-select: none;
   }
@@ -362,6 +362,7 @@
     border-bottom-color: var(--nc-level-5);
     user-select: none;
     -webkit-user-select: none;
+    height: 100%;
   }
 
   .tab:hover {
@@ -388,7 +389,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    font-size: 16px;                      /* 4 * 4px */
+    font-size: 12px;                      /* match FileTree font */
   }
 
   .tab-dirty {
@@ -398,16 +399,21 @@
 
   .tab-close {
     margin-left: 0;
-    border: 0;
+    border: 1px solid transparent;
     background: transparent;
     color: inherit;
     font-size: 12px;                      /* 3 * 4px */
-    padding: 4px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.12s ease, background-color 0.12s ease;
     flex-shrink: 0;
     border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .tab-close.visible {
@@ -416,7 +422,8 @@
 
   .tab-close.visible:hover {
     opacity: 1;
-    background-color: var(--nc-level-2);
+    background-color: var(--nc-level-5);
+    border-color: var(--nc-level-3);
   }
 
   .tab:not(.active):hover .tab-close {
@@ -425,8 +432,8 @@
 
   .tab:not(.active) .tab-close:hover {
     opacity: 1;
-    background-color: var(--nc-level-2);
-    border-color: var(--nc-level-2);
+    background-color: var(--nc-level-5);
+    border-color: var(--nc-level-3);
   }
 
   .tabs-bar::-webkit-scrollbar {

@@ -165,7 +165,7 @@
         on:contextmenu={(e) => onContextMenu(e, node)}
         type="button"
       >
-        <Icon name={getLanguageIcon(node.name)} size={14} />
+        <Icon name={getLanguageIcon(node.name)} size={14} useAdaptiveColor={true} />
         <span class="name">{node.name}</span>
       </button>
     {/if}
@@ -258,7 +258,7 @@
     white-space: nowrap;
   }
 
-  .chevron {
+  .row :global(.chevron) {
     color: var(--nc-fg-muted);
     flex-shrink: 0;
     width: 14px;

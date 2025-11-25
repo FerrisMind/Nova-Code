@@ -1,48 +1,33 @@
 <script lang="ts">
   // src/lib/settings/controls/CardSelect.svelte
   // ----------------------------------------------------------------------------
-  // Визуальный выбор из ограниченного набора вариантов через карточки.
-  //
-  // Контракт:
-  // - Работает поверх SettingDefinition и options-пропа.
-  // - Источник значения: value ?? definition.get().
-  // - При выборе:
-  //   - если onChange передан — делегирует ему;
-  //   - иначе вызывает definition.set(next).
-  // - Никаких заглушек, только реальный get/set.
-  //
-  // Реализация следует [`controls.api.md`](src/lib/settings/controls/controls.api.md:1)
-  // и best practices Svelte 5 (подтверждено по Context7/официальной документации).
+  // Адаптированный компонент на основе shadcn-svelte Radio Group с карточным дизайном.
   // ----------------------------------------------------------------------------
 
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from "svelte";
   import type {
     SettingDefinition,
     SettingId,
-    SettingValue
-  } from '$lib/settings/types';
-  import Icon from '$lib/common/Icon.svelte';
+    SettingValue,
+  } from "$lib/settings/types";
+  import Icon from "$lib/common/Icon.svelte";
 
-  type SettingChangeSource = 'user' | 'profile' | 'quickAction' | 'command';
+  type SettingChangeSource = "user" | "profile" | "quickAction" | "command";
 
   type SettingChangeMeta = {
     settingId: SettingId;
     source: SettingChangeSource;
   };
 
-  // Тип опций: используется только внутри файла; при необходимости
-  // внешний код может описать совместимый тип самостоятельно.
   type CardSelectOption = {
-  value: SettingValue;
-  label: string;
-  description?: string;
-  icon?: string;
-  badge?: string;
-  // Необязательные поля для "color palette" режима:
-  // Если заданы, карточка отрисует мини-превью палитры.
-  backgroundColor?: string;
-  textColor?: string;
-};
+    value: SettingValue;
+    label: string;
+    description?: string;
+    icon?: string;
+    badge?: string;
+    backgroundColor?: string;
+    textColor?: string;
+  };
 
   type CardSelectProps = {
     definition: SettingDefinition;
@@ -59,13 +44,13 @@
     select: { value: SettingValue; meta: SettingChangeMeta };
   }>();
 
-  export let definition: CardSelectProps['definition'];
-  export let options: CardSelectProps['options'] = [];
-  export let value: CardSelectProps['value'] = undefined;
-  export let onChange: CardSelectProps['onChange'] = undefined;
-  export let disabled: CardSelectProps['disabled'] = false;
-  export let columns: CardSelectProps['columns'] = 0;
-  export let idPrefix: CardSelectProps['idPrefix'] = 'setting-card';
+  export let definition: CardSelectProps["definition"];
+  export let options: CardSelectProps["options"] = [];
+  export let value: CardSelectProps["value"] = undefined;
+  export let onChange: CardSelectProps["onChange"] = undefined;
+  export let disabled: CardSelectProps["disabled"] = false;
+  export let columns: CardSelectProps["columns"] = 0;
+  export let idPrefix: CardSelectProps["idPrefix"] = "setting-card";
 
   const current = (): SettingValue | undefined => {
     if (value !== undefined) return value;
@@ -81,8 +66,8 @@
   };
 
   const resolveCardId = (opt: CardSelectOption): string => {
-    const base = `${idPrefix}-${definition.id}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-    const val = String(opt.value).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const base = `${idPrefix}-${definition.id}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const val = String(opt.value).replace(/[^a-zA-Z0-9_-]/g, "_");
     return `${base}-${val}`;
   };
 
@@ -91,7 +76,7 @@
     const next = opt.value;
     const meta: SettingChangeMeta = {
       settingId: definition.id,
-      source: 'user'
+      source: "user",
     };
 
     if (onChange) {
@@ -100,13 +85,13 @@
       definition.set(next);
     }
 
-    dispatch('change', { value: next, meta });
-    dispatch('select', { value: next, meta });
+    dispatch("change", { value: next, meta });
+    dispatch("select", { value: next, meta });
   };
 
   const handleKeydown = (event: KeyboardEvent, opt: CardSelectOption) => {
     if (disabled) return;
-    if (event.key === ' ' || event.key === 'Enter') {
+    if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       selectOption(opt);
     }
@@ -116,7 +101,7 @@
     if (columns && columns > 0) {
       return `grid-template-columns: repeat(${columns}, minmax(0, 1fr));`;
     }
-    return 'grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));';
+    return "grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));";
   };
 </script>
 
@@ -130,9 +115,9 @@
         id={resolveCardId(option)}
         aria-pressed={active}
         aria-label={option.label}
-        on:click={() => selectOption(option)}
-        on:keydown={(e) => handleKeydown(e, option)}
-        disabled={disabled}
+        onclick={() => selectOption(option)}
+        onkeydown={(e) => handleKeydown(e, option)}
+        {disabled}
       >
         <div class="nc-card-header">
           {#if option.icon}
@@ -147,13 +132,9 @@
         </div>
 
         {#if option.backgroundColor || option.textColor}
-          <!-- Мини-превью цветовой палитры:
-               - фон берется из backgroundColor;
-               - текстовая метка — из textColor;
-               - не добавляет новой логики, только визуализация опций. -->
           <div
             class="nc-card-palette-preview"
-            style={`background-color: ${option.backgroundColor ?? 'transparent'}; color: ${option.textColor ?? 'inherit'};`}
+            style={`background-color: ${option.backgroundColor ?? "transparent"}; color: ${option.textColor ?? "inherit"};`}
           >
             <span class="nc-card-palette-swatch"></span>
           </div>

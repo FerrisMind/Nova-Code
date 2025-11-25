@@ -1,88 +1,105 @@
-# Backend Structure: Nova Code
+# Backend Structure: Nova Code (MVP)
 
-## Архитектурная схема
-Трёхслойная архитектура:
-1. **Command Layer** — Tauri commands (API для frontend)
-2. **Service Layer** — бизнес-логика (файлы, Git, LSP)
-3. **Infrastructure Layer** — работа с ОС (fs, процессы, SQLite)
+Цель: минимальный, воспроизводимый backend под Tauri v2, закрывающий функции MVP (редактор, файловый проводник, поиск/замена, терминал, темы/настройки). Не включаем Git, расширения, LSP/IntelliSense, split/minimap/автосохранение.
 
-## Модули
+## Слои
+1. **Command Layer** — Tauri commands (API для фронтенда).
+2. **Service Layer** — файловые операции, поиск, терминал, настройки.
+3. **Infrastructure Layer** — fs, процесс-менеджер (PTY), SQLite/JSON конфиг, события (watcher).
 
-### `src-tauri/src/commands/`
-- `file_commands.rs` — открытие/сохранение/удаление файлов, чтение папок
-- `git_commands.rs` — status, diff, commit, push/pull
-- `terminal_commands.rs` — создание PTY, отправка команд
-- `settings_commands.rs` — чтение/запись конфига
-- `lsp_commands.rs` — запуск LSP-сервера, проксирование JSON-RPC
+## Директории
+- `src-tauri/src/commands/`
+  - `file_commands.rs` — чтение/запись/создание/удаление/переименование, дерево, watcher.
+  - `search_commands.rs` — поиск текста (проект), поиск по именам.
+  - `terminal_commands.rs` — PTY create/send/stream, resize, close.
+  - `settings_commands.rs` — CRUD настроек.
+- `src-tauri/src/services/`
+  - `file_service.rs` — fs-операции + watcher (notify/polling fallback).
+  - `search_service.rs` — walkdir + regex; потоковые результаты.
+  - `terminal_service.rs` — PTY lifecycle (bash/zsh/pwsh/cmd), resize, cwd=workspace.
+  - `config_service.rs` — JSON/SQLite конфиг (settings, last_workspace, shortcuts).
+- `src-tauri/src/utils/`
+  - `path_utils.rs` — нормализация путей, безопасные относительные пути.
+  - `process_utils.rs` — запуск PTY, управление stdout/stderr.
 
-### `src-tauri/src/services/`
-- `file_service.rs` — рекурсивный обход директорий, watchdog для изменений
-- `git_service.rs` — обёртка над git2, кэширование статуса
-- `lsp_manager.rs` — lifecycle LSP-процессов, маппинг языков → серверы
-- `config_service.rs` — парсинг JSON-конфига, валидация
-
-### `src-tauri/src/db/`
-- `schema.rs` — SQLite таблицы (recent_files, settings, lsp_cache)
-- `repository.rs` — CRUD для работы с БД
-
-### `src-tauri/src/utils/`
-- `path_utils.rs` — нормализация путей, относительные/абсолютные
-- `process_utils.rs` — управление дочерними процессами (терминал, LSP)
-
-## API-эндпоинты (Tauri Commands)
-
+## Команды (Tauri)
 ### File Operations
-- `open_file(path: String) -> Result<String, Error>` — содержимое файла
-- `save_file(path: String, content: String) -> Result<(), Error>`
 - `read_directory(path: String) -> Result<Vec<FileEntry>, Error>`
-- `watch_directory(path: String) -> EventStream`
+- `open_file(path: String) -> Result<String, Error>`
+- `save_file(path: String, content: String) -> Result<(), Error>`
+- `create_file(path: String) -> Result<(), Error>`
+- `create_dir(path: String) -> Result<(), Error>`
+- `delete_entry(path: String) -> Result<(), Error>`
+- `rename_entry(old_path: String, new_path: String) -> Result<(), Error>`
+- `watch_directory(path: String) -> EventStream<FileEvent>`
 
-### Git
-- `git_status(repo_path: String) -> Result<GitStatus, Error>`
-- `git_diff(file_path: String) -> Result<String, Error>`
-- `git_commit(message: String, files: Vec<String>) -> Result<(), Error>`
+### Search
+- `search_files(root: String, query: String, use_regex: bool) -> EventStream<SearchHit>`
+- `search_names(root: String, query: String) -> Result<Vec<NameHit>, Error>`
 
 ### Terminal
-- `create_terminal(shell: String) -> Result<u32, Error>` — возвращает terminal_id
-- `send_to_terminal(terminal_id: u32, input: String)`
-- `terminal_output_stream(terminal_id: u32) -> EventStream`
-
-### LSP
-- `start_lsp(language: String) -> Result<u32, Error>` — lsp_id
-- `lsp_request(lsp_id: u32, method: String, params: Value) -> Result<Value, Error>`
+- `create_terminal(shell: String) -> Result<u32, Error>` // возвращает terminal_id
+- `send_to_terminal(id: u32, input: String) -> Result<(), Error>`
+- `terminal_output_stream(id: u32) -> EventStream<TerminalChunk>`
+- `resize_terminal(id: u32, cols: u16, rows: u16) -> Result<(), Error>`
+- `close_terminal(id: u32) -> Result<(), Error>`
 
 ### Settings
 - `get_settings() -> Result<Config, Error>`
 - `update_settings(config: Config) -> Result<(), Error>`
 
-## Модели данных
-
+## Структуры
+```rust
 struct FileEntry {
-path: String,
-name: String,
-is_directory: bool,
-size: u64,
-modified: i64,
+  path: String,
+  name: String,
+  is_directory: bool,
+  size: u64,
+  modified: i64,
 }
 
-struct GitStatus {
-branch: String,
-modified: Vec<String>,
-staged: Vec<String>,
-untracked: Vec<String>,
+struct FileEvent {
+  kind: String, // created|deleted|modified|renamed
+  path: String,
+}
+
+struct SearchHit {
+  file: String,
+  line: u32,
+  column: u32,
+  match_text: String,
+}
+
+struct NameHit {
+  path: String,
+  name: String,
+}
+
+struct TerminalChunk {
+  id: u32,
+  data: String,
 }
 
 struct Config {
-theme: String,
-font_size: u8,
-keybindings: HashMap<String, String>,
-lsp_servers: HashMap<String, String>,
+  theme: String,          // light|dark
+  font_family: String,
+  font_size: u8,
+  tab_size: u8,
+  insert_spaces: bool,
+  wrap: bool,
+  auto_close_brackets: bool,
+  auto_close_quotes: bool,
+  last_workspace: Option<String>,
+  last_active_file: Option<String>,
+  keybindings: HashMap<String, String>, // command -> shortcut
 }
+```
 
-text
+## Потоки и события
+- Watcher отправляет `FileEvent` в фронтенд; фронт обновляет дерево/вкладки.
+- Поиск по проекту — EventStream `SearchHit` с возможностью отмены.
+- Терминал — поток `TerminalChunk`; закрытие уведомляет фронтенд.
+- Лёгкая шина событий: все EventStream проходят через единый emitter в фронте, чтобы синхронизировать дерево/вкладки/статус-бар без дублирования подписок.
 
 ## Dependency Flow
-- Commands → Services → Infrastructure
-- Services не зависят друг от друга (слабая связанность)
-- DB repository инжектится через DI-паттерн
-- LSP Manager использует Process Utils для управления процессами
+Commands → Services → Infrastructure. Сервисы не знают о UI, минимум shared state. Config сервис инкапсулирует формат хранения.
