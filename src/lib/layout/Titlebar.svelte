@@ -261,7 +261,7 @@
     color: var(--nc-fg-muted);
     padding: 0;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: 4px;
   }
 
   .layout-btn:hover {
