@@ -347,23 +347,25 @@
   <div class="settings-container">
     <!-- Левая панель: секции -->
     <div class="pane pane-left">
-      <SettingsNav
-        sections={allSections}
-        activeSectionId={activeSectionId}
-        dirtyBySection={emptyDirtySection}
-        sectionIcons={sectionIcons}
-        on:select={(e) => handleSectionSelect(e.detail.sectionId)}
-      />
-    </div>
-    <div class="pane pane-right">
-      <div class="search-container">
-        <input
-          type="search"
-          class="search-input"
-          placeholder="Search settings..."
-          bind:value={searchQuery}
+      <div class="nav-card">
+        <div class="search-container">
+          <input
+            type="search"
+            class="search-input"
+            placeholder="Поиск настроек"
+            bind:value={searchQuery}
+          />
+        </div>
+        <SettingsNav
+          sections={allSections}
+          activeSectionId={activeSectionId}
+          dirtyBySection={emptyDirtySection}
+          sectionIcons={sectionIcons}
+          on:select={(e) => handleSectionSelect(e.detail.sectionId)}
         />
       </div>
+    </div>
+    <div class="pane pane-right">
       <div class="content-scrollable" bind:this={scrollContainer}>
         <SettingsAllContent
           activeSettingId={activeSettingId}
@@ -385,7 +387,7 @@
     align-items: flex-start;
     width: 100%;
     height: 100%;
-    padding: 32px;
+    padding: 24px;
     box-sizing: border-box;
     color: var(--nc-fg);
     background: var(--nc-tab-bg-active);
@@ -393,18 +395,18 @@
 
   .settings-container {
     display: grid;
-    grid-template-columns: 256px minmax(500px, 700px);
-    gap: 8px;
+    grid-template-columns: 260px 1fr;
+    gap: 12px;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px;
     height: 100%;
     margin: 0 auto;
     align-items: flex-start;
   }
 
   .settings-shell-root.compact .settings-container {
-    grid-template-columns: 216px minmax(400px, 600px);
-    gap: 8px;
+    grid-template-columns: 220px 1fr;
+    gap: 12px;
   }
 
   .pane {
@@ -414,46 +416,54 @@
 
   .pane-left {
     border-radius: 12px;
-    background-color: var(--nc-level-0);
+    background-color: transparent;
+    overflow: visible;
+  }
+
+  .nav-card {
+    background-color: var(--nc-level-1);
     border: 1px solid var(--nc-palette-border);
-    overflow: hidden;
+    border-radius: 14px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
   }
 
   .pane-right {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
     overflow: hidden;
   }
 
   .search-container {
-    padding: 12px;
-    background: var(--nc-level-0);
-    border-radius: 8px;
-    border: 1px solid var(--nc-palette-border);
+    padding: 6px 8px;
   }
 
   .search-input {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 12px;
     border: 1px solid var(--nc-palette-border);
-    border-radius: 6px;
-    background: var(--nc-level-1);
+    border-radius: 10px;
+    background: var(--nc-level-2);
     color: var(--nc-palette-text);
-    font-size: 14px;
+    font-size: 13px;
     outline: none;
-    transition: border-color 0.12s ease;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
   }
 
   .search-input:focus {
     border-color: var(--nc-level-4);
+    box-shadow: 0 0 0 3px rgba(111, 157, 255, 0.18);
   }
 
   .search-input::placeholder {
     color: var(--nc-palette-text);
-    opacity: 0.6;
+    opacity: 0.55;
   }
 
   .content-scrollable {
@@ -462,13 +472,14 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    background: var(--nc-level-0);
+    background: var(--nc-level-1);
+    padding: 12px;
   }
 
   @media (max-width: 1200px) {
     .settings-container {
       grid-template-columns: 220px minmax(450px, 1fr);
-      gap: 20px;
+      gap: 16px;
     }
   }
 
@@ -476,10 +487,18 @@
     .settings-shell-root {
       padding: 16px;
     }
-    
+
     .settings-container {
-      grid-template-columns: 180px minmax(350px, 1fr);
+      grid-template-columns: 1fr;
       gap: 12px;
+    }
+
+    .pane-left {
+      order: 1;
+    }
+
+    .pane-right {
+      order: 2;
     }
   }
 </style>

@@ -10,7 +10,7 @@ export interface EditorBehaviorState {
 }
 
 const DEFAULT_STATE: EditorBehaviorState = {
-  autoSave: true,
+  autoSave: false,
   autoSaveDelay: 600
 };
 

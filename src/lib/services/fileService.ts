@@ -33,7 +33,7 @@ export const fileService: FileService = {
   },
 
   async writeFile(fileId, content) {
-    await invoke<void>('write_file', { path: fileId, content });
+    await invoke<void>('write_file', { request: { path: fileId, content } });
   },
 
   async listWorkspaceFiles(rootOverride?: string) {

@@ -22,6 +22,8 @@
     setupDefaultProviders
   } from './intellisense';
   import './monacoEnvironment';
+  import { ensureLanguageRegistered } from './languageSupport';
+  import { silenceMonacoCancellationErrors } from './monacoUnhandledRejection';
 
   type DiffOptions = {
     readOnlyLeft?: boolean;
@@ -50,15 +52,27 @@
       const monaco = await import('monaco-editor');
       if (isDisposed) return;
 
-      // Базовая конфигурация языков и легкие IntelliSense-провайдеры.
+      // Match VS Code: ignore cancellation rejections fired during dispose.
+      silenceMonacoCancellationErrors();
+
+      // Boot basic languages/providers before creating the editor core.
       setupBasicLanguageSupport(monaco as any);
       setupDefaultProviders(monaco as any);
 
       core = createEditorCore(monaco as any);
 
       // Создаём/реиспользуем модели в рамках core.
-      core.setModel(original);
-      core.setModel(modified);
+      const originalLanguage = await ensureLanguageRegistered(
+        monaco as any,
+        original.language
+      );
+      const modifiedLanguage = await ensureLanguageRegistered(
+        monaco as any,
+        modified.language
+      );
+
+      core.setModel({ ...original, language: originalLanguage });
+      core.setModel({ ...modified, language: modifiedLanguage });
 
       diffSession = core.createDiffSession({
         originalFileId: original.fileId,
@@ -112,3 +126,6 @@
     color: var(--nc-fg);
   }
 </style>
+
+
+

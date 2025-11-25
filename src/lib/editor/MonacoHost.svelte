@@ -25,9 +25,13 @@
     setupDefaultProviders,
   } from "./intellisense";
   import "./monacoEnvironment";
-  import { themeManager } from "./themeManager";
+  import { getMonacoThemeId, themeManager } from "./themeManager";
   import { theme, type ThemeState } from "../stores/themeStore";
-  import { getPaletteById } from "../stores/THEME_PALETTES";
+  import { initCursorTracking } from "../stores/editorCursorStore";
+  import { initEditorMeta } from "../stores/editorMetaStore";
+  import { attachDiagnosticsTracking, detachDiagnosticsTracking } from "./diagnosticsAdapter";
+  import { ensureLanguageRegistered } from "./languageSupport";
+  import { silenceMonacoCancellationErrors } from "./monacoUnhandledRejection";
   import InlineSearch from "$lib/components/search/InlineSearch.svelte";
 
   // Входные параметры.
@@ -52,6 +56,7 @@
   let containerElement: HTMLDivElement;
   let core: EditorCoreApi | null = null;
   let monacoEditor = $state<any>(null); // Monaco editor instance for InlineSearch
+  let monacoInstance: typeof import("monaco-editor") | null = null;
 
   // Текущая тема
   let currentTheme: ThemeState = { mode: "dark", palette: "dark-default" };
@@ -66,23 +71,27 @@
     let themeUnsubscribe: (() => void) | null = null;
 
     (async () => {
-      // Динамический импорт полного Monaco API.
-      // Типы берём из 'monaco-editor', реализация подхватывается bundler'ом.
+      // Runtime import Monaco ESM API on demand.
       const monaco = await import("monaco-editor");
+      monacoInstance = monaco as any;
       if (isDisposed) return;
 
-      // Базовая конфигурация языков и легкие IntelliSense-провайдеры.
+      // Match VS Code: ignore cancellation rejections fired during dispose.
+      silenceMonacoCancellationErrors();
+
+      // Boot basic languages/providers before creating the editor core.
       setupBasicLanguageSupport(monaco as any);
       setupDefaultProviders(monaco as any);
 
-      // Инициализация менеджера тем (только если не инициализирован)
       if (!themeManager.isInitialized()) {
         themeManager.initialize(monaco as any);
 
-        // Загружаем популярные темы
-        await themeManager.loadPopularThemes();
+        // ����㦠�� ������� ⥬� � 䮭� (�� ������㥬 ���樠������)
+        themeManager
+          .loadPopularThemes()
+          .catch((err) => console.error("Failed to load themes:", err));
 
-        // Создаем и регистрируем темы для всех палитр
+        // ������� � ॣ�����㥬 ⥬� ��� ��� ������
         const palettes = [
           "light-default",
           "light-alt-1",
@@ -105,23 +114,33 @@
         });
       }
 
-      core = createEditorCore(monaco as any);
+core = createEditorCore(monaco as any);
       core.attachTo(containerElement, options);
 
       // Get the Monaco editor instance for InlineSearch
       monacoEditor = (core as any).editor || (core as any).state?.editor;
 
+      const monacoLanguage = await ensureLanguageRegistered(
+        monaco as any,
+        language,
+      );
+
       core.setModel({
         fileId,
         uri,
         value,
-        language,
+        language: monacoLanguage,
       });
+
+      initCursorTracking(core);
+      initEditorMeta(core);
+      attachDiagnosticsTracking(monaco as any, core);
 
       // Применяем начальную тему
       const initialTheme = theme.getState();
       currentTheme = initialTheme;
-      themeManager.applyTheme(`nova-${initialTheme.palette}`);
+      const initialThemeId = getMonacoThemeId(initialTheme, options?.theme);
+      themeManager.applyTheme(initialThemeId);
 
       // Подписка на изменения активной модели и проброс наружу как Svelte-события.
       unsubscribe = core.onDidChangeContent((changedFileId, changedValue) => {
@@ -134,7 +153,8 @@
       // Подписка на изменения темы
       themeUnsubscribe = theme.subscribe((newTheme) => {
         currentTheme = newTheme;
-        themeManager.applyTheme(`nova-${newTheme.palette}`);
+        const targetThemeId = getMonacoThemeId(newTheme, options?.theme);
+        themeManager.applyTheme(targetThemeId);
       });
 
       // Гарантируем снятие подписки при размонтировании.
@@ -156,6 +176,7 @@
       core.dispose();
       core = null;
     }
+    detachDiagnosticsTracking();
   });
 
   /**
@@ -166,17 +187,31 @@
     if (!core) return;
     if (!fileId || !uri || typeof value !== "string") return;
 
-    core.setModel({
-      fileId,
-      uri,
-      value,
-      language,
-    });
+    void (async () => {
+      if (!monacoInstance) return;
+      const monacoLanguage = await ensureLanguageRegistered(
+        monacoInstance as any,
+        language,
+      );
+
+      core?.setModel({
+        fileId,
+        uri,
+        value,
+        language: monacoLanguage,
+      });
+    })();
   });
 
   $effect(() => {
     if (!core || !options) return;
     core.configure(options);
+  });
+
+  $effect(() => {
+    if (!core || !themeManager.isInitialized()) return;
+    const monacoThemeId = getMonacoThemeId(currentTheme, options?.theme);
+    themeManager.applyTheme(monacoThemeId);
   });
 
   /**
@@ -218,3 +253,7 @@
     color: var(--nc-fg);
   }
 </style>
+
+
+
+

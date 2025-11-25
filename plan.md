@@ -1,39 +1,48 @@
-# plan.md
+# План интеграции и оптимизации Monaco
 
-## Nova Explorer implementation plan
+Общий прогресс: 0%
 
-**Overall progress:** 100%
+---
 
-### Tasks
+## Задачи
 
-- ✅ **Step 1: Extend Tauri backend**
-  - ✅ `delete_file` (trash + fs)
-  - ✅ `create_file` and `create_directory`
-  - ✅ `rename_file`
-  - ✅ `start_file_watcher` with `notify`
+### 1. Централизация тем Monaco через ThemeManager и ThemeState
 
-- ✅ **Step 2: Expand `fileService` and `workspaceStore`**
-  - ✅ Wire the new invoke commands
-  - ✅ Refresh the tree after mutations via watcher events
-  - ✅ Boot the watcher and respond to `file-changed`
+- ⬜️ Вынести маппинг `ThemeState + editorSettings.theme → monacoThemeId` в helper
+- ⬜️ Перенести применение темы (`setTheme`) в `themeManager.applyTheme(monacoThemeId)` из `MonacoHost.svelte`
+- ⬜️ Удалить установку темы из `EditorCore.attachTo` и `EditorCore.configure`, оставив там только редакторские опции
 
-- ✅ **Step 3: Implement `ExplorerView` and layout wiring**
-  - ✅ Build the Explorer component with its states
-  - ✅ Register the view in `sidebarRegistry`
-  - ✅ Expose `workbench.view.explorer`
 
-- ✅ **Step 4: Hook file tree context actions**
-  - ✅ Call `createFile`, `createDirectory`, `renameFile`, `deleteFile`
-  - ✅ Enable the context menu entries
+### 2. Курсор и метаданные модели для StatusBar
 
-- ✅ **Step 5: Sync selection and implement Reveal**
-  - ✅ Track `activeEditor` and run `syncWithActiveTab`
-  - ✅ Implement `revealInExplorer`
+- ⬜️ Подключить `initCursorTracking(core)` в `MonacoHost.svelte` после успешной инициализации `EditorCore`
+- ⬜️ Подключить `initEditorMeta(core)` в `MonacoHost.svelte` для обновления `activeEditorMeta`
+- ⬜️ Убедиться, что сторы `cursorPosition` и `activeEditorMeta` корректно обновляют `StatusBar` для активного редактора
 
-- ✅ **Step 6: Handle drag-and-drop from the OS**
-  - ✅ Capture `drop`/`dragover` in `ExplorerView`
-  - ✅ Open dropped files in the editor
 
-- ✅ **Step 7: Tie watcher into initialization**
-  - ✅ Invoke `start_file_watcher` during startup
-  - ✅ Refresh the workspace on `file-changed` events
+### 3. Интеграция diagnostics Monaco с diagnosticsStore
+
+- ⬜️ Добавить модуль `diagnosticsAdapter` с подпиской на `monaco.editor.onDidChangeMarkers`
+- ⬜️ Организовать маппинг `uri → fileId` через существующий `EditorCore` и формирование `EditorDiagnostic[]`
+- ⬜️ Вызывать `updateDiagnosticsForFile(fileId, diagnostics)` из адаптера и инициализировать/очищать его из `MonacoHost.svelte`
+
+
+### 4. Поддержка дополнительных языков (Rust, TOML и др.) через basic-languages
+
+- ⬜️ Добавить модуль `languageSupport` с `mapLanguageIdToMonaco(langId)` и `ensureLanguageRegistered(langId)`
+- ⬜️ Реализовать lazy-importы `monaco-editor/esm/vs/basic-languages/*` для необходимых языков (rs, toml, py и т.п.)
+- ⬜️ Вызывать `ensureLanguageRegistered(language)` и использовать нормализованный monaco-ID в `EditorCore.setModel`
+
+
+### 5. Обработка больших и бинарных файлов на уровне EditorArea
+
+- ⬜️ Добавить `fileValidator` (проверка размера, бинарности, формирование `FileValidationResult`)
+- ⬜️ В `EditorArea` вызывать `validateFile(path, size)` до чтения содержимого и выбора режима (error view / warning + оптимизации)
+- ⬜️ Для файлов 10–50 МБ применять рекомендованные оптимизации к `MonacoHost.options`, для >50 МБ и бинарных показывать простой error-экран без Monaco
+
+
+### 6. Финальная проверка и минимальная уборка
+
+- ⬜️ Проверить отсутствие лишних прямых вызовов `monaco.editor.setTheme(...)` вне ThemeManager/adapter
+- ⬜️ Убедиться, что все init-функции (курсор, метаданные, diagnostics) idempotent и не создают утечек при размонтировании `MonacoHost`
+- ⬜️ Локально пройтись по основным сценариям (открытие/редактирование файлов, смена темы, большие файлы) и зафиксировать возможные follow-up’ы

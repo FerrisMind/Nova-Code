@@ -1,5 +1,6 @@
 import type * as monaco from 'monaco-editor';
 import { getPaletteById, type ThemePaletteId } from '../stores/THEME_PALETTES';
+import type { ThemeState } from '../stores/themeStore';
 
 /**
  * Структура кастомной темы Monaco Editor
@@ -217,35 +218,56 @@ export class ThemeManager {
   /**
    * Загрузить популярные темы из monaco-themes
    */
+  /**
+   * Загрузить популярные темы из monaco-themes.
+   * Теперь это не блокирует инициализацию редактора.
+   */
   async loadPopularThemes(): Promise<void> {
     if (!this.monaco || this.themesLoaded) return;
 
-    // Explicitly import themes to avoid Vite dynamic import issues with node_modules
-    // Only importing themes that actually exist in the package
-    const themes = {
-      'monokai': await import('monaco-themes/themes/Monokai.json'),
-      'dracula': await import('monaco-themes/themes/Dracula.json'),
-      'nord': await import('monaco-themes/themes/Nord.json'),
-      'github-light': await import('monaco-themes/themes/GitHub Light.json'),
-      'github-dark': await import('monaco-themes/themes/GitHub Dark.json'),
-      'solarized-light': await import('monaco-themes/themes/Solarized-light.json'),
-      'solarized-dark': await import('monaco-themes/themes/Solarized-dark.json'),
-      'night-owl': await import('monaco-themes/themes/Night Owl.json')
+    // Запускаем загрузку в фоне, не блокируя основной поток
+    // Используем dynamic imports для lazy loading
+    const themeLoaders = {
+      'monokai': () => import('monaco-themes/themes/Monokai.json'),
+      'dracula': () => import('monaco-themes/themes/Dracula.json'),
+      'nord': () => import('monaco-themes/themes/Nord.json'),
+      'github-light': () => import('monaco-themes/themes/GitHub Light.json'),
+      'github-dark': () => import('monaco-themes/themes/GitHub Dark.json'),
+      'solarized-light': () => import('monaco-themes/themes/Solarized-light.json'),
+      'solarized-dark': () => import('monaco-themes/themes/Solarized-dark.json'),
+      'night-owl': () => import('monaco-themes/themes/Night Owl.json')
     };
 
-    for (const [id, themeModule] of Object.entries(themes)) {
+    const promises = Object.entries(themeLoaders).map(async ([id, loader]) => {
       try {
-        // The JSON is the default export or the module itself depending on setup
-        const themeData = themeModule.default || themeModule;
-        this.monaco.editor.defineTheme(id, themeData as any);
+        const module = await loader();
+        const themeData = module.default || module;
+        this.monaco!.editor.defineTheme(id, themeData as any);
       } catch (error) {
-        console.warn(`Failed to load theme ${id}:`, error);
+        console.warn(`[ThemeManager] Failed to load theme ${id}:`, error);
       }
-    }
+    });
 
+    await Promise.all(promises);
     this.themesLoaded = true;
   }
 }
 
 // Глобальный экземпляр менеджера тем
 export const themeManager = new ThemeManager();
+
+/**
+ * Возвращает ID темы Monaco на основе состояния UI и опционального override из настроек редактора.
+ * - Если editorTheme явно задана (и не 'auto'), используется она.
+ * - Иначе тема следует за palette из ThemeState: nova-${palette}.
+ */
+export function getMonacoThemeId(
+  themeState: ThemeState,
+  editorTheme?: string
+): string {
+  if (editorTheme && editorTheme !== 'auto') {
+    return editorTheme;
+  }
+
+  return `nova-${themeState.palette}`;
+}

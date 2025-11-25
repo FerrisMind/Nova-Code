@@ -32,7 +32,8 @@ export interface EditorSettings {
 const createEditorSettingsStore = () => {
   // Начальные настройки по умолчанию
   const defaultSettings: EditorSettings = {
-    theme: 'vs-dark',
+    // theme: 'auto' -> следует за UI palette (nova-*). Любая другая строка выступает override (github-dark и т.п.).
+    theme: 'auto',
     fontSize: 14,
     fontFamily: 'Consolas, Monaco, "Courier New", monospace',
     fontLigatures: true,

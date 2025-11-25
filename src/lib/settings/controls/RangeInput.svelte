@@ -128,9 +128,10 @@
     dispatch("change", { value: clamped, meta });
   };
 
-  const handleSliderChange = (val: number[]) => {
+  const handleSliderChange = (val: number | number[]) => {
     if (disabled) return;
-    commitValue(val[0], "user");
+    const next = Array.isArray(val) ? val[0] : val;
+    commitValue(next, "user");
   };
 
   const handleNumberInput = (event: Event) => {

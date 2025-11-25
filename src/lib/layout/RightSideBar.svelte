@@ -102,7 +102,7 @@
     color: var(--nc-fg-muted);
     display: flex;
     flex-direction: column;
-    overflow: visible;
+    overflow: hidden;
     box-sizing: border-box;
     border-radius: 12px;
     margin-right: 4px;

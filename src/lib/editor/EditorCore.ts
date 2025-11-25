@@ -75,6 +75,9 @@ export interface EditorCoreOptions {
   fontLigatures?: boolean;
   renderWhitespace?: 'selection' | 'boundary' | 'trailing' | 'all' | 'none';
   lineNumbers?: 'on' | 'off' | 'relative' | 'interval';
+  codeLens?: boolean;
+  links?: boolean;
+  largeFileOptimizations?: boolean;
   autoClosingBrackets?: 'always' | 'languageDefined' | 'beforeWhitespace' | 'never';
   autoClosingQuotes?: 'always' | 'languageDefined' | 'beforeWhitespace' | 'never';
   autoClosingOvertype?: 'always' | 'auto' | 'never';
@@ -303,6 +306,11 @@ export interface EditorCoreApi {
     tabSize: number;
     insertSpaces: boolean;
   } | null;
+
+  /**
+   * Возвращает fileId для модели по её URI.
+   */
+  getFileIdByUri(uri: string): string | null;
 }
 
 /**
@@ -335,6 +343,17 @@ interface CoreState {
  * Фабрика ядра редактора.
  * Вызывается один раз на инстанс MonacoHost.svelte.
  */
+/**
+ * Фабрика ядра редактора.
+ * Вызывается один раз на инстанс MonacoHost.svelte.
+ * 
+ * Оптимизации производительности (Monaco Editor ^0.52+, 2025):
+ * - automaticLayout: true — ResizeObserver для отслеживания размеров
+ * - smoothScrolling: false — отключено для отзывчивости
+ * - cursorSmoothCaretAnimation: 'off' — снижение нагрузки на GPU
+ * - renderValidationDecorations: 'editable' — валидация только для редактируемых
+ * - quickSuggestionsDelay: 10ms — мгновенный отклик (было 100ms)
+ */
 export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi {
   const state: CoreState = {
     monaco,
@@ -342,28 +361,40 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
     models: new Map(),
     activeFileId: null,
     options: {
+      // --- Layout & Display ---
       wordWrap: 'on',
+      lineNumbers: 'on',
+      fontSize: 13,
+      fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+      fontLigatures: true,
+
+      // --- Minimap (оптимизировано) ---
       minimap: {
         enabled: true,
         side: 'right',
-        renderCharacters: false,
-        maxColumn: 120,
-        showSlider: 'mouseover'
+        renderCharacters: false, // Символы отключены для производительности
+        maxColumn: 80,           // Ограничение ширины
+        showSlider: 'mouseover', // Слайдер только при наведении
       },
+
+      // --- Code Features ---
       folding: true,
       bracketPairColorization: {
         enabled: true,
-        independentColorPoolPerBracketType: true
+        independentColorPoolPerBracketType: true,
       },
+
+      // --- Editing ---
       tabSize: 2,
       insertSpaces: true,
-      lineNumbers: 'on',
-      fontSize: 12
+      autoClosingBrackets: 'always',
+      autoClosingQuotes: 'always',
+      autoClosingOvertype: 'always',
     },
     contentListeners: new Set(),
     contentSubscription: null,
     cursorPositionListeners: new Set(),
-    cursorPositionSubscription: null
+    cursorPositionSubscription: null,
   };
 
   const capabilities: EditorCapabilities = {
@@ -401,29 +432,68 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
       const {
         minimap,
         bracketPairColorization,
-        theme,
         autoClosingBrackets,
         autoClosingQuotes,
         autoClosingOvertype,
+        codeLens,
+        links,
+        largeFileOptimizations,
         ...editorOptions
       } = state.options;
 
+      // Создаём редактор с оптимизированными настройками производительности
       const constructed = state.monaco.editor.create(container, {
+        // --- Model ---
         model: null,
-        automaticLayout: true,
+
+        // --- Layout ---
+        automaticLayout: true, // Автоматическое отслеживание размеров
+
+        // --- Text Display ---
         wordWrap: editorOptions.wordWrap ?? 'on',
+        fontSize: editorOptions.fontSize ?? 13,
+        fontFamily: editorOptions.fontFamily ?? "'JetBrains Mono', 'Fira Code', monospace",
+        fontLigatures: editorOptions.fontLigatures ?? true,
+        lineNumbers: editorOptions.lineNumbers ?? 'on',
+        renderWhitespace: editorOptions.renderWhitespace ?? 'selection',
+
+        // --- Editing ---
         tabSize: editorOptions.tabSize ?? 2,
         insertSpaces: editorOptions.insertSpaces ?? true,
-        folding: state.options.folding ?? true,
-        minimap: minimap ?? { enabled: true },
-        fontSize: editorOptions.fontSize ?? 12,
-        lineNumbers: editorOptions.lineNumbers ?? 'on',
-        bracketPairColorization: bracketPairColorization ?? { enabled: true },
         readOnly: editorOptions.readOnly ?? false,
         autoClosingBrackets: autoClosingBrackets ?? 'always',
         autoClosingQuotes: autoClosingQuotes ?? 'always',
         autoClosingOvertype: autoClosingOvertype ?? 'always',
-        theme,
+
+        // --- Code Features ---
+        folding: state.options.folding ?? true,
+        foldingStrategy: 'indentation', // Быстрее чем language-based
+        bracketPairColorization: bracketPairColorization ?? { enabled: true },
+        codeLens: typeof codeLens === 'undefined' ? true : codeLens,
+        links: typeof links === 'undefined' ? true : links,
+        largeFileOptimizations: largeFileOptimizations ?? false,
+
+        // --- Minimap ---
+        minimap: minimap ?? {
+          enabled: true,
+          renderCharacters: false,
+          maxColumn: 80,
+        },
+
+        // --- Performance Optimizations ---
+        smoothScrolling: false,           // Отключено для производительности
+        cursorSmoothCaretAnimation: 'off', // Плавная анимация курсора отключена
+        renderValidationDecorations: 'editable', // Валидация только для редактируемых
+
+        // Quick suggestions с задержкой для снижения нагрузки
+        quickSuggestions: {
+          other: 'on',
+          comments: 'off',
+          strings: 'off',
+        },
+        quickSuggestionsDelay: 10, // ms задержка перед показом подсказок (мгновенно)
+
+        // --- Scrollbar (кастомизация) ---
         scrollbar: {
           vertical: 'auto',
           horizontal: 'auto',
@@ -432,15 +502,16 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
           horizontalHasArrows: false,
           verticalScrollbarSize: 10,
           horizontalScrollbarSize: 10,
-          arrowSize: 0
-        }
+          arrowSize: 0,
+        },
+
+        // --- Cursor ---
+        cursorBlinking: 'smooth',
+        cursorStyle: 'line',
+
       });
 
       state.editor = constructed;
-
-      if (theme) {
-        state.monaco.editor.setTheme(theme);
-      }
     },
 
     dispose() {
@@ -550,15 +621,10 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
 
       state.options = { ...state.options, ...options };
 
-      if (options.theme) {
-        state.monaco.editor.setTheme(options.theme);
-      }
-
       if (state.editor) {
         const {
           minimap,
           bracketPairColorization,
-          theme: _t,
           ...editorOptions
         } = state.options;
 
@@ -575,7 +641,10 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
           renderWhitespace: editorOptions.renderWhitespace,
           lineNumbers: editorOptions.lineNumbers,
           bracketPairColorization,
-          readOnly: editorOptions.readOnly
+          readOnly: editorOptions.readOnly,
+          codeLens: editorOptions.codeLens,
+          links: editorOptions.links,
+          largeFileOptimizations: editorOptions.largeFileOptimizations
         });
       }
     },
@@ -633,12 +702,12 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
             typeof d.severity === 'number'
               ? d.severity
               : d.severity === 'error'
-              ? state.monaco!.MarkerSeverity.Error
-              : d.severity === 'warning'
-              ? state.monaco!.MarkerSeverity.Warning
-              : d.severity === 'info'
-              ? state.monaco!.MarkerSeverity.Info
-              : state.monaco!.MarkerSeverity.Hint;
+                ? state.monaco!.MarkerSeverity.Error
+                : d.severity === 'warning'
+                  ? state.monaco!.MarkerSeverity.Warning
+                  : d.severity === 'info'
+                    ? state.monaco!.MarkerSeverity.Info
+                    : state.monaco!.MarkerSeverity.Hint;
 
           return {
             severity,
@@ -805,6 +874,15 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         tabSize: options.tabSize,
         insertSpaces: options.insertSpaces
       };
+    },
+
+    getFileIdByUri(uri) {
+      for (const [fileId, model] of state.models.entries()) {
+        if (model.uri.toString() === uri) {
+          return fileId;
+        }
+      }
+      return null;
     }
   };
 

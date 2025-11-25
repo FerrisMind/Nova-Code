@@ -285,8 +285,8 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0;
-    padding: 12px;
+    gap: 12px;
+    padding: 4px;
     height: 100%;
     box-sizing: border-box;
     color: var(--nc-palette-text);
@@ -296,19 +296,20 @@
   .section-block {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: var(--nc-level-1);
+    gap: 10px;
+    background: var(--nc-level-2);
     border: 1px solid var(--nc-palette-border);
-    border-radius: 8px;
-    padding: 12px;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
   }
 
   .section-block + .section-block {
-    margin-top: 8px;
+    margin-top: 4px;
   }
 
   .section-header {
-    padding: 0;
+    padding: 0 0 4px 0;
     background: transparent;
     border-radius: 0;
     border: none;
@@ -323,7 +324,7 @@
   .section-title {
     margin: 0;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.01em;
     color: var(--nc-palette-text);
   }
@@ -331,12 +332,12 @@
   .section-id {
     font-size: 12px;
     color: var(--nc-palette-text);
-    opacity: 0.7;
+    opacity: 0.5;
   }
 
   .section-description {
     margin: 8px 0 0 0;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--nc-palette-text);
     opacity: 0.8;
   }
@@ -344,7 +345,7 @@
   .settings-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
 
   .setting-item {
@@ -353,8 +354,8 @@
     justify-content: space-between;
     gap: 10px;
     padding: 12px 16px;
-    border-radius: 8px;
-    background: var(--nc-level-2);
+    border-radius: 10px;
+    background: var(--nc-level-3);
     border: 1px solid var(--nc-palette-border);
     cursor: pointer;
     transition: all 0.12s ease;
@@ -362,13 +363,14 @@
   }
 
   .setting-item:hover {
-    border-color: var(--nc-level-3);
-    background: var(--nc-level-1);
+    border-color: var(--nc-level-4);
+    background: var(--nc-level-2);
   }
 
   .setting-item.active {
     border-color: var(--nc-level-4);
-    background: var(--nc-level-1);
+    background: var(--nc-level-2);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
   }
 
   .setting-item.dirty {
@@ -391,24 +393,24 @@
 
   .setting-label {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nc-palette-text);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width: 300px;
+    max-width: 320px;
   }
 
   .setting-id {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--nc-palette-text);
-    opacity: 0.75;
+    opacity: 0.55;
   }
 
   .setting-description {
     font-size: 12px;
     color: var(--nc-palette-text);
-    opacity: 0.8;
+    opacity: 0.78;
   }
 
   .setting-meta {
@@ -416,22 +418,22 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 4px;
-    min-width: 120px;
+    min-width: 140px;
     text-align: right;
   }
 
   .setting-value-label {
-    font-size: 8px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.08em;
     color: var(--nc-palette-text);
-    opacity: 0.7;
+    opacity: 0.6;
   }
 
   .setting-value {
     font-size: 12px;
     color: var(--nc-level-5);
-    max-width: 130px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

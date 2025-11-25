@@ -21,17 +21,48 @@
   import { activeEditor, editorStore } from "../stores/editorStore";
   import { fileService } from "../services/fileService";
   import MonacoHost from "../editor/MonacoHost.svelte";
+  import type { EditorCoreOptions } from "../editor/EditorCore";
   import { editorSettings } from "../stores/editorSettingsStore";
   import SettingsShell from "$lib/settings/layout/SettingsShell.svelte";
   import WelcomeScreen from "./WelcomeScreen.svelte";
   import { editorBehaviorStore } from "../stores/editorBehaviorStore";
   import Breadcrumbs from "./Breadcrumbs.svelte";
+  import ImagePreview from "./ImagePreview.svelte";
+  import { validateFile } from "../utils/fileValidator";
+
+  // Расширения файлов изображений
+  const IMAGE_EXTENSIONS = new Set([
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".bmp",
+    ".ico",
+    ".svg",
+    ".tiff",
+    ".tif",
+    ".avif",
+    ".heic",
+    ".heif",
+  ]);
+
+  /**
+   * Проверяет, является ли файл изображением по расширению
+   */
+  function isImageFile(path: string | undefined): boolean {
+    if (!path) return false;
+    const ext = path.toLowerCase().match(/\.[^.]+$/)?.[0];
+    return ext ? IMAGE_EXTENSIONS.has(ext) : false;
+  }
 
   let current = $state(
     null as import("../stores/editorStore").EditorTab | null,
   );
   let editorOptions = $state(editorSettings.getSettings());
   let backgroundColor = $state("var(--nc-level-1)");
+  let warningMessage = $state<string | null>(null);
+  let firstTabId = $state<string | null>(null);
 
   let autoSaveEnabled = editorBehaviorStore.getAutoSave();
   let autoSaveDelay = editorBehaviorStore.getAutoSaveDelay();
@@ -56,14 +87,19 @@
     } catch (error) {
       console.error("[auto-save] failed to persist", error);
 
-      // Check if this is a recoverable error
+      // Check if this is a recoverable error.
+      // VS Code auto-save does not keep retrying on invalid arguments (e.g. missing Tauri payload).
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const isRecoverable = !errorMessage.includes('not found') &&
-                           !errorMessage.includes('permission denied') &&
-                           !errorMessage.includes('disk full');
+      const lowerMessage = errorMessage.toLowerCase();
+      const isRecoverable =
+        !lowerMessage.includes("permission denied") &&
+        !lowerMessage.includes("disk full") &&
+        !lowerMessage.includes("missing required key request") &&
+        !lowerMessage.includes("invalid args") &&
+        !lowerMessage.includes("not found");
 
       if (isRecoverable) {
-        // Retry after a short delay for transient errors
+        // Retry after a short delay for transient errors.
         console.warn("[auto-save] retrying save in 2 seconds");
         window.setTimeout(() => {
           if (pendingSave) {
@@ -71,12 +107,9 @@
           }
         }, 2000);
       } else {
-        // For permanent errors, clear the pending save and mark as not dirty
-        console.error("[auto-save] permanent error, clearing pending save");
-        if (pendingSave) {
-          editorStore.markDirty(pendingSave.fileId, false);
-          pendingSave = null;
-        }
+        // Permanent error: keep the tab dirty but stop retrying to avoid spammy saves.
+        console.error("[auto-save] permanent error, leaving file dirty");
+        pendingSave = null;
         clearAutoSaveTimer();
       }
     }
@@ -90,9 +123,46 @@
     }, autoSaveDelay);
   };
 
+  const mergeEditorOptions = (
+    base: EditorCoreOptions,
+    optimizations?: Partial<EditorCoreOptions>,
+  ): EditorCoreOptions => {
+    if (!optimizations) return base;
+
+    const merged: EditorCoreOptions = { ...base, ...optimizations };
+
+    const baseMinimap =
+      typeof base.minimap === "object"
+        ? base.minimap
+        : base.minimap !== undefined
+          ? { enabled: Boolean(base.minimap) }
+          : undefined;
+
+    const optimizationMinimap =
+      optimizations.minimap && typeof optimizations.minimap === "object"
+        ? optimizations.minimap
+        : optimizations.minimap !== undefined
+          ? { enabled: Boolean((optimizations as any).minimap) }
+          : undefined;
+
+    if (baseMinimap || optimizationMinimap) {
+      merged.minimap = {
+        enabled: (optimizationMinimap ?? baseMinimap)?.enabled ?? true,
+        ...(baseMinimap ?? {}),
+        ...(optimizationMinimap ?? {}),
+      };
+    }
+
+    return merged;
+  };
+
   const unsub = activeEditor.subscribe(($active) => {
     current = $active;
     backgroundColor = $active ? "var(--nc-tab-bg-active)" : "var(--nc-level-1)";
+  });
+
+  const tabsUnsub = editorStore.subscribe(($state) => {
+    firstTabId = $state.openTabs[0]?.id ?? null;
   });
 
   // Подписка на изменения настроек редактора
@@ -112,11 +182,16 @@
 
   onDestroy(() => {
     unsub();
+    tabsUnsub();
     settingsUnsub();
     behaviorUnsub();
     flushAutoSave();
     clearAutoSaveTimer();
   });
+
+  const isFirstTabActive = $derived(
+    current !== null && firstTabId !== null && current.id === firstTabId,
+  );
 
   /**
    * Получение строк и значения для активного файла.
@@ -128,14 +203,28 @@
     }
 
     try {
+      const validation = await validateFile(filePath);
+      warningMessage = validation.warning ?? null;
+
+      if (!validation.canOpen) {
+        return {
+          lines: [],
+          value: "",
+          error: validation.warning ?? "Cannot open file",
+        };
+      }
+
       const value = await fileService.readFile(filePath);
       return {
         lines: value.split(/\r?\n/),
         value,
         error: null,
+        warning: validation.warning ?? null,
+        optimizations: validation.optimizations,
       };
     } catch (err) {
       console.warn("[editor] failed to load file", filePath, err);
+      warningMessage = null;
       return {
         lines: [],
         value: "",
@@ -164,13 +253,20 @@
   });
 </script>
 
-<div class="editor-area" style:background-color={backgroundColor}>
+<div
+  class={`editor-area ${isFirstTabActive ? "no-left-radius" : ""}`}
+  style:background-color={backgroundColor}
+>
   {#if !current}
     <WelcomeScreen />
   {:else if current.id === "settings"}
     <div class="settings-wrapper">
       <SettingsShell id="editor-settings-shell" compactMode={false} />
     </div>
+  {:else if isImageFile(current.path)}
+    <!-- Превью изображения -->
+    <Breadcrumbs />
+    <ImagePreview path={current.path} title={current.title} />
   {:else}
     <Breadcrumbs />
     <!-- Локально вычисляем контент для активного файла. -->
@@ -181,38 +277,49 @@
           <p class="path">{current.path || current.id}</p>
           <p class="message">{content.error}</p>
           <p class="hint">
-            The file may have been removed or renamed. Close this tab or
-            re-open from Explorer.
+            The file may have been removed or renamed. Close this tab or re-open
+            from Explorer.
           </p>
         </div>
       {:else}
+        {#if warningMessage}
+          <div class="editor-warning">
+            <span>{warningMessage}</span>
+            <button class="warning-close" onclick={() => (warningMessage = null)} aria-label="Dismiss warning">
+              ×
+            </button>
+          </div>
+        {/if}
         <MonacoHost
           fileId={current.id}
           uri={`file://${current.path || current.id}`}
           value={content.value}
           language={current.language}
-          options={{
-            theme: editorOptions.theme,
-            tabSize: editorOptions.tabSize,
-            insertSpaces: editorOptions.insertSpaces,
-            wordWrap: editorOptions.wordWrap,
-            wordWrapColumn: editorOptions.wordWrapColumn,
-            minimap: {
-              enabled: editorOptions.minimap,
+          options={mergeEditorOptions(
+            {
+              theme: editorOptions.theme,
+              tabSize: editorOptions.tabSize,
+              insertSpaces: editorOptions.insertSpaces,
+              wordWrap: editorOptions.wordWrap,
+              wordWrapColumn: editorOptions.wordWrapColumn,
+              minimap: {
+                enabled: editorOptions.minimap,
+              },
+              folding: editorOptions.folding,
+              bracketPairColorization: {
+                enabled: editorOptions.bracketPairColorization,
+              },
+              fontSize: editorOptions.fontSize,
+              fontFamily: editorOptions.fontFamily,
+              fontLigatures: editorOptions.fontLigatures,
+              renderWhitespace: editorOptions.renderWhitespace,
+              lineNumbers: editorOptions.lineNumbers,
+              autoClosingBrackets: "always",
+              autoClosingQuotes: "always",
+              autoClosingOvertype: "always",
             },
-            folding: editorOptions.folding,
-            bracketPairColorization: {
-              enabled: editorOptions.bracketPairColorization,
-            },
-            fontSize: editorOptions.fontSize,
-            fontFamily: editorOptions.fontFamily,
-            fontLigatures: editorOptions.fontLigatures,
-            renderWhitespace: editorOptions.renderWhitespace,
-            lineNumbers: editorOptions.lineNumbers,
-            autoClosingBrackets: "always",
-            autoClosingQuotes: "always",
-            autoClosingOvertype: "always",
-          }}
+            content.optimizations,
+          )}
           on:change={(e) =>
             handleEditorContentChange(e.detail.fileId, e.detail.value)}
         />
@@ -229,8 +336,13 @@
     flex-direction: column;
     color: var(--nc-fg);
     overflow: hidden;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--nc-border);
+  }
+
+  .editor-area.no-left-radius {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 
   .editor-error {
@@ -262,6 +374,28 @@
   .editor-error .hint {
     font-size: 12px;
     opacity: 0.7;
+  }
+
+  .editor-warning {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    background: var(--nc-highlight-subtle);
+    color: var(--nc-fg);
+    border: 1px solid var(--nc-border-subtle);
+  }
+
+  .warning-close {
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
   }
 
   .settings-wrapper {

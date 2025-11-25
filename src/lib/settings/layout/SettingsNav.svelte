@@ -65,11 +65,6 @@
 </script>
 
 <nav class="settings-nav-root">
-  <div class="settings-nav-header">
-    <div class="title">Settings</div>
-    <div class="subtitle">Sections</div>
-  </div>
-
   <div class="sections-list">
     {#each sections as section (section.id)}
       {@const isActive = section.id === activeSectionId}
@@ -99,37 +94,17 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 8px;
+    padding: 4px;
     box-sizing: border-box;
     color: var(--nc-palette-text);
-    background: var(--nc-level-0);
-    gap: 4px;
-  }
-
-  .settings-nav-header {
-    padding: 4px 8px;
-    border-radius: 8px;
-  }
-
-  .title {
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--nc-palette-text);
-    opacity: 0.88;
-  }
-
-  .subtitle {
-    font-size: 12px;
-    color: var(--nc-palette-text);
-    opacity: 0.7;
+    background: transparent;
+    gap: 6px;
   }
 
   .sections-list {
-    margin-top: 4px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
 
   .section-item {
@@ -138,26 +113,27 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 8px;
-    border-radius: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
     cursor: pointer;
     color: var(--nc-fg-muted);
-    font-size: 12px;
+    font-size: 13px;
     transition: all 0.12s ease;
-    border: 1px solid transparent;
-    background-color: transparent;
+    border: 1px solid var(--nc-palette-border);
+    background-color: var(--nc-level-2);
   }
 
   .section-item:hover {
-    background-color: var(--nc-level-1);
+    background-color: var(--nc-level-3);
     color: var(--nc-palette-text);
-    border-color: var(--nc-level-2);
+    border-color: var(--nc-level-4);
   }
 
   .section-item.active {
-    background: var(--nc-level-1);
+    background: var(--nc-level-3);
     color: var(--nc-palette-text);
-    border-color: var(--nc-level-3);
+    border-color: var(--nc-level-4);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
   }
 
   .section-left {

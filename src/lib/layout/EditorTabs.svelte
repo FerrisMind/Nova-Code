@@ -311,9 +311,10 @@
     width: 100%;
     min-width: 0;
     flex: 0 0 auto;
-    height: 30px;
+    height: 34px;
     overflow: hidden;
     user-select: none;
+    box-shadow: none !important;
   }
 
   .tabs-bar {
@@ -323,7 +324,7 @@
     display: flex;
     align-items: stretch;
     height: 100%;
-    background-color: var(--nc-level-minus1);
+    background-color: var(--nc-level-0);
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
@@ -334,6 +335,7 @@
     box-sizing: border-box;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    border-radius: 0 !important;
   }
 
   .tabs-empty {
@@ -354,15 +356,20 @@
     font-size: 12px;                      /* 3 * 4px */
     color: var(--nc-fg-muted);
     cursor: pointer;
-    background-color: var(--nc-level-minus1);
+    background-color: var(--nc-level-0);
     transition: background-color 0.12s ease, color 0.12s ease;
-    border-radius: 8px 8px 0 0;
+    border-radius: 8px 8px 8px 8px;
     flex-shrink: 0;
     border: 1px solid var(--nc-level-5);
     border-bottom-color: var(--nc-level-5);
     user-select: none;
     -webkit-user-select: none;
     height: 100%;
+    overflow: visible;
+  }
+
+  .tab:not(.active) {
+    height: calc(100% - 2px);
   }
 
   .tab:hover {
@@ -371,12 +378,38 @@
     border-color: var(--nc-level-3);
     border-bottom-color: var(--nc-level-3);
   }
-
   .tab.active {
     background-color: var(--nc-tab-bg-active);
     color: var(--nc-fg);
-    border-color: var(--nc-level-3);
-    border-bottom-color: var(--nc-tab-bg-active);
+    border-color: transparent;
+    border-bottom-color: transparent;
+    position: relative;
+  }
+
+  /* Вогнутое скругление слева снизу */
+  .tab.active::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -8px;
+    width: 8px;
+    height: 8px;
+    background: transparent;
+    border-bottom-right-radius: 8px;
+    box-shadow: 3px 3px 0 3px var(--nc-tab-bg-active);
+  }
+
+  /* Вогнутое скругление справа снизу */
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -8px;
+    width: 8px;
+    height: 8px;
+    background: transparent;
+    border-bottom-left-radius: 8px;
+    box-shadow: -3px 3px 0 3px var(--nc-tab-bg-active);
   }
 
   .tab-title {
@@ -390,11 +423,13 @@
     justify-content: flex-start;
     gap: 8px;
     font-size: 12px;                      /* match FileTree font */
+    pointer-events: none;
   }
 
   .tab-dirty {
     color: var(--nc-accent);
     font-size: 12px;                      /* 3 * 4px */
+    pointer-events: none;
   }
 
   .tab-close {

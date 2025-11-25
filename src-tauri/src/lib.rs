@@ -363,9 +363,15 @@ async fn reveal_in_explorer(path: String) -> Result<(), String> {
     Ok(())
 }
 
+#[derive(Debug, Clone, Deserialize)]
+struct WriteFileRequest {
+    path: String,
+    content: String,
+}
+
 #[tauri::command]
-async fn write_file(app: AppHandle, path: String, content: String) -> Result<(), String> {
-    let resolved = resolve_path(&path)?;
+async fn write_file(app: AppHandle, request: WriteFileRequest) -> Result<(), String> {
+    let resolved = resolve_path(&request.path)?;
     if let Some(parent) = resolved.parent() {
         fs::create_dir_all(parent).map_err(|e| {
             format!(
@@ -374,9 +380,9 @@ async fn write_file(app: AppHandle, path: String, content: String) -> Result<(),
             )
         })?;
     }
-    fs::write(&resolved, content.as_bytes())
+    fs::write(&resolved, request.content.as_bytes())
         .map_err(|e| format!("Failed to write {}: {e}", resolved.display()))?;
-    app.emit("file-changed", path)
+    app.emit("file-changed", request.path)
         .map_err(|e| format!("Failed to emit file change event: {e}"))?;
     Ok(())
 }

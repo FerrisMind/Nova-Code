@@ -250,8 +250,8 @@
   }
 
   .layout-btn {
-    width: 32px;                 /* Smaller than win-btn */
-    height: 32px;                /* Smaller than win-btn */
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -261,7 +261,7 @@
     color: var(--nc-fg-muted);
     padding: 0;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 
   .layout-btn:hover {
