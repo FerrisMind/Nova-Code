@@ -396,7 +396,7 @@
     height: 8px;
     background: transparent;
     border-bottom-right-radius: 8px;
-    box-shadow: 3px 3px 0 3px var(--nc-tab-bg-active);
+    box-shadow: 4px 4px 0 4px var(--nc-tab-bg-active);
   }
 
   /* Вогнутое скругление справа снизу */
@@ -409,7 +409,7 @@
     height: 8px;
     background: transparent;
     border-bottom-left-radius: 8px;
-    box-shadow: -3px 3px 0 3px var(--nc-tab-bg-active);
+    box-shadow: -4px 4px 0 4px var(--nc-tab-bg-active);
   }
 
   .tab-title {

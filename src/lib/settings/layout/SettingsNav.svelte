@@ -119,8 +119,6 @@
     color: var(--nc-fg-muted);
     font-size: 13px;
     transition: all 0.12s ease;
-    border: 1px solid var(--nc-palette-border);
-    background-color: var(--nc-level-2);
   }
 
   .section-item:hover {

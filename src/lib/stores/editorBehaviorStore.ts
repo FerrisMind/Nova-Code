@@ -4,14 +4,17 @@
 // ---------------------------------------------------------------------------
 import { writable, type Writable } from 'svelte/store';
 
+// VS Code parity: files.autoSave supports off | afterDelay | onFocusChange | onWindowChange.
+export type AutoSaveMode = 'off' | 'afterDelay' | 'onFocusChange' | 'onWindowChange';
+
 export interface EditorBehaviorState {
-  autoSave: boolean;
+  autoSaveMode: AutoSaveMode;
   autoSaveDelay: number;
 }
 
 const DEFAULT_STATE: EditorBehaviorState = {
-  autoSave: false,
-  autoSaveDelay: 600
+  autoSaveMode: 'off',
+  autoSaveDelay: 1000 // VS Code default delay for afterDelay
 };
 
 const store: Writable<EditorBehaviorState> = writable(DEFAULT_STATE);
@@ -22,16 +25,16 @@ store.subscribe((state) => {
 
 export const editorBehaviorStore = {
   subscribe: store.subscribe,
-  setAutoSave(next: boolean) {
+  setAutoSaveMode(mode: AutoSaveMode) {
     store.update((state) => ({
       ...state,
-      autoSave: next
+      autoSaveMode: mode
     }));
   },
   toggleAutoSave() {
     store.update((state) => ({
       ...state,
-      autoSave: !state.autoSave
+      autoSaveMode: state.autoSaveMode === 'off' ? 'afterDelay' : 'off'
     }));
   },
   setAutoSaveDelay(delay: number) {
@@ -40,10 +43,13 @@ export const editorBehaviorStore = {
       autoSaveDelay: delay
     }));
   },
-  getAutoSave() {
-    return currentState.autoSave;
+  getAutoSaveMode() {
+    return currentState.autoSaveMode;
   },
   getAutoSaveDelay() {
     return currentState.autoSaveDelay;
+  },
+  isAutoSaveEnabled() {
+    return currentState.autoSaveMode !== 'off';
   }
 };

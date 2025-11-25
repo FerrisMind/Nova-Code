@@ -64,11 +64,14 @@
   let warningMessage = $state<string | null>(null);
   let firstTabId = $state<string | null>(null);
 
-  let autoSaveEnabled = editorBehaviorStore.getAutoSave();
+  let autoSaveMode = editorBehaviorStore.getAutoSaveMode();
   let autoSaveDelay = editorBehaviorStore.getAutoSaveDelay();
   let pendingSave: { fileId: string; value: string } | null = null;
   let pendingAutoSaveTimer: ReturnType<typeof setTimeout> | null = null;
   let previousEditorId: string | null = null;
+  let focusOutListener: ((ev: FocusEvent) => void) | null = null;
+  let windowBlurListener: ((ev: FocusEvent | FocusEventInit) => void) | null =
+    null;
 
   const clearAutoSaveTimer = () => {
     if (pendingAutoSaveTimer) {
@@ -78,7 +81,7 @@
   };
 
   const flushAutoSave = async () => {
-    if (!autoSaveEnabled || !pendingSave) return;
+    if (autoSaveMode === "off" || !pendingSave) return;
 
     try {
       await editorStore.updateContent(pendingSave.fileId, pendingSave.value);
@@ -116,7 +119,7 @@
   };
 
   const scheduleAutoSave = () => {
-    if (!autoSaveEnabled || !pendingSave) return;
+    if (autoSaveMode !== "afterDelay" || !pendingSave) return;
     clearAutoSaveTimer();
     pendingAutoSaveTimer = window.setTimeout(() => {
       void flushAutoSave();
@@ -171,9 +174,9 @@
   });
 
   const behaviorUnsub = editorBehaviorStore.subscribe((state) => {
-    autoSaveEnabled = state.autoSave;
+    autoSaveMode = state.autoSaveMode;
     autoSaveDelay = state.autoSaveDelay;
-    if (!state.autoSave) {
+    if (state.autoSaveMode !== "afterDelay") {
       clearAutoSaveTimer();
     } else if (pendingSave) {
       scheduleAutoSave();
@@ -238,7 +241,7 @@
   function handleEditorContentChange(fileId: string, value: string) {
     editorStore.markDirty(fileId, true);
     pendingSave = { fileId, value };
-    if (autoSaveEnabled) {
+    if (autoSaveMode === "afterDelay") {
       scheduleAutoSave();
     } else {
       clearAutoSaveTimer();
@@ -249,6 +252,32 @@
     if (current?.id !== previousEditorId) {
       previousEditorId = current?.id ?? null;
       flushAutoSave();
+    }
+  });
+
+  $effect(() => {
+    // VS Code parity: save on focus change or window change depending on mode.
+    if (typeof window === "undefined") return;
+
+    if (focusOutListener) {
+      window.removeEventListener("focusout", focusOutListener);
+      focusOutListener = null;
+    }
+    if (windowBlurListener) {
+      window.removeEventListener("blur", windowBlurListener as any);
+      windowBlurListener = null;
+    }
+
+    if (autoSaveMode === "onFocusChange") {
+      focusOutListener = () => {
+        void flushAutoSave();
+      };
+      window.addEventListener("focusout", focusOutListener);
+    } else if (autoSaveMode === "onWindowChange") {
+      windowBlurListener = () => {
+        void flushAutoSave();
+      };
+      window.addEventListener("blur", windowBlurListener as any);
     }
   });
 </script>

@@ -111,7 +111,7 @@ const sections: SettingsSectionDefinition[] = [
     label: 'Editor Behavior',
     category: 'editor',
     order: 50,
-    settings: ['editor.autoSave']
+    settings: ['editor.autoSave', 'editor.autoSaveDelay']
   }
 ];
 
@@ -392,14 +392,38 @@ const settings: SettingDefinition[] = [
   {
     id: 'editor.autoSave',
     label: 'Auto Save',
-    description: 'Automatically persist files after edits when enabled.',
+    description: 'VS Code-like auto save behaviour.',
     category: 'editor',
     section: 'editor.behavior',
     order: 10,
-    control: 'boolean',
-    get: () => editorBehaviorStore.getAutoSave(),
+    control: 'select',
+    options: [
+      { value: 'off', label: 'Off' },
+      { value: 'afterDelay', label: 'After Delay' },
+      { value: 'onFocusChange', label: 'On Focus Change' },
+      { value: 'onWindowChange', label: 'On Window Change' }
+    ],
+    get: () => editorBehaviorStore.getAutoSaveMode(),
     set: (value: SettingValue) => {
-      editorBehaviorStore.setAutoSave(Boolean(value));
+      const allowed = ['off', 'afterDelay', 'onFocusChange', 'onWindowChange'] as const;
+      const mode = String(value);
+      editorBehaviorStore.setAutoSaveMode(
+        allowed.includes(mode as (typeof allowed)[number]) ? (mode as any) : 'off'
+      );
+    }
+  },
+  {
+    id: 'editor.autoSaveDelay',
+    label: 'Auto Save Delay (ms)',
+    description: 'Delay for auto save when mode is After Delay.',
+    category: 'editor',
+    section: 'editor.behavior',
+    order: 15,
+    control: 'slider',
+    get: () => editorBehaviorStore.getAutoSaveDelay(),
+    set: (value: SettingValue) => {
+      const n = typeof value === 'number' ? value : parseInt(String(value), 10);
+      editorBehaviorStore.setAutoSaveDelay(Number.isFinite(n) && n > 0 ? n : 1000);
     }
   }
 ];

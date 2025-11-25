@@ -286,22 +286,30 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 4px;
+    padding-top: 56px;
+    padding-bottom: 56px;
     height: 100%;
     box-sizing: border-box;
     color: var(--nc-palette-text);
     background: transparent;
   }
 
+  /* Spacer to guarantee bottom breathing room in scroll container (matches top). */
+  .settings-all-content-root::after {
+    content: '';
+    display: block;
+    height: 56px;
+    flex-shrink: 0;
+  }
+
   .section-block {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: var(--nc-level-2);
+    background: var(--nc-level-0);
     border: 1px solid var(--nc-palette-border);
     border-radius: 14px;
     padding: 16px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
   }
 
   .section-block + .section-block {
