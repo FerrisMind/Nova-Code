@@ -1,5 +1,0 @@
-{
-  "svelte.enable-ts-plugin": true,
-  "kiroAgent.configureMCP": "Disabled",
-  "chatgpt.openOnStartup": true
-}
