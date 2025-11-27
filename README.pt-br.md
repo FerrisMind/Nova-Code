@@ -31,7 +31,7 @@ Para trabalhar com o projeto, você precisará de:
 
 1.  Clone o repositório:
     ```bash
-    git clone https://github.com/your-username/nova-code.git
+    git clone https://github.com/FerrisMind/Nova-Code.git
     cd nova-code
     ```
 

@@ -18,7 +18,7 @@
 
     import { onMount, onDestroy } from "svelte";
     import { inlineSearchStore } from "$lib/stores/searchStore.svelte";
-    import type * as monaco from "monaco-editor";
+  import type * as monaco from "monaco-editor";
 
     // Props
     export let editor: monaco.editor.IStandaloneCodeEditor | null = null;

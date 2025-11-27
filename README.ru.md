@@ -31,7 +31,7 @@ Nova Code — это современный, легковесный и прои�
 
 1.  Клонируйте репозиторий:
     ```bash
-    git clone https://github.com/your-username/nova-code.git
+    git clone https://github.com/FerrisMind/Nova-Code.git
     cd nova-code
     ```
 

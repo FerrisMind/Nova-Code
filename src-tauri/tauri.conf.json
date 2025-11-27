@@ -11,19 +11,22 @@
   },
   "app": {
     "windows": [
-    {
-      "title": "nova-code",
-      "width": 800,
-      "height": 600,
-      "resizable": true,
-        "decorations": false
-    }
-  ],
+      {
+        "title": "nova-code",
+        "width": 1280,
+        "height": 720,
+        "resizable": true,
+        "decorations": false,
+        "transparent": true
+      }
+    ],
     "security": {
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": ["**"]
+        "scope": [
+          "**"
+        ]
       }
     }
   },
