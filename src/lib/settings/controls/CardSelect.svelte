@@ -27,6 +27,9 @@
     badge?: string;
     backgroundColor?: string;
     textColor?: string;
+    // Palette levels for mini-UI preview
+    levels?: Record<0 | 1 | 2 | 3 | 4 | 5, string>;
+    levelMinus1?: string;
   };
 
   type CardSelectProps = {
@@ -109,9 +112,10 @@
   <div class="nc-card-grid" style={gridStyle()}>
     {#each options as option (String(option.value))}
       {@const active = isActive(option)}
+      {@const hasPreview = option.levels !== undefined}
       <button
         type="button"
-        class="nc-card {active ? 'active' : ''} {disabled ? 'is-disabled' : ''}"
+        class="nc-card {active ? 'active' : ''} {disabled ? 'is-disabled' : ''} {hasPreview ? 'has-preview' : ''}"
         id={resolveCardId(option)}
         aria-pressed={active}
         aria-label={option.label}
@@ -119,30 +123,60 @@
         onkeydown={(e) => handleKeydown(e, option)}
         {disabled}
       >
-        <div class="nc-card-header">
-          {#if option.icon}
-            <span class="nc-card-icon">
-              <Icon name={option.icon} size={14} />
-            </span>
-          {/if}
-          <span class="nc-card-label">{option.label}</span>
-          {#if option.badge}
-            <span class="nc-card-badge">{option.badge}</span>
-          {/if}
-        </div>
-
-        {#if option.backgroundColor || option.textColor}
-          <div
-            class="nc-card-palette-preview"
-            style={`background-color: ${option.backgroundColor ?? "transparent"}; color: ${option.textColor ?? "inherit"};`}
-          >
-            <span class="nc-card-palette-swatch"></span>
+        {#if hasPreview && option.levels}
+          <!-- Palette Preview: мини-UI интерфейс -->
+          <div class="nc-palette-preview" style={`background-color: ${option.levels[0]};`}>
+            <div class="preview-ui">
+              <!-- Мини-sidebar -->
+              <div class="preview-sidebar" style={`background-color: ${option.levelMinus1 ?? option.levels[0]};`}>
+                <div class="preview-sidebar-item" style={`background-color: ${option.levels[2]};`}></div>
+                <div class="preview-sidebar-item" style={`background-color: ${option.levels[3]};`}></div>
+                <div class="preview-sidebar-item active" style={`background-color: ${option.levels[4]};`}></div>
+              </div>
+              <!-- Мини-контент -->
+              <div class="preview-content" style={`background-color: ${option.levels[1]};`}>
+                <!-- Мини-заголовок -->
+                <div class="preview-title" style={`background-color: ${option.textColor}; opacity: 0.9;`}></div>
+                <!-- Мини-текст строки -->
+                <div class="preview-text-row">
+                  <div class="preview-text" style={`background-color: ${option.textColor}; opacity: 0.5;`}></div>
+                  <div class="preview-text short" style={`background-color: ${option.textColor}; opacity: 0.3;`}></div>
+                </div>
+                <!-- Мини-кнопки -->
+                <div class="preview-buttons">
+                  <div class="preview-btn primary" style="background-color: #6F9DFF;"></div>
+                  <div class="preview-btn" style={`background-color: ${option.levels[3]};`}></div>
+                </div>
+              </div>
+            </div>
           </div>
         {/if}
 
-        {#if option.description}
-          <div class="nc-card-description">
-            {option.description}
+        <div class="nc-card-footer">
+          <div class="nc-card-header">
+            {#if option.icon}
+              <span class="nc-card-icon">
+                <Icon name={option.icon} size={14} />
+              </span>
+            {/if}
+            <span class="nc-card-label">{option.label}</span>
+            {#if option.badge}
+              <span class="nc-card-badge">{option.badge}</span>
+            {/if}
+          </div>
+
+          {#if option.description && !hasPreview}
+            <div class="nc-card-description">
+              {option.description}
+            </div>
+          {/if}
+        </div>
+
+        {#if active}
+          <div class="nc-card-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
           </div>
         {/if}
       </button>
@@ -162,7 +196,7 @@
 
   .nc-card-grid {
     display: grid;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
   }
 
@@ -170,22 +204,28 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 8px;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
     width: 100%;
-    border-radius: 8px;
-    border: 1px solid var(--nc-palette-border);
+    border-radius: var(--settings-radius-lg, 12px);
+    border: 2px solid var(--nc-palette-border);
     background: var(--nc-level-1);
     color: var(--nc-palette-text);
     text-align: left;
     cursor: pointer;
     outline: none;
+    overflow: hidden;
     transition:
-      border-color 0.12s ease,
-      background-color 0.12s ease;
+      border-color 0.15s ease,
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
     font-size: 12px;
     box-sizing: border-box;
+  }
+
+  .nc-card:not(.has-preview) {
+    padding: 12px;
   }
 
   .nc-card.is-disabled {
@@ -194,17 +234,128 @@
   }
 
   .nc-card:hover:not(.is-disabled) {
-    background: var(--nc-level-2);
-    border-color: var(--nc-level-3);
+    border-color: var(--nc-level-4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   .nc-card:focus-visible:not(.is-disabled) {
-    border-color: var(--nc-level-4);
+    border-color: hsl(var(--settings-primary, 217 91% 60%));
+    box-shadow: 0 0 0 3px hsl(var(--settings-primary, 217 91% 60%) / 0.2);
   }
 
   .nc-card.active {
-    border-color: var(--nc-level-4);
-    background: var(--nc-level-2);
+    border-color: hsl(var(--settings-primary, 217 91% 60%));
+    box-shadow: 0 0 0 1px hsl(var(--settings-primary, 217 91% 60%));
+  }
+
+  .nc-card.active:hover {
+    transform: translateY(-1px);
+  }
+
+  /* =========================================================================
+   * Palette Preview (mini UI)
+   * ========================================================================= */
+
+  .nc-palette-preview {
+    padding: 8px;
+    min-height: 80px;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    border-radius: var(--settings-radius-md, 8px) var(--settings-radius-md, 8px) 0 0;
+  }
+
+  .preview-ui {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  /* Mini Sidebar */
+  .preview-sidebar {
+    width: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px 3px;
+    border-radius: 4px;
+  }
+
+  .preview-sidebar-item {
+    width: 100%;
+    height: 8px;
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+
+  .preview-sidebar-item.active {
+    opacity: 1;
+  }
+
+  /* Mini Content */
+  .preview-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 4px;
+  }
+
+  .preview-title {
+    width: 60%;
+    height: 6px;
+    border-radius: 2px;
+  }
+
+  .preview-text-row {
+    display: flex;
+    gap: 4px;
+  }
+
+  .preview-text {
+    width: 70%;
+    height: 4px;
+    border-radius: 1px;
+  }
+
+  .preview-text.short {
+    width: 40%;
+  }
+
+  .preview-buttons {
+    display: flex;
+    gap: 4px;
+    margin-top: auto;
+  }
+
+  .preview-btn {
+    width: 28px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  .preview-btn.primary {
+    width: 36px;
+  }
+
+  /* =========================================================================
+   * Card Footer (label)
+   * ========================================================================= */
+
+  .nc-card-footer {
+    padding: 10px 12px;
+    background: var(--nc-level-0);
+    border-top: 1px solid var(--nc-palette-border);
+  }
+
+  .nc-card:not(.has-preview) .nc-card-footer {
+    padding: 0;
+    background: transparent;
+    border-top: none;
   }
 
   .nc-card-header {
@@ -228,7 +379,7 @@
 
   .nc-card-label {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nc-palette-text);
     white-space: nowrap;
     overflow: hidden;
@@ -248,27 +399,29 @@
   }
 
   .nc-card-description {
-    font-size: 12px;
-    color: var(--nc-level-4);
+    font-size: 11px;
+    color: var(--nc-fg-muted);
     opacity: 0.9;
     line-height: 1.35;
+    margin-top: 4px;
   }
 
-  .nc-card-palette-preview {
-    margin-top: 4px;
-    padding: 4px;
-    border-radius: 4px;
-    border: 1px solid var(--nc-level-4);
+  /* =========================================================================
+   * Active Check Mark
+   * ========================================================================= */
+
+  .nc-card-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: hsl(var(--settings-primary, 217 91% 60%));
+    color: white;
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 8px;
-  }
-
-  .nc-card-palette-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 4px;
-    background-color: currentColor;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 </style>

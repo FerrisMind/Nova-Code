@@ -12,6 +12,7 @@
   import { layoutState, toggleLeftSidebar, setRightSidebarWidth, setRightSidebarVisible } from '../lib/stores/layout/layoutStore';
   import { initDefaultCommands } from '../lib/commands/defaultCommands';
   import { openCommandPalette } from '../lib/stores/commandPaletteStore';
+  import * as Tooltip from '$lib/components/ui/tooltip';
 
   import { theme, type ThemeState } from '../lib/stores/themeStore';
   import {
@@ -187,6 +188,7 @@
   };
 </script>
 
+<Tooltip.Provider>
 <div class={`nova-root theme-${themeState.mode}`}>
   <Titlebar />
 
@@ -229,6 +231,7 @@
        Рендерится рядом с корневым layout, чтобы перекрывать весь UI. -->
   <CommandPalette />
 </div>
+</Tooltip.Provider>
 
 <style>
   .nova-root {

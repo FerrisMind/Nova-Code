@@ -430,7 +430,7 @@
   .settings-wrapper {
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
     background: var(--nc-tab-bg-active);
   }
 </style>

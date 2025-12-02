@@ -23,6 +23,28 @@
 import type * as monacoNamespace from 'monaco-editor';
 
 // -----------------------------------------------------------------------------
+// TypeScript Language Service Types
+// -----------------------------------------------------------------------------
+// Monaco Editor 0.55+ помечает languages.typescript как deprecated в типах,
+// но API работает. Используем явную типизацию для обхода проверки.
+// -----------------------------------------------------------------------------
+
+interface TypeScriptDefaults {
+  setCompilerOptions(options: Record<string, unknown>): void;
+  setDiagnosticsOptions(options: Record<string, unknown>): void;
+  setEagerModelSync(value: boolean): void;
+  addExtraLib(content: string, filePath?: string): monacoNamespace.IDisposable;
+}
+
+interface TypeScriptLanguages {
+  typescriptDefaults: TypeScriptDefaults;
+  javascriptDefaults: TypeScriptDefaults;
+  ScriptTarget: { ES2020: number };
+  ModuleKind: { ESNext: number };
+  ModuleResolutionKind: { NodeJs: number };
+}
+
+// -----------------------------------------------------------------------------
 // Singleton-флаги инициализации
 // -----------------------------------------------------------------------------
 
@@ -58,17 +80,27 @@ export function setupBasicLanguageSupport(monaco: typeof monacoNamespace): void 
 }
 
 /**
+ * Получить TypeScript API из Monaco.
+ * Monaco 0.55+ помечает API как deprecated в типах, но он работает.
+ */
+function getTypeScriptAPI(monaco: typeof monacoNamespace): TypeScriptLanguages {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (monaco.languages as any).typescript as TypeScriptLanguages;
+}
+
+/**
  * Конфигурация TypeScript language service.
  * Оптимизировано для быстрой валидации и IntelliSense.
  */
 function configureTypeScript(monaco: typeof monacoNamespace): void {
-  const tsDefaults = monaco.languages.typescript.typescriptDefaults;
+  const ts = getTypeScriptAPI(monaco);
+  const tsDefaults = ts.typescriptDefaults;
 
   // Compiler options: современный ES2020+, строгий режим
   tsDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ES2020,
-    module: monaco.languages.typescript.ModuleKind.ESNext,
-    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+    target: ts.ScriptTarget.ES2020,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.NodeJs,
     allowNonTsExtensions: true,
     allowJs: true,
     checkJs: false, // Отключаем проверку JS для производительности
@@ -99,11 +131,12 @@ function configureTypeScript(monaco: typeof monacoNamespace): void {
  * Облегчённая версия TypeScript конфигурации.
  */
 function configureJavaScript(monaco: typeof monacoNamespace): void {
-  const jsDefaults = monaco.languages.typescript.javascriptDefaults;
+  const ts = getTypeScriptAPI(monaco);
+  const jsDefaults = ts.javascriptDefaults;
 
   jsDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ES2020,
-    module: monaco.languages.typescript.ModuleKind.ESNext,
+    target: ts.ScriptTarget.ES2020,
+    module: ts.ModuleKind.ESNext,
     allowNonTsExtensions: true,
     checkJs: false, // Отключаем type-checking для JS
     noEmit: true,
@@ -320,8 +353,6 @@ export function addExtraLibs(
   definitions: string,
   filePath: string = 'ts:extra-libs/global.d.ts'
 ): monacoNamespace.IDisposable {
-  return monaco.languages.typescript.typescriptDefaults.addExtraLib(
-    definitions,
-    filePath
-  );
+  const ts = getTypeScriptAPI(monaco);
+  return ts.typescriptDefaults.addExtraLib(definitions, filePath);
 }

@@ -95,6 +95,10 @@ export interface SettingDefinition {
     | 'slider'
     | 'toggle';
 
+  // Флаг для "advanced" настроек — используется для progressive disclosure.
+  // Расширенные настройки скрыты по умолчанию в аккордеонах.
+  isAdvanced?: boolean;
+
   // Доступные варианты для select/radio (если применимо).
   // Может быть статическим массивом или функцией, возвращающей массив на основе текущего состояния.
   options?: { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[] | (() => { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[]);

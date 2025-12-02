@@ -268,6 +268,7 @@ const settings: SettingDefinition[] = [
     section: 'editor.layout',
     order: 30,
     control: 'select',
+    isAdvanced: true,
     options: [
       { value: 'none', label: 'None' },
       { value: 'selection', label: 'Selection' },
@@ -315,6 +316,7 @@ const settings: SettingDefinition[] = [
     section: 'editor.layout',
     order: 50,
     control: 'slider',
+    isAdvanced: true,
     get: () => editorSettings.getSettings().wordWrapColumn,
     set: (value: SettingValue) => {
       const n = typeof value === 'number' ? value : parseInt(String(value), 10);
@@ -384,6 +386,7 @@ const settings: SettingDefinition[] = [
     section: 'editor.ui',
     order: 40,
     control: 'boolean',
+    isAdvanced: true,
     get: () => editorSettings.getSettings().bracketPairColorization,
     set: (value: SettingValue) => {
       editorSettings.setBracketPairColorization(Boolean(value));

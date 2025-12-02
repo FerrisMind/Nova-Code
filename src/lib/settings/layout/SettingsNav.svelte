@@ -1,162 +1,227 @@
 <script lang="ts">
   // src/lib/settings/layout/SettingsNav.svelte
   // ----------------------------------------------------------------------------
-  // Левая панель навигации для трехпанельного SettingsShell.
+  // Упрощённая навигация для страницы настроек.
+  // 
+  // Две главные секции:
+  // - Appearance (тема, палитра, профили, импорт/экспорт)
+  // - Editor (все настройки редактора в аккордеонах)
   //
-  // Ответственность:
-  // - Отображать список секций, полученный снаружи (из settingsRegistry).
-  // - Подсвечивать активную секцию.
-  // - Показывать иконку (по id) и счетчик "грязных" настроек по секции, если он передан.
-  // - Эмитить onSelect(sectionId) вверх через DOM-событие `select`.
-  //
-  // Важно:
-  // - Не знает про registry или сторы напрямую.
-  // - Работает только с входными пропсами (sections, activeSectionId, dirtyBySection).
-  // - Без заглушек и фиктивной логики.
-  //
-  // В визуальном стиле повторяет существующие сайдбар-паттерны и использует CSS-переменные.
-  // Дополнительно добавлен легкий glassmorphism, не конфликтующий с общим оформлением.
+  // Особенности:
+  // - Иконки Lucide для каждой секции
+  // - Активное состояние с подсветкой
+  // - Keyboard navigation (Enter, Space)
+  // - Минималистичный дизайн
   // ----------------------------------------------------------------------------
 
-  import { createEventDispatcher } from 'svelte';
-  import type { SettingsSectionDefinition } from '$lib/settings/types';
-  import Icon from '$lib/common/Icon.svelte';
+  import { Palette, Code2 } from '@lucide/svelte';
 
-  const dispatch = createEventDispatcher<{
-    select: { sectionId: string };
-  }>();
+  // ---------------------------------------------------------------------------
+  // Типы
+  // ---------------------------------------------------------------------------
 
-  export let sections: SettingsSectionDefinition[] = [];
-  export let activeSectionId: string | undefined;
-  /**
-   * Опциональная карта "грязных" настроек: sectionId -> count.
-   * Источник данных — внешний orchestrator (например, settingsStore).
-   */
-  export let dirtyBySection: Record<string, number> | undefined;
+  interface NavSection {
+    id: 'appearance' | 'editor';
+    label: string;
+    icon: string;
+  }
 
-  /**
-   * Опциональный маппер sectionId -> iconId для интеграции с текущим набором иконок.
-   * По умолчанию подбираем простые значения.
-   */
-  export let sectionIcons:
-    | Record<string, string>
-    | undefined;
+  interface SettingsNavProps {
+    sections: NavSection[];
+    activeSectionId: 'appearance' | 'editor';
+    onselect: (sectionId: 'appearance' | 'editor') => void;
+  }
 
-  const getIconName = (sectionId: string): string | undefined => {
-    if (sectionIcons && sectionIcons[sectionId]) return sectionIcons[sectionId];
+  let {
+    sections,
+    activeSectionId,
+    onselect
+  }: SettingsNavProps = $props();
 
-    if (sectionId.startsWith('appearance')) return 'color-palette';
-    if (sectionId.startsWith('editor')) return 'settings';
-    if (sectionId.startsWith('workbench')) return 'layout';
-    if (sectionId.startsWith('integrations')) return 'plug';
-    if (sectionId.startsWith('experimental')) return 'flask';
+  // ---------------------------------------------------------------------------
+  // Обработчики
+  // ---------------------------------------------------------------------------
 
-    return undefined;
-  };
+  function handleClick(sectionId: 'appearance' | 'editor') {
+    onselect(sectionId);
+  }
 
-  const handleSelect = (sectionId: string) => {
-    dispatch('select', { sectionId });
-  };
+  function handleKeydown(event: KeyboardEvent, sectionId: 'appearance' | 'editor', index: number) {
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        onselect(sectionId);
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        focusItem(index + 1);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        focusItem(index - 1);
+        break;
+      case 'Home':
+        event.preventDefault();
+        focusItem(0);
+        break;
+      case 'End':
+        event.preventDefault();
+        focusItem(sections.length - 1);
+        break;
+    }
+  }
 
-  const getDirtyCount = (sectionId: string): number => {
-    if (!dirtyBySection) return 0;
-    return dirtyBySection[sectionId] ?? 0;
-  };
+  function focusItem(index: number) {
+    const clampedIndex = Math.max(0, Math.min(index, sections.length - 1));
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.nav-button');
+    buttons[clampedIndex]?.focus();
+  }
+
+  // Получаем компонент иконки по id
+  function getIcon(iconId: string) {
+    switch (iconId) {
+      case 'palette':
+        return Palette;
+      case 'code':
+        return Code2;
+      default:
+        return Palette;
+    }
+  }
 </script>
 
-<nav class="settings-nav-root">
-  <div class="sections-list">
-    {#each sections as section (section.id)}
+<nav class="settings-nav" aria-label="Settings sections">
+  <ul class="nav-list" role="tablist" aria-orientation="vertical">
+    {#each sections as section, index (section.id)}
       {@const isActive = section.id === activeSectionId}
-      {@const dirty = getDirtyCount(section.id)}
-      <button
-        type="button"
-        class="section-item {isActive ? 'active' : ''}"
-        on:click={() => handleSelect(section.id)}
-      >
-        <div class="section-left">
-          {#if getIconName(section.id)}
-            <Icon name={getIconName(section.id) ?? ''} size={14} />
+      {@const IconComponent = getIcon(section.icon)}
+      
+      <li class="nav-item" role="presentation">
+        <button
+          type="button"
+          class="nav-button"
+          class:active={isActive}
+          role="tab"
+          aria-selected={isActive}
+          aria-controls={`section-${section.id}`}
+          tabindex={isActive ? 0 : -1}
+          onclick={() => handleClick(section.id)}
+          onkeydown={(e) => handleKeydown(e, section.id, index)}
+        >
+          <span class="nav-icon">
+            <IconComponent size={18} />
+          </span>
+          <span class="nav-label">{section.label}</span>
+          
+          {#if isActive}
+            <span class="nav-indicator" aria-hidden="true"></span>
           {/if}
-          <span class="label">{section.label}</span>
-        </div>
-
-        {#if dirty > 0}
-          <span class="dirty-badge">{dirty}</span>
-        {/if}
-      </button>
+        </button>
+      </li>
     {/each}
-  </div>
+  </ul>
 </nav>
 
 <style>
-  .settings-nav-root {
+  .settings-nav {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding: 4px;
-    box-sizing: border-box;
-    color: var(--nc-palette-text);
+  }
+
+  .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--settings-space-xs, 4px);
+  }
+
+  .nav-item {
+    margin: 0;
+  }
+
+  .nav-button {
+    display: flex;
+    align-items: center;
+    gap: var(--settings-space-sm, 12px);
+    width: 100%;
+    padding: var(--settings-space-sm, 12px) var(--settings-space-md, 16px);
+    border: none;
+    border-radius: var(--settings-radius-md, 8px);
     background: transparent;
-    gap: 6px;
-  }
-
-  .sections-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .section-item {
-    all: unset;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 10px;
+    color: var(--nc-fg-muted, hsl(var(--muted-foreground)));
+    font-size: var(--settings-font-size-base, 14px);
+    font-weight: 500;
+    text-align: left;
     cursor: pointer;
-    color: var(--nc-fg-muted);
-    font-size: 13px;
-    transition: all 0.12s ease;
+    position: relative;
+    transition: 
+      background-color var(--settings-transition-fast, 150ms),
+      color var(--settings-transition-fast, 150ms);
   }
 
-  .section-item:hover {
-    background-color: var(--nc-level-3);
-    color: var(--nc-palette-text);
-    border-color: var(--nc-level-4);
+  .nav-button:hover {
+    background: var(--nc-level-2, hsl(var(--accent)));
+    color: var(--nc-palette-text, hsl(var(--foreground)));
   }
 
-  .section-item.active {
-    background: var(--nc-level-3);
-    color: var(--nc-palette-text);
-    border-color: var(--nc-level-4);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  .nav-button:focus-visible {
+    outline: 2px solid hsl(var(--settings-primary, 217 91% 60%));
+    outline-offset: 2px;
   }
 
-  .section-left {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+  .nav-button.active {
+    background: var(--nc-level-2, hsl(var(--accent)));
+    color: var(--nc-palette-text, hsl(var(--foreground)));
   }
 
-  .label {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 152px;
-  }
-
-  .dirty-badge {
-    min-width: 16px;
-    padding: 0 4px;
-    height: 16px;
-    border-radius: 8px;
-    background-color: var(--nc-level-5);
-    color: var(--nc-level-0);
-    font-size: 8px;
-    display: inline-flex;
+  .nav-icon {
+    display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  .nav-button.active .nav-icon {
+    opacity: 1;
+    color: hsl(var(--settings-primary, 217 91% 60%));
+  }
+
+  .nav-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-indicator {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: hsl(var(--settings-primary, 217 91% 60%));
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Hover state enhancements */
+  .nav-button:hover .nav-icon {
+    opacity: 1;
+  }
+
+  /* Focus within for accessibility */
+  .nav-list:focus-within .nav-button:not(:focus-visible) {
+    opacity: 0.8;
+  }
+
+  .nav-list:focus-within .nav-button:focus-visible {
+    opacity: 1;
   }
 </style>

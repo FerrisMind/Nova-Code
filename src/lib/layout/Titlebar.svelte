@@ -4,14 +4,20 @@
   import Icon from '../common/Icon.svelte';
   import { toggleLeftSidebar, toggleBottomPanel, toggleRightSidebar } from '../stores/layout/layoutStore';
   import { editorStore } from '../stores/editorStore';
-  import { openCommandPalette } from '../stores/commandPaletteStore';
+  import { openCommandPalette, commandPaletteOpen } from '../stores/commandPaletteStore';
 
   let appWindow = getCurrentWindow();
-  let isMaximized = false;
+  let isMaximized = $state(false);
+  let isPaletteOpen = $state(false);
 
-  // Реактивная переменная для отслеживания состояния
-  $: maximizeIcon = isMaximized ? "lucide:Minimize" : "lucide:Maximize";
-  $: maximizeLabel = isMaximized ? "Restore" : "Maximize";
+  // Подписка на состояние командной палитры
+  const unsubscribePalette = commandPaletteOpen.subscribe((value) => {
+    isPaletteOpen = value;
+  });
+
+  // Реактивные переменные для отслеживания состояния
+  const maximizeIcon = $derived(isMaximized ? "lucide:Minimize" : "lucide:Maximize");
+  const maximizeLabel = $derived(isMaximized ? "Restore" : "Maximize");
 
   // Обновляем ссылку на окно при монтировании (на случай окружения без Tauri при билде)
   onMount(() => {
@@ -38,11 +44,12 @@
       console.error('Failed to listen for window resize', e);
     });
 
-    // Очищаем слушатель при размонтировании
+    // Очищаем слушатели при размонтировании
     return () => {
       if (unlisten) {
         unlisten();
       }
+      unsubscribePalette();
     };
   });
 
@@ -90,43 +97,45 @@
   };
 </script>
 
-<div class="titlebar" data-tauri-drag-region on:dblclick={handleMaximize} role="banner" aria-label="Window title bar">
+<div class="titlebar" data-tauri-drag-region ondblclick={handleMaximize} role="banner" aria-label="Window title bar">
   <div class="titlebar-left">
     <div class="app-icon">
       <img src="/app-icon.png" alt="App Icon" />
     </div>
   </div>
 
-  <div class="titlebar-center">
-    <button class="command-palette" on:click={openCommandPalette} aria-label="Command Palette">
-      <Icon name="lucide:Search" size={14} />
-      <span class="command-palette-text">Новая папка</span>
-    </button>
+  <div class="titlebar-center" data-tauri-drag-region="false">
+    {#if !isPaletteOpen}
+      <button class="command-palette" onclick={openCommandPalette} aria-label="Command Palette">
+        <Icon name="lucide:Search" size={14} />
+        <span class="command-palette-text">Новая папка</span>
+      </button>
+    {/if}
   </div>
 
   <!-- Блок с контролами окна фиксирован справа -->
   <div class="titlebar-right" data-tauri-drag-region="false">
-    <button class="layout-btn" on:click={handleLayoutCustomization} aria-label="Layout Customization">
+    <button class="layout-btn" onclick={handleLayoutCustomization} aria-label="Layout Customization">
       <Icon name="lucide:LayoutPanelLeft" size={16} />
     </button>
-    <button class="layout-btn" on:click={handleToggleSidebar} aria-label="Toggle Sidebar">
+    <button class="layout-btn" onclick={handleToggleSidebar} aria-label="Toggle Sidebar">
       <Icon name="lucide:Sidebar" size={16} />
     </button>
-    <button class="layout-btn" on:click={handleToggleBottomPanel} aria-label="Toggle Bottom Panel">
+    <button class="layout-btn" onclick={handleToggleBottomPanel} aria-label="Toggle Bottom Panel">
       <Icon name="lucide:PanelBottom" size={16} />
     </button>
-    <button class="layout-btn" on:click={handleToggleRightSidebar} aria-label="Toggle Right Sidebar">
+    <button class="layout-btn" onclick={handleToggleRightSidebar} aria-label="Toggle Right Sidebar">
       <Icon name="lucide:PanelRight" size={16} />
     </button>
-    <button class="win-btn" on:click={handleMinimize} aria-label="Minimize">
+    <button class="win-btn" onclick={handleMinimize} aria-label="Minimize">
       <Icon name="lucide:Minus" size={16} />
     </button>
-    <button class="win-btn" on:click={handleMaximize} aria-label={maximizeLabel}>
+    <button class="win-btn" onclick={handleMaximize} aria-label={maximizeLabel}>
       {#key maximizeIcon}
         <Icon name={maximizeIcon} size={14} />
       {/key}
     </button>
-    <button class="win-btn win-close" on:click={handleClose} aria-label="Close">
+    <button class="win-btn win-close" onclick={handleClose} aria-label="Close">
       <Icon name="lucide:X" size={16} />
     </button>
   </div>
