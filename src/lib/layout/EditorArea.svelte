@@ -18,7 +18,14 @@
   // - подключение diff-режима и IntelliSense-провайдеров на базе EditorCore.
 
   import { onDestroy } from "svelte";
-  import { activeEditor, editorStore } from "../stores/editorStore";
+  import {
+    editorStore,
+    activeTabForGroup,
+    tabEdgeVisibleForGroup,
+    activeTabVisibleForGroup,
+    tabsForGroup,
+    type EditorTab
+  } from "../stores/editorStore";
   import { fileService } from "../services/fileService";
   import MonacoHost from "../editor/MonacoHost.svelte";
   import type { EditorCoreOptions } from "../editor/EditorCore";
@@ -29,6 +36,7 @@
   import Breadcrumbs from "./Breadcrumbs.svelte";
   import ImagePreview from "./ImagePreview.svelte";
   import { validateFile } from "../utils/fileValidator";
+  import type { EditorGroupId } from "../stores/layout/editorGroupsStore";
 
   // Расширения файлов изображений
   const IMAGE_EXTENSIONS = new Set([
@@ -56,13 +64,14 @@
     return ext ? IMAGE_EXTENSIONS.has(ext) : false;
   }
 
-  let current = $state(
-    null as import("../stores/editorStore").EditorTab | null,
-  );
+  const { groupId } = $props<{ groupId: EditorGroupId }>();
+  let current = $state<EditorTab | null>(null);
   let editorOptions = $state(editorSettings.getSettings());
   let backgroundColor = $state("var(--nc-level-1)");
   let warningMessage = $state<string | null>(null);
   let firstTabId = $state<string | null>(null);
+  let isActiveTabAtRight = $state(false);
+  let isActiveTabVisible = $state(false);
 
   let autoSaveMode = editorBehaviorStore.getAutoSaveMode();
   let autoSaveDelay = editorBehaviorStore.getAutoSaveDelay();
@@ -159,13 +168,13 @@
     return merged;
   };
 
-  const unsub = activeEditor.subscribe(($active) => {
+  const activeTabUnsub = activeTabForGroup(groupId).subscribe(($active) => {
     current = $active;
     backgroundColor = $active ? "var(--nc-tab-bg-active)" : "var(--nc-level-1)";
   });
 
-  const tabsUnsub = editorStore.subscribe(($state) => {
-    firstTabId = $state.openTabs[0]?.id ?? null;
+  const tabsUnsub = tabsForGroup(groupId).subscribe(($tabs) => {
+    firstTabId = $tabs[0]?.id ?? null;
   });
 
   // Подписка на изменения настроек редактора
@@ -183,11 +192,23 @@
     }
   });
 
+  // Подписка на видимость активного таба у правого края
+  const rightEdgeUnsub = tabEdgeVisibleForGroup(groupId).subscribe((visible) => {
+    isActiveTabAtRight = visible;
+  });
+
+  // Подписка на видимость активного таба в области просмотра
+  const activeTabVisibleUnsub = activeTabVisibleForGroup(groupId).subscribe((visible) => {
+    isActiveTabVisible = visible;
+  });
+
   onDestroy(() => {
-    unsub();
+    activeTabUnsub();
     tabsUnsub();
     settingsUnsub();
     behaviorUnsub();
+    rightEdgeUnsub();
+    activeTabVisibleUnsub();
     flushAutoSave();
     clearAutoSaveTimer();
   });
@@ -283,7 +304,7 @@
 </script>
 
 <div
-  class={`editor-area ${isFirstTabActive ? "no-left-radius" : ""}`}
+  class={`editor-area ${isActiveTabVisible ? "no-left-radius" : ""}`}
   style:background-color={backgroundColor}
 >
   {#if !current}
@@ -294,10 +315,10 @@
     </div>
   {:else if isImageFile(current.path)}
     <!-- Превью изображения -->
-    <Breadcrumbs />
+    <Breadcrumbs tab={current} />
     <ImagePreview path={current.path} title={current.title} />
   {:else}
-    <Breadcrumbs />
+    <Breadcrumbs tab={current} />
     <!-- Локально вычисляем контент для активного файла. -->
     {#await Promise.resolve(getContent(current.id, current.path)) then content}
       {#if content?.error}
@@ -371,7 +392,6 @@
 
   .editor-area.no-left-radius {
     border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
   }
 
   .editor-error {

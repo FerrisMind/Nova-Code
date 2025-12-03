@@ -168,7 +168,7 @@
           {#if fontSizeDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Font Size</label>
+                <div class="setting-label">Font Size</div>
                 <p class="setting-description">Size of the editor font in pixels</p>
               </div>
               <div class="setting-control">
@@ -193,7 +193,7 @@
           {#if fontFamilyDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Font Family</label>
+                <div class="setting-label">Font Family</div>
                 <p class="setting-description">CSS font-family for the editor</p>
               </div>
               <div class="setting-control setting-control--wide">
@@ -219,7 +219,7 @@
           {#if fontLigaturesDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Font Ligatures</label>
+                <div class="setting-label">Font Ligatures</div>
                 <p class="setting-description">Enable font ligatures (e.g., =>, !==)</p>
               </div>
               <div class="setting-control">
@@ -256,7 +256,7 @@
           {#if tabSizeDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Tab Size</label>
+                <div class="setting-label">Tab Size</div>
                 <p class="setting-description">Number of spaces per tab</p>
               </div>
               <div class="setting-control">
@@ -281,7 +281,7 @@
           {#if insertSpacesDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Insert Spaces</label>
+                <div class="setting-label">Insert Spaces</div>
                 <p class="setting-description">Use spaces instead of tabs</p>
               </div>
               <div class="setting-control">
@@ -303,7 +303,7 @@
           {#if wordWrapDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Word Wrap</label>
+                <div class="setting-label">Word Wrap</div>
                 <p class="setting-description">How to wrap long lines</p>
               </div>
               <div class="setting-control">
@@ -340,7 +340,7 @@
           {#if minimapDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Minimap</label>
+                <div class="setting-label">Minimap</div>
                 <p class="setting-description">Show the code minimap</p>
               </div>
               <div class="setting-control">
@@ -362,7 +362,7 @@
           {#if lineNumbersDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Line Numbers</label>
+                <div class="setting-label">Line Numbers</div>
                 <p class="setting-description">How to display line numbers</p>
               </div>
               <div class="setting-control">
@@ -384,7 +384,7 @@
           {#if foldingDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Code Folding</label>
+                <div class="setting-label">Code Folding</div>
                 <p class="setting-description">Enable code folding</p>
               </div>
               <div class="setting-control">
@@ -421,7 +421,7 @@
           {#if autoSaveDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Auto Save</label>
+                <div class="setting-label">Auto Save</div>
                 <p class="setting-description">When to auto-save files</p>
               </div>
               <div class="setting-control">
@@ -443,7 +443,7 @@
           {#if autoSaveDelayDef}
             <div class="setting-row">
               <div class="setting-info">
-                <label class="setting-label">Auto Save Delay</label>
+                <div class="setting-label">Auto Save Delay</div>
                 <p class="setting-description">Delay in milliseconds (for "After Delay" mode)</p>
               </div>
               <div class="setting-control">
@@ -484,7 +484,7 @@
             <div class="setting-row">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">Bracket Pair Colorization</label>
+                  <div class="setting-label">Bracket Pair Colorization</div>
                   <Tooltip.Root>
                     <Tooltip.Trigger>
                       <HelpCircle size={14} class="help-icon" />
@@ -516,7 +516,7 @@
             <div class="setting-row">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">Render Whitespace</label>
+                  <div class="setting-label">Render Whitespace</div>
                   <Tooltip.Root>
                     <Tooltip.Trigger>
                       <HelpCircle size={14} class="help-icon" />

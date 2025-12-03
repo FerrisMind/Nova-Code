@@ -1,8 +1,27 @@
 <script lang="ts">
   import { afterUpdate, onDestroy, onMount } from 'svelte';
-  import { editorStore, activeEditor, type EditorTab } from '../stores/editorStore';
+  import {
+    editorStore,
+    tabsForGroup,
+    activeTabForGroup,
+    setTabEdgeVisibility,
+    setActiveTabVisibility,
+    type EditorTab
+  } from '../stores/editorStore';
+  import {
+    editorGroups,
+    moveTabToGroup,
+    setActiveGroup,
+    setActiveTab as setActiveGroupTab,
+    splitRightFromActive,
+    MAX_GROUPS,
+    type EditorGroupId
+  } from '../stores/layout/editorGroupsStore';
   import Icon from '../common/Icon.svelte';
   import { getLanguageIcon } from '../mocks/languageIcons';
+
+  export let groupId: EditorGroupId;
+  export let isActive: boolean = false;
 
   let stateTabs: EditorTab[] = [];
   let currentActive: EditorTab | null = null;
@@ -23,13 +42,33 @@
   let scrollVisibilityTimer: ReturnType<typeof setTimeout> | null = null;
   const SCROLL_VISIBILITY_TIMEOUT = 1200;
 
-  const unsubscribeStore = editorStore.subscribe(($state: any) => {
-    stateTabs = $state.openTabs;
+  let groupCount = 1;
+  let moveTargets: EditorGroupId[] = [];
+  let contextMenuOpen = false;
+  let contextMenuX = 0;
+  let contextMenuY = 0;
+  let contextTabId: string | null = null;
+  let showActiveIndicator = false;
+  let actionsMenuOpen = false;
+  let activeTabAtRightEdge = false;
+
+
+  const tabsUnsub = tabsForGroup(groupId).subscribe((tabs) => {
+    stateTabs = tabs;
+    requestAnimationFrame(() => updateActiveTabVisibility());
   });
 
-  const unsubscribeActive = activeEditor.subscribe(($active) => {
+  const activeTabUnsub = activeTabForGroup(groupId).subscribe(($active) => {
     currentActive = $active;
+    requestAnimationFrame(() => updateActiveTabVisibility());
   });
+
+  const groupsUnsub = editorGroups.subscribe(($state) => {
+    groupCount = $state.groups.length;
+    moveTargets = $state.groups.filter((g) => g.id !== groupId).map((g) => g.id);
+  });
+
+  $: showActiveIndicator = isActive && !!currentActive && groupCount > 1;
 
   const scheduleScrollbarUpdate = () => {
     if (typeof requestAnimationFrame !== 'function') {
@@ -82,10 +121,47 @@
   const handleContainerScroll = () => {
     scheduleScrollbarUpdate();
     triggerScrollVisibility();
+    updateActiveTabVisibility();
   };
 
   const handleWindowResize = () => {
     scheduleScrollbarUpdate();
+    updateActiveTabVisibility();
+  };
+
+  const updateActiveTabVisibility = () => {
+    if (!tabContainer || !currentActive) {
+      setTabEdgeVisibility(groupId, false);
+      setActiveTabVisibility(groupId, false);
+      activeTabAtRightEdge = false;
+      return;
+    }
+
+    const activeTabElement = tabContainer.querySelector(`[data-tab-id="${currentActive.id}"]`) as HTMLElement;
+    if (!activeTabElement) {
+      setTabEdgeVisibility(groupId, false);
+      setActiveTabVisibility(groupId, false);
+      activeTabAtRightEdge = false;
+      return;
+    }
+
+    const containerRect = tabContainer.getBoundingClientRect();
+    const tabRect = activeTabElement.getBoundingClientRect();
+
+    const isAtRightEdge = tabRect.right >= containerRect.right - 20;
+    const isAtLeftEdge = tabRect.left <= containerRect.left + 20;
+    const isVisible = tabRect.left < containerRect.right && tabRect.right > containerRect.left;
+    
+    // Проверяем, пересекается ли активный таб с левым краем actions-tab-bg
+    // Левый край фонового элемента находится на ~88px от правого края контейнера
+    const actionsTabBgLeft = containerRect.right - 88;
+    // Таб пересекает левый край фонового элемента, если его левая сторона левее левого края фона,
+    // а правая сторона правее левого края фона
+    const isOverlappingActionsBgLeft = tabRect.left < actionsTabBgLeft && tabRect.right >= actionsTabBgLeft && isVisible;
+
+    setTabEdgeVisibility(groupId, isAtRightEdge && isVisible);
+    setActiveTabVisibility(groupId, isAtLeftEdge && isVisible);
+    activeTabAtRightEdge = isOverlappingActionsBgLeft;
   };
 
   const updateScrollbarVisibility = () => {
@@ -222,8 +298,9 @@
   });
 
   onDestroy(() => {
-    unsubscribeStore();
-    unsubscribeActive();
+    tabsUnsub();
+    activeTabUnsub();
+    groupsUnsub();
 
     if (animationFrame !== null) {
       cancelAnimationFrame(animationFrame);
@@ -233,12 +310,63 @@
     stopThumbDrag();
   });
 
-  const setActive = (id: string) => {
+  const focusTab = (id: string) => {
+    setActiveGroup(groupId);
+    setActiveGroupTab(groupId, id);
     editorStore.setActiveEditor(id);
+  };
+
+  const setActive = (id: string) => {
+    focusTab(id);
   };
 
   const close = (id: string) => {
     editorStore.closeEditor(id);
+    if (contextTabId === id) {
+      closeContextMenu();
+    }
+  };
+
+  const handleSplit = () => {
+    if (!currentActive || groupCount >= MAX_GROUPS) return;
+    setActiveGroup(groupId);
+    setActiveGroupTab(groupId, currentActive.id);
+    editorStore.setActiveEditor(currentActive.id);
+    splitRightFromActive();
+  };
+
+  const openContextMenu = (event: MouseEvent, tabId: string) => {
+    event.preventDefault();
+    contextMenuOpen = true;
+    contextTabId = tabId;
+    contextMenuX = event.clientX;
+    contextMenuY = event.clientY;
+  };
+
+  const closeContextMenu = () => {
+    contextMenuOpen = false;
+    contextTabId = null;
+  };
+
+  const moveToGroup = (targetId: EditorGroupId) => {
+    if (!contextTabId) return;
+    moveTabToGroup(contextTabId, groupId, targetId);
+    editorStore.setActiveEditor(contextTabId);
+    closeContextMenu();
+  };
+
+  const toggleActionsMenu = (event: MouseEvent) => {
+    event.stopPropagation();
+    actionsMenuOpen = !actionsMenuOpen;
+  };
+
+  const closeActionsMenu = () => {
+    actionsMenuOpen = false;
+  };
+
+  const closeAllTabs = () => {
+    stateTabs.forEach((tab) => editorStore.closeEditor(tab.id));
+    closeActionsMenu();
   };
 </script>
 
@@ -250,44 +378,67 @@
   on:pointerleave={handleMouseLeave}
   role="presentation"
 >
-  <div
-    class="tabs-bar"
-    bind:this={tabContainer}
-  >
-    {#if stateTabs.length === 0}
-      <div class="tabs-empty">Open a file from Explorer to get started.</div>
-    {:else}
-      {#each stateTabs as tab (tab.id)}
-      <div
-        class="tab"
-        class:active={currentActive && currentActive.id === tab.id}
-        role="tab"
-        tabindex="0"
-        on:click={() => setActive(tab.id)}
-        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && setActive(tab.id)}
-        title={tab.path}
+  <div class="tabs-main">
+    <div class="tabs-bar" bind:this={tabContainer}>
+      {#if stateTabs.length === 0}
+        <div class="tabs-empty">Open a file from Explorer to get started.</div>
+      {:else}
+        {#each stateTabs as tab (tab.id)}
+          <div
+            class="tab"
+            class:active={currentActive && currentActive.id === tab.id}
+            class:with-indicator={showActiveIndicator && currentActive && currentActive.id === tab.id}
+            data-tab-id={tab.id}
+            role="tab"
+            tabindex="0"
+            on:click={() => setActive(tab.id)}
+            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && setActive(tab.id)}
+            on:contextmenu={(event) => openContextMenu(event, tab.id)}
+            title={tab.path}
+          >
+            <span class="tab-title">
+              <Icon name={getLanguageIcon(tab.title)} size={16} useAdaptiveColor={true} />
+              {tab.title}
+            </span>
+            {#if tab.isDirty}
+              <span class="tab-dirty">
+                <Icon name="lucide:CircleDot" size={12} />
+              </span>
+            {/if}
+            <button
+              class="tab-close"
+              class:visible={currentActive && currentActive.id === tab.id}
+              aria-label={`Close ${tab.title}`}
+              on:click|stopPropagation={() => close(tab.id)}
+            >
+              <Icon name="lucide:X" size={16} />
+            </button>
+          </div>
+        {/each}
+      {/if}
+    </div>
+    <div class="actions-tab-bg" class:hide-bottom-curve={activeTabAtRightEdge}></div>
+    <div class="actions-tab">
+      <button
+        class="icon-button"
+        aria-label="Split editor right"
+        title={groupCount >= MAX_GROUPS ? 'Maximum groups reached' : 'Split editor right'}
+        on:click={handleSplit}
+        disabled={groupCount >= MAX_GROUPS || !currentActive}
       >
-        <span class="tab-title">
-          <Icon name={getLanguageIcon(tab.title)} size={16} useAdaptiveColor={true} />
-          {tab.title}
-        </span>
-        {#if tab.isDirty}
-          <span class="tab-dirty">
-            <Icon name="lucide:CircleDot" size={12} />
-          </span>
-        {/if}
-        <button
-          class="tab-close"
-          class:visible={currentActive && currentActive.id === tab.id}
-          aria-label={`Close ${tab.title}`}
-          on:click|stopPropagation={() => close(tab.id)}
-        >
-          <Icon name="lucide:X" size={16} />
-        </button>
-        </div>
-      {/each}
-    {/if}
+        <Icon name="lucide:columns-2" size={24} />
+      </button>
+      <button
+        class="icon-button"
+        aria-label="More editor actions"
+        title="More editor actions"
+        on:click={toggleActionsMenu}
+      >
+        <Icon name="lucide:Ellipsis" size={24} />
+      </button>
+    </div>
   </div>
+
   <div class="tabs-scrollbar" aria-hidden="true">
     <div
       class="tabs-scrollbar-track"
@@ -301,6 +452,58 @@
       ></span>
     </div>
   </div>
+
+  {#if contextMenuOpen}
+    <div
+      class="tab-menu-backdrop"
+      role="button"
+      tabindex="0"
+      aria-label="Close tab context menu"
+      on:click={closeContextMenu}
+      on:keydown={(event) =>
+        (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') && closeContextMenu()}
+    ></div>
+    <div
+      class="tab-menu"
+      style={`top:${contextMenuY}px;left:${contextMenuX}px;`}
+      role="menu"
+      tabindex="-1"
+      on:keydown={(event) => event.key === 'Escape' && closeContextMenu()}
+    >
+      {#if moveTargets.length === 0}
+        <div class="tab-menu-empty">No other groups</div>
+      {:else}
+        {#each moveTargets as targetId}
+          <button class="tab-menu-item" type="button" on:click={() => moveToGroup(targetId)}>
+            Move to Group {targetId}
+          </button>
+        {/each}
+      {/if}
+    </div>
+
+  {/if}
+
+  {#if actionsMenuOpen}
+    <div
+      class="tab-menu-backdrop"
+      role="button"
+      tabindex="0"
+      aria-label="Close actions menu"
+      on:click={closeActionsMenu}
+      on:keydown={(event) =>
+        (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') && closeActionsMenu()}
+    ></div>
+    <div
+      class="tab-menu actions-menu"
+      role="menu"
+      tabindex="-1"
+      on:keydown={(event) => event.key === 'Escape' && closeActionsMenu()}
+    >
+      <button class="tab-menu-item" type="button" on:click={closeAllTabs}>
+        Close all tabs
+      </button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -315,6 +518,15 @@
     overflow: hidden;
     user-select: none;
     box-shadow: none !important;
+  }
+
+  .tabs-main {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
   }
 
   .tabs-bar {
@@ -338,12 +550,109 @@
     border-radius: 0 !important;
   }
 
+  .tabs-bar::after {
+    content: '';
+    flex: 0 0 84px;
+  }
+
   .tabs-empty {
     padding: 0 12px;                      /* 3 * 4px */
     font-size: 12px;                      /* 3 * 4px */
     color: var(--nc-fg-muted);
     display: flex;
     align-items: center;
+  }
+
+  .actions-tab-bg {
+    position: absolute;
+    right: -2px;
+    bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    background: var(--nc-level-0);
+    border-radius: 0;
+    padding: 0 12px;
+    height: calc(100% + 2px);
+    width: calc(84px + 4px);
+    box-sizing: border-box;
+    z-index: 0;
+  }
+
+  /* Вогнутое скругление слева снизу у фонового элемента */
+  .actions-tab-bg::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -10px;
+    width: 10px;
+    height: 10px;
+    background: transparent;
+    border-bottom-right-radius: 10px;
+    box-shadow: 5px 5px 0 5px var(--nc-level-0);
+  }
+
+  /* Обычное скругление когда активный таб пересекается с фоновым элементом */
+  .actions-tab-bg.hide-bottom-curve {
+    border-bottom-left-radius: 10px;
+  }
+
+  .actions-tab-bg.hide-bottom-curve::before {
+    display: none;
+  }
+
+  /* Вогнутое скругление слева сверху у фонового элемента */
+  .actions-tab-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 10px;
+    height: 10px;
+    background: transparent;
+    border-top-right-radius: 10px;
+    box-shadow: 5px -5px 0 5px var(--nc-level-0);
+  }
+
+  .actions-tab {
+    position: absolute;
+    right: 0;
+    bottom: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--nc-tab-bg-active);
+    background: var(--nc-tab-bg-active);
+    color: var(--nc-fg);
+    border-radius: 8px;
+    padding: 0 10px;
+    height: calc(100% - 2px);
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    z-index: 1;
+  }
+
+  .actions-tab .icon-button {
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.12s ease, color 0.12s ease, opacity 0.12s ease, border-color 0.12s ease;
+  }
+
+  .actions-tab .icon-button:hover:not(:disabled) {
+    background: var(--nc-level-5);
+    border-color: var(--nc-border-subtle);
+  }
+
+  .actions-tab .icon-button:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 
   .tab {
@@ -384,6 +693,10 @@
     border-color: transparent;
     border-bottom-color: transparent;
     position: relative;
+  }
+
+  .tab.with-indicator {
+    box-shadow: inset 0 3px 0 0 var(--nc-accent);
   }
 
   /* Вогнутое скругление слева снизу */
@@ -478,7 +791,7 @@
   .tabs-scrollbar {
     position: absolute;
     left: 0;
-    right: 0;
+    right: 84px;
     bottom: 0;
     height: 8px;
     display: flex;
@@ -530,5 +843,54 @@
 
   .tabs-bar-wrapper.hidden {
     display: none;
+  }
+
+  .tab-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 20;
+  }
+
+  .tab-menu {
+    position: fixed;
+    z-index: 25;
+    min-width: 180px;
+    padding: 6px;
+    background-color: var(--nc-bg-elevated, #1e1e1e);
+    border: 1px solid var(--nc-border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    outline: none;
+  }
+
+  .tab-menu-item {
+    border: none;
+    background: transparent;
+    color: var(--nc-fg);
+    text-align: left;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .tab-menu-item:hover {
+    background-color: var(--nc-level-4);
+  }
+
+  .tab-menu-empty {
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--nc-fg-muted);
+  }
+
+  .actions-menu {
+    position: absolute;
+    right: 8px;
+    top: 40px;
   }
 </style>

@@ -17,13 +17,20 @@
 // и анализ официальной документации.
 // -----------------------------------------------------------------------------
 
-import { derived, writable, type Readable } from 'svelte/store';
+import { derived, writable, type Readable, get } from 'svelte/store';
 import type { FileNode } from '../types/fileNode';
+import { fileService } from '../services/fileService';
 import {
   addTabToGroup,
+  editorGroups,
+  getActiveGroupId,
   removeTab as removeTabFromGroups,
-  setActiveTab as setActiveGroupTab
+  setActiveGroup,
+  setActiveTab as setActiveGroupTab,
+  reconcileGroupsWithOpenTabs,
+  type EditorGroupId
 } from './layout/editorGroupsStore';
+import { getWorkspaceFiles } from './workspaceStore';
 
 // -----------------------------------------------------------------------------
 // Типы
@@ -111,29 +118,28 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     pathOrId: string,
     opts?: {
       activate?: boolean;
-      groupId?: number;
+      groupId?: EditorGroupId;
     }
   ): EditorTab | null => {
     const activate = opts?.activate ?? true;
+    const targetGroupId = opts?.groupId ?? getActiveGroupId();
 
-    // Локальная переменная-результат; тип задан явно.
+    // Idempotent helper: safe to call repeatedly for the same file.
     let result: EditorTab | null = null;
+    let latestOpenTabIds: string[] | null = null;
 
     update((state) => {
-      // 1) Попытка найти уже существующий таб по id или path.
+      // 1) ������� ����� ��� ������������ ��� �� id ��� path.
       const existing =
-        state.openTabs.find(
-          (t) => t.id === pathOrId || t.path === pathOrId
-        ) ?? findTab(state, pathOrId);
+        state.openTabs.find((t) => t.id === pathOrId || t.path === pathOrId) ??
+        findTab(state, pathOrId);
 
       if (existing) {
         result = existing;
-        return activate
-          ? { ...state, activeEditorId: existing.id }
-          : state;
+        return activate ? { ...state, activeEditorId: existing.id } : state;
       }
 
-      // 2) Ищем файл в дереве workspace.
+      // 2) ���� ���� � ������ workspace.
       const tree = filesTreeProvider();
       const byId = findFileById(tree, pathOrId);
       let fileNode: FileNode | null = byId;
@@ -141,16 +147,13 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
       if (!fileNode) {
         const collectAll = (nodes: FileNode[]): FileNode[] =>
           nodes.flatMap((n) =>
-            n.type === 'dir' && n.children
-              ? [n, ...collectAll(n.children)]
-              : [n]
+            n.type === 'dir' && n.children ? [n, ...collectAll(n.children)] : [n]
           );
 
         const allNodes = collectAll(tree);
         fileNode =
-          (allNodes.find(
-            (n) => n.type === 'file' && n.path === pathOrId
-          ) as FileNode | undefined) ?? null;
+          (allNodes.find((n) => n.type === 'file' && n.path === pathOrId) as FileNode | undefined) ??
+          null;
       }
 
       if (!fileNode || fileNode.type !== 'file') {
@@ -168,6 +171,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
       };
 
       result = newTab;
+      latestOpenTabIds = [...state.openTabs, newTab].map((t) => t.id);
 
       return {
         openTabs: [...state.openTabs, newTab],
@@ -175,86 +179,67 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
       };
     });
 
-    // 3) Интеграция с editorGroupsStore:
-    // Используем локальную переменную result: EditorTab | null.
+    // 3) ���������� � editorGroupsStore:
+    // ���������� ��������� ���������� result: EditorTab | null.
     if (result !== null) {
-      const targetGroupId = opts?.groupId ?? 1;
+      const resolvedGroupId = targetGroupId ?? 1;
       const tabId = (result as EditorTab).id;
-      addTabToGroup(targetGroupId, tabId);
+      addTabToGroup(resolvedGroupId, tabId);
       if (activate) {
-        setActiveGroupTab(targetGroupId, tabId);
+        setActiveGroup(resolvedGroupId);
+        setActiveGroupTab(resolvedGroupId, tabId);
       }
+      reconcileGroupsWithOpenTabs(
+        latestOpenTabIds ?? get(editorStore).openTabs.map((t) => t.id)
+      );
     }
 
     return result;
   };
 
-  /**
-   * Открыть файл по fileId (легаси-API для существующего UI).
-   * - Гарантирует регистрацию вкладки и активного редактора.
-   * - Синхронизируется с editorGroupsStore для базовой группы 1.
+    /**
+   * Open a file by fileId (legacy-friendly UI API).
+   * - Ensures the tab becomes active in editorStore.
+   * - Syncs with editorGroupsStore for the target (active) group.
    */
-  const openFile = (fileId: string) => {
-    let created: EditorTab | null = null;
 
-    update((state) => {
-      const already = state.openTabs.find((t) => t.id === fileId);
-      if (already) {
-        created = already;
-        return { ...state, activeEditorId: fileId };
-      }
-
-      const fileNode = findFileById(filesTreeProvider(), fileId);
-      if (!fileNode || fileNode.type !== 'file') {
-        created = null;
-        return state;
-      }
-
-      const language = detectLanguage(fileNode.name);
-      const newTab: EditorTab = {
-        id: fileNode.id,
-        title: fileNode.name,
-        path: fileNode.path,
-        language,
-        isDirty: false
-      };
-
-      created = newTab;
-
-      return {
-        openTabs: [...state.openTabs, newTab],
-        activeEditorId: fileId
-      };
-    });
-
-    if (created !== null) {
-      const tabId = (created as EditorTab).id;
-      addTabToGroup(1, tabId);
-      setActiveGroupTab(1, tabId);
-    }
+  const openFile = (fileId: string, groupId?: EditorGroupId) => {
+    ensureTabForFile(fileId, { activate: true, groupId });
   };
 
-  /**
-   * Установить активный редактор по id вкладки.
-   * Обратная совместимость с существующим API.
+    /**
+   * Set active editor by tab id and propagate selection to editorGroupsStore.
    */
+
   const setActiveEditor = (fileId: string) => {
+    const groupsState = get(editorGroups);
+    const hostGroup = groupsState.groups.find((g) => g.tabIds.includes(fileId));
+
+    if (hostGroup) {
+      setActiveGroup(hostGroup.id);
+      setActiveGroupTab(hostGroup.id, fileId);
+    }
+
     update((state) => {
       if (!state.openTabs.find((t) => t.id === fileId)) return state;
       return { ...state, activeEditorId: fileId };
     });
-    // layout-слой (EditorTabs) синхронизирует activeTab в editorGroupsStore.
   };
 
-  /**
-   * Закрыть вкладку/редактор по id.
-   * - Обновляет openTabs и activeEditorId.
-   * - Удаляет вкладку из всех групп через editorGroupsStore.removeTab.
+    /**
+   * Close a tab by id.
+   * - Updates openTabs and activeEditorId.
+   * - Syncs group state via editorGroupsStore.removeTab.
    */
+
   const closeEditor = (fileId: string) => {
+    let latestState: EditorState | null = null;
+    let removed = false;
+
     update((state) => {
       const idx = state.openTabs.findIndex((t) => t.id === fileId);
       if (idx === -1) return state;
+      removed = true;
 
       const newTabs = [
         ...state.openTabs.slice(0, idx),
@@ -272,13 +257,36 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
         }
       }
 
-      return {
+      latestState = {
         openTabs: newTabs,
         activeEditorId: nextActive
       };
+
+      return latestState;
     });
 
+    if (!removed || !latestState) {
+      return;
+    }
+
+    const closedState: EditorState = latestState;
+
     removeTabFromGroups(fileId);
+    reconcileGroupsWithOpenTabs(closedState.openTabs.map((t) => t.id));
+
+    const groupsState = get(editorGroups);
+    const activeGroupId = groupsState.activeGroupId;
+    const activeGroupTabId =
+      groupsState.groups.find((g) => g.id === activeGroupId)?.activeTabId ?? null;
+
+    if (
+      activeGroupTabId &&
+      closedState.openTabs.some((tab: EditorTab) => tab.id === activeGroupTabId)
+    ) {
+      setActiveGroup(activeGroupId);
+      setActiveGroupTab(activeGroupId, activeGroupTabId);
+      update((state) => ({ ...state, activeEditorId: activeGroupTabId }));
+    }
   };
 
   /**
@@ -311,6 +319,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
    */
   const openSettings = () => {
     const settingsId = 'settings';
+    const targetGroupId = getActiveGroupId();
 
     update((state) => {
       const already = state.openTabs.find((t) => t.id === settingsId);
@@ -322,7 +331,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
         id: settingsId,
         title: 'Settings',
         path: '/settings',
-        language: 'txt', // или специальный тип для settings
+        language: 'txt', // ��� ����������� ��� ��� settings
         isDirty: false
       };
 
@@ -332,10 +341,11 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
       };
     });
 
-    // Добавляем вкладку в группу после обновления состояния
-    addTabToGroup(1, settingsId); // Добавляем в первую группу
-    setActiveGroupTab(1, settingsId);
+    addTabToGroup(targetGroupId, settingsId);
+    setActiveGroup(targetGroupId);
+    setActiveGroupTab(targetGroupId, settingsId);
   };
+
 
   return {
     subscribe,
@@ -350,11 +360,8 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
 };
 
 // -----------------------------------------------------------------------------
-// Инициализация store для текущего окружения
+// Store factory
 // -----------------------------------------------------------------------------
-
-import { getWorkspaceFiles } from './workspaceStore';
-import { fileService } from '../services/fileService';
 
 export const editorStore = createEditorStore(getWorkspaceFiles);
 
@@ -367,6 +374,55 @@ export const activeEditor: Readable<EditorTab | null> = derived(
   ($state) =>
     $state.openTabs.find((t) => t.id === $state.activeEditorId) ?? null
 );
+
+/**
+ * Store: per-group flag indicating if the active tab touches the right edge of the tab strip.
+ * Используется в EditorArea для скруглений и scroll affordances.
+ */
+export function tabsForGroup(groupId: EditorGroupId): Readable<EditorTab[]> {
+  return derived([editorStore, editorGroups], ([$state, $groups]) => {
+    const group = $groups.groups.find((g) => g.id === groupId);
+    if (!group) return [];
+
+    const ids = new Set(group.tabIds);
+    return $state.openTabs.filter((tab) => ids.has(tab.id));
+  });
+}
+
+export function activeTabForGroup(groupId: EditorGroupId): Readable<EditorTab | null> {
+  return derived([editorStore, editorGroups], ([$state, $groups]) => {
+    const group = $groups.groups.find((g) => g.id === groupId);
+    if (!group?.activeTabId) return null;
+    return $state.openTabs.find((tab) => tab.id === group.activeTabId) ?? null;
+  });
+}
+
+export const activeTabVisibleAtRight = writable<Record<EditorGroupId, boolean>>({});
+
+export function setTabEdgeVisibility(groupId: EditorGroupId, isVisible: boolean): void {
+  activeTabVisibleAtRight.update((state) => {
+    if (state[groupId] === isVisible) return state;
+    return { ...state, [groupId]: isVisible };
+  });
+}
+
+export function tabEdgeVisibleForGroup(groupId: EditorGroupId): Readable<boolean> {
+  return derived(activeTabVisibleAtRight, ($state) => $state[groupId] ?? false);
+}
+
+// Отслеживание видимости активного таба в области просмотра
+export const activeTabVisible = writable<Record<EditorGroupId, boolean>>({});
+
+export function setActiveTabVisibility(groupId: EditorGroupId, isVisible: boolean): void {
+  activeTabVisible.update((state) => {
+    if (state[groupId] === isVisible) return state;
+    return { ...state, [groupId]: isVisible };
+  });
+}
+
+export function activeTabVisibleForGroup(groupId: EditorGroupId): Readable<boolean> {
+  return derived(activeTabVisible, ($state) => $state[groupId] ?? false);
+}
 
 // -----------------------------------------------------------------------------
 // Архитектурное резюме

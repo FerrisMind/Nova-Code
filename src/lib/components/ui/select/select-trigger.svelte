@@ -18,12 +18,59 @@
 	bind:ref
 	data-slot="select-trigger"
 	data-size={size}
-	class={cn(
-		"border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 shadow-xs flex w-fit select-none items-center justify-between gap-2 whitespace-nowrap rounded-md border bg-transparent px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-		className
-	)}
+	class={cn("nc-select-trigger", className)}
 	{...restProps}
 >
 	{@render children?.()}
-	<ChevronDownIcon class="size-4 opacity-50" />
+	<ChevronDownIcon class="nc-select-chevron" />
 </SelectPrimitive.Trigger>
+
+<style>
+	:global(.nc-select-trigger) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		min-width: 120px;
+		height: 36px;
+		padding: 8px 12px;
+		border: 1px solid var(--nc-palette-border, hsl(var(--border)));
+		border-radius: 8px;
+		background: var(--nc-level-1, hsl(var(--background)));
+		color: var(--nc-palette-text, hsl(var(--foreground)));
+		font-size: 13px;
+		cursor: pointer;
+		outline: none;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+		white-space: nowrap;
+		user-select: none;
+	}
+
+	:global(.nc-select-trigger:hover:not(:disabled)) {
+		border-color: var(--nc-level-4, hsl(var(--border)));
+	}
+
+	:global(.nc-select-trigger:focus) {
+		border-color: var(--nc-accent, hsl(217 91% 60%));
+		box-shadow: 0 0 0 2px var(--nc-accent-soft, rgba(111, 157, 255, 0.2));
+	}
+
+	:global(.nc-select-trigger:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	:global(.nc-select-trigger[data-size="sm"]) {
+		height: 32px;
+		padding: 6px 10px;
+		font-size: 12px;
+	}
+
+	:global(.nc-select-chevron) {
+		width: 16px;
+		height: 16px;
+		opacity: 0.6;
+		flex-shrink: 0;
+		pointer-events: none;
+	}
+</style>

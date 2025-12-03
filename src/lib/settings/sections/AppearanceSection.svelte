@@ -165,7 +165,7 @@
       <!-- Theme Mode -->
       <div class="setting-row">
         <div class="setting-info">
-          <label class="setting-label">Color Theme</label>
+          <div class="setting-label">Color Theme</div>
           <p class="setting-description">
             Переключение между светлой и тёмной темами
           </p>
@@ -203,7 +203,7 @@
       {#if themePaletteDef}
         <div class="setting-row setting-row--full">
           <div class="setting-info">
-            <label class="setting-label">Color Palette</label>
+            <div class="setting-label">Color Palette</div>
             <p class="setting-description">
               Цветовая схема для выбранной темы
             </p>

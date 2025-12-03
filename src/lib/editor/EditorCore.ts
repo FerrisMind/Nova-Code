@@ -550,11 +550,17 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         model = existing;
       } else {
         const uri = state.monaco.Uri.parse(descriptor.uri);
-        model = state.monaco.editor.createModel(
-          descriptor.value,
-          descriptor.language,
-          uri
-        );
+        const already = state.monaco.editor.getModel(uri);
+        if (already) {
+          // Reuse existing global model to avoid duplicate URI creation errors.
+          model = already;
+        } else {
+          model = state.monaco.editor.createModel(
+            descriptor.value,
+            descriptor.language,
+            uri
+          );
+        }
         state.models.set(descriptor.fileId, model);
       }
 

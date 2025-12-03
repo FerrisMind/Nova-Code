@@ -14,16 +14,60 @@ let {
   bind:ref
   bind:checked
   data-slot="switch"
-  class={cn(
-    "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted",
-    className,
-  )}
+  class={cn("nc-switch", className)}
   {...props}
 >
   <SwitchPrimitive.Thumb
     data-slot="switch-thumb"
-    class={cn(
-      "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-4px)] data-[state=unchecked]:translate-x-0"
-    )}
+    class="nc-switch-thumb"
   />
 </SwitchPrimitive.Root>
+
+<style>
+  :global(.nc-switch) {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 40px;
+    height: 22px;
+    padding: 2px;
+    border-radius: 11px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background-color: var(--nc-level-3, hsl(var(--muted)));
+  }
+
+  :global(.nc-switch:focus-visible) {
+    outline: 2px solid var(--nc-accent, hsl(var(--ring)));
+    outline-offset: 2px;
+  }
+
+  :global(.nc-switch:disabled) {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  :global(.nc-switch[data-state="checked"]) {
+    background-color: var(--nc-accent, #6F9DFF);
+  }
+
+  :global(.nc-switch-thumb) {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--nc-level-0, white);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  :global(.nc-switch[data-state="checked"] .nc-switch-thumb) {
+    transform: translateX(18px);
+  }
+
+  :global(.nc-switch[data-state="unchecked"] .nc-switch-thumb) {
+    transform: translateX(0);
+  }
+</style>

@@ -34,7 +34,11 @@ export interface EditorGroupState {
 export interface EditorGroupsState {
   groups: EditorGroupState[];
   activeGroupId: EditorGroupId;
+  proportions: number[];
 }
+
+export const MAX_GROUPS = 4;
+const MIN_PROPORTION = 0.12;
 
 // Начальное состояние: одна группа без вкладок.
 const INITIAL_STATE: EditorGroupsState = {
@@ -45,7 +49,8 @@ const INITIAL_STATE: EditorGroupsState = {
       activeTabId: null
     }
   ],
-  activeGroupId: 1
+  activeGroupId: 1,
+  proportions: [1]
 };
 
 // Внутренний writable-store. Внешнему коду отдаём только управляемое API.
@@ -78,8 +83,32 @@ function ensureActiveGroup(state: EditorGroupsState): EditorGroupsState {
             activeTabId: null
           }
         ],
-        activeGroupId: 1
+        activeGroupId: 1,
+        proportions: [1]
       };
+}
+
+function normalizeProportions(groups: EditorGroupState[], proportions: number[]): number[] {
+  const count = groups.length;
+  if (count === 0) return [];
+
+  const base =
+    proportions.length === count && proportions.every((value) => Number.isFinite(value) && value > 0)
+      ? proportions
+      : Array.from({ length: count }, () => 1 / count);
+
+  const total = base.reduce((sum, value) => sum + value, 0) || 1;
+  return base.map((value) => value / total);
+}
+
+function ensureStateShape(state: EditorGroupsState): EditorGroupsState {
+  const ensured = ensureActiveGroup(state);
+  const pruned = pruneEmptyGroups(ensured.groups, ensured.proportions, ensured.activeGroupId);
+  const proportions = normalizeProportions(pruned.groups, pruned.proportions);
+  return {
+    ...pruned,
+    proportions
+  };
 }
 
 function ensureActiveTabForGroup(group: EditorGroupState): EditorGroupState {
@@ -102,6 +131,77 @@ function ensureActiveTabForGroup(group: EditorGroupState): EditorGroupState {
   };
 }
 
+function pruneEmptyGroups(
+  groups: EditorGroupState[],
+  proportions: number[],
+  activeGroupId: EditorGroupId
+): { groups: EditorGroupState[]; proportions: number[]; activeGroupId: EditorGroupId } {
+  // Keep all groups if there is only one; otherwise drop empty ones.
+  const normalized = normalizeProportions(groups, proportions);
+  const keepAll = groups.length <= 1;
+
+  const prunedGroups: EditorGroupState[] = [];
+  const prunedProportions: number[] = [];
+
+  groups.forEach((group, index) => {
+    const shouldKeep = keepAll || group.tabIds.length > 0;
+    if (shouldKeep) {
+      prunedGroups.push(group);
+      prunedProportions.push(normalized[index] ?? 0);
+    }
+  });
+
+  if (prunedGroups.length === 0) {
+    // Fallback to a single empty group to keep layout stable.
+    return {
+      groups: [
+        {
+          id: 1,
+          tabIds: [],
+          activeTabId: null
+        }
+      ],
+      proportions: [1],
+      activeGroupId: 1
+    };
+  }
+
+  const nextActiveGroupId = prunedGroups.some((g) => g.id === activeGroupId)
+    ? activeGroupId
+    : prunedGroups[0].id;
+
+  return {
+    groups: prunedGroups,
+    proportions: prunedProportions,
+    activeGroupId: nextActiveGroupId
+  };
+}
+
+/**
+ * Удаляет табы, которых больше нет среди открытых, и схлопывает пустые группы.
+ * Оставляет одну пустую группу, если все табы закрыты.
+ */
+export function reconcileGroupsWithOpenTabs(openTabIds: string[]): void {
+  internal.update((state) => {
+    const openSet = new Set(openTabIds);
+
+    const filteredGroups = state.groups.map((group) => {
+      const nextTabIds = group.tabIds.filter((id) => openSet.has(id));
+      return ensureActiveTabForGroup({
+        ...group,
+        tabIds: nextTabIds
+      });
+    });
+
+    const pruned = pruneEmptyGroups(filteredGroups, state.proportions, state.activeGroupId);
+
+    return ensureStateShape({
+      ...state,
+      ...pruned
+    });
+  });
+}
+
 // -----------------------------------------------------------------------------
 // Публичный store и API
 // -----------------------------------------------------------------------------
@@ -111,7 +211,7 @@ function ensureActiveTabForGroup(group: EditorGroupState): EditorGroupState {
  * Управление осуществляется через экспортируемые функции ниже.
  */
 export const editorGroups: Readable<EditorGroupsState> = {
-  subscribe: internal.subscribe
+  subscribe: (run) => internal.subscribe((state) => run(ensureStateShape(state)))
 };
 
 /**
@@ -130,7 +230,8 @@ export function initSingleGroup(): void {
         activeTabId: null
       }
     ],
-    activeGroupId: 1
+    activeGroupId: 1,
+    proportions: [1]
   });
 }
 
@@ -141,10 +242,10 @@ export function initSingleGroup(): void {
 export function setActiveGroup(groupId: EditorGroupId): void {
   internal.update((state) => {
     if (!state.groups.some((g) => g.id === groupId)) return state;
-    return {
+    return ensureStateShape({
       ...state,
       activeGroupId: groupId
-    };
+    });
   });
 }
 
@@ -163,7 +264,7 @@ export function setActiveTab(groupId: EditorGroupId, tabId: string): void {
       };
     });
 
-    return ensureActiveGroup({
+    return ensureStateShape({
       ...state,
       groups
     });
@@ -186,7 +287,7 @@ export function addTabToGroup(groupId: EditorGroupId, tabId: string): void {
       };
     });
 
-    return ensureActiveGroup({
+    return ensureStateShape({
       ...state,
       groups
     });
@@ -201,7 +302,7 @@ export function addTabToGroup(groupId: EditorGroupId, tabId: string): void {
  */
 export function removeTab(tabId: string): void {
   internal.update((state) => {
-    const groups = state.groups.map((g) => {
+    const updatedGroups = state.groups.map((g) => {
       if (!g.tabIds.includes(tabId)) return g;
 
       const nextTabIds = g.tabIds.filter((id) => id !== tabId);
@@ -214,9 +315,11 @@ export function removeTab(tabId: string): void {
       return ensureActiveTabForGroup(nextGroup);
     });
 
-    return ensureActiveGroup({
+    const pruned = pruneEmptyGroups(updatedGroups, state.proportions, state.activeGroupId);
+
+    return ensureStateShape({
       ...state,
-      groups
+      ...pruned
     });
   });
 }
@@ -256,7 +359,7 @@ export function reorderTabsWithinGroup(
 
     const groups = state.groups.map((g) => (g.id === groupId ? updatedGroup : g));
 
-    return ensureActiveGroup({
+    return ensureStateShape({
       ...state,
       groups
     });
@@ -311,16 +414,18 @@ export function moveTabToGroup(
       activeTabId: tabId
     };
 
-    const groups = state.groups.map((g) => {
+    const updatedGroups = state.groups.map((g) => {
       if (g.id === updatedSource.id) return updatedSource;
       if (g.id === updatedTarget.id) return updatedTarget;
       return g;
     });
 
-    return ensureActiveGroup({
+    const pruned = pruneEmptyGroups(updatedGroups, state.proportions, updatedTarget.id);
+
+    return ensureStateShape({
       ...state,
-      groups,
-      activeGroupId: updatedTarget.id
+      ...pruned,
+      activeGroupId: pruned.activeGroupId
     });
   });
 }
@@ -329,7 +434,7 @@ export function moveTabToGroup(
  * splitRightFromActive:
  * - Если есть активная группа и активная вкладка:
  *   - Создаёт новую группу справа (новый id).
- *   - Перемещает активную вкладку из активной группы в новую.
+ *   - Дублирует активную вкладку в новой группе, исходная остаётся на месте.
  *   - Делает новую группу активной.
  * - Если нет активной вкладки — ничего не делает.
  *
@@ -338,14 +443,18 @@ export function moveTabToGroup(
  */
 export function splitRightFromActive(): void {
   internal.update((state) => {
+    if (state.groups.length >= MAX_GROUPS) return ensureStateShape(state);
+
+    const proportions = normalizeProportions(state.groups, state.proportions);
     const activeGroup = findGroup(state, state.activeGroupId);
     if (!activeGroup || !activeGroup.activeTabId) {
-      return state;
+      return ensureStateShape(state);
     }
 
     const activeTabId = activeGroup.activeTabId;
+    const activeIndex = state.groups.findIndex((g) => g.id === activeGroup.id);
 
-    // Создаём новую группу с уникальным id.
+    // ������ ����� ��㯯� � 㭨����� id.
     const newGroupId = ++lastGroupId;
     const newGroup: EditorGroupState = {
       id: newGroupId,
@@ -353,29 +462,27 @@ export function splitRightFromActive(): void {
       activeTabId: activeTabId
     };
 
-    // Удаляем вкладку из старой группы.
-    const updatedOldGroup = ensureActiveTabForGroup({
-      ...activeGroup,
-      tabIds: activeGroup.tabIds.filter((id) => id !== activeTabId),
-      activeTabId: null
-    });
+    // Дублируем вкладку: исходная группа остаётся с активной вкладкой.
+    const groups = [...state.groups];
+    groups[activeIndex] = activeGroup;
+    groups.splice(activeIndex + 1, 0, newGroup);
 
-    const groups = state.groups.map((g) =>
-      g.id === updatedOldGroup.id ? updatedOldGroup : g
-    );
+    const currentShare = proportions[activeIndex] ?? 0;
+    const leftShare = Math.max(currentShare / 2, MIN_PROPORTION);
+    const rightShare = Math.max(currentShare - leftShare, MIN_PROPORTION);
+    const nextProportions = [...proportions];
+    nextProportions[activeIndex] = leftShare;
+    nextProportions.splice(activeIndex + 1, 0, rightShare);
 
-    return ensureActiveGroup({
+    return ensureStateShape({
       ...state,
-      groups: [...groups, newGroup],
+      groups,
+      proportions: nextProportions,
       activeGroupId: newGroupId
     });
   });
 }
 
-/**
- * Получить текущее активное состояние группы (helper для вне-Svelte-кода).
- * Не reactive; использовать для императивных сценариев (команды и т.п.).
- */
 export function getActiveGroup(): EditorGroupState | null {
   const state = get(internal);
   const group = findGroup(state, state.activeGroupId);
@@ -393,16 +500,122 @@ export function getActiveTab(): string | null {
 }
 
 /**
- * Derived helper: плоский список всех tabIds по группам.
- * Может быть полезен для проверки консистентности или команд.
+ * Derived helper: ��������� ������ ��� split/resize (normalized 0..1).
+ */
+export const groupProportions: Readable<number[]> = derived(editorGroups, ($state) =>
+  normalizeProportions($state.groups, $state.proportions)
+);
+
+/**
+ * Derived helper: ������� ������ ���� tabIds �� �������.
+ * ����� ���� ������� ��� �������� ��������������� ��� ������.
  */
 export const allGroupTabIds: Readable<string[]> = derived(
-  internal,
+  editorGroups,
   ($state) => Array.from(new Set($state.groups.flatMap((g) => g.tabIds)))
 );
 
 // -----------------------------------------------------------------------------
 // Примечание по архитектуре
+
+export function updateProportions(groupIndex: number, delta: number): void {
+  internal.update((state) => {
+    const proportions = normalizeProportions(state.groups, state.proportions);
+    if (groupIndex < 0 || groupIndex >= proportions.length - 1) {
+      return ensureStateShape({ ...state, proportions });
+    }
+
+    const next = [...proportions];
+    const left = next[groupIndex];
+    const right = next[groupIndex + 1];
+    if (!Number.isFinite(left) || !Number.isFinite(right)) {
+      return ensureStateShape({ ...state, proportions: next });
+    }
+
+    const clampedDelta = Math.min(Math.max(delta, MIN_PROPORTION - left), right - MIN_PROPORTION);
+    if (clampedDelta === 0) {
+      return ensureStateShape({ ...state, proportions: next });
+    }
+
+    next[groupIndex] = left + clampedDelta;
+    next[groupIndex + 1] = right - clampedDelta;
+
+    return ensureStateShape({
+      ...state,
+      proportions: next
+    });
+  });
+}
+
+export function closeGroup(groupId: EditorGroupId): void {
+  internal.update((state) => {
+    if (state.groups.length <= 1) return ensureStateShape(state);
+
+    const index = state.groups.findIndex((g) => g.id === groupId);
+    if (index === -1) return ensureStateShape(state);
+
+    const proportions = normalizeProportions(state.groups, state.proportions);
+    const targetIndex = index > 0 ? index - 1 : 1;
+    const target = state.groups[targetIndex];
+    const closing = state.groups[index];
+
+    const mergedTabIds = Array.from(new Set([...(target?.tabIds ?? []), ...(closing?.tabIds ?? [])]));
+    const mergedActive = closing.activeTabId ?? target?.activeTabId ?? mergedTabIds.at(-1) ?? null;
+    const updatedTarget = target
+      ? ensureActiveTabForGroup({
+          ...target,
+          tabIds: mergedTabIds,
+          activeTabId: mergedActive
+        })
+      : undefined;
+
+    const groups = [...state.groups];
+    if (updatedTarget) {
+      groups[targetIndex] = updatedTarget;
+    }
+    groups.splice(index, 1);
+
+    const nextProportions = [...proportions];
+    const reclaimed = nextProportions[index] ?? 0;
+    nextProportions.splice(index, 1);
+    const shareIndex = targetIndex > index ? targetIndex - 1 : targetIndex;
+    nextProportions[shareIndex] = (nextProportions[shareIndex] ?? 0) + reclaimed;
+
+    return ensureStateShape({
+      ...state,
+      groups,
+      proportions: nextProportions,
+      activeGroupId: state.activeGroupId === groupId ? groups[shareIndex]?.id ?? state.activeGroupId : state.activeGroupId
+    });
+  });
+}
+
+export function hydrateEditorGroups(snapshot: EditorGroupsState): void {
+  if (!snapshot || !Array.isArray(snapshot.groups) || snapshot.groups.length === 0) return;
+
+  const sanitizedGroups = snapshot.groups.map((group) =>
+    ensureActiveTabForGroup({
+      id: group.id,
+      tabIds: Array.from(new Set(group.tabIds ?? [])),
+      activeTabId: group.activeTabId ?? null
+    })
+  );
+
+  lastGroupId = Math.max(1, ...sanitizedGroups.map((g) => g.id));
+
+  internal.set(
+    ensureStateShape({
+      groups: sanitizedGroups,
+      activeGroupId: snapshot.activeGroupId,
+      proportions: snapshot.proportions ?? []
+    })
+  );
+}
+
+export function getActiveGroupId(): EditorGroupId {
+  return get(internal).activeGroupId;
+}
+
 // -----------------------------------------------------------------------------
 // - editorStore управляет самим набором вкладок (EditorTab: id, title, path, язык, isDirty).
 // - editorGroupsStore управляет только тем, КАК эти вкладки распределены по группам.

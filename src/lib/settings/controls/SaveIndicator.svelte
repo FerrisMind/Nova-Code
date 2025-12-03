@@ -93,7 +93,7 @@
     aria-live="polite"
     role="status"
   >
-    <Check class="save-indicator-icon" />
+    <Check class={`save-indicator-icon ${compact ? 'compact' : ''}`} />
     <span class="save-indicator-text">{text}</span>
   </span>
 {/if}
@@ -126,7 +126,7 @@
     flex-shrink: 0;
   }
 
-  .save-indicator.compact .save-indicator-icon {
+  .save-indicator-icon.compact {
     width: 10px;
     height: 10px;
   }

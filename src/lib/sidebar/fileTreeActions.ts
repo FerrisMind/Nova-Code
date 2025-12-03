@@ -5,7 +5,7 @@
 
 import type { FileNode } from '../types/fileNode';
 import { editorStore } from '../stores/editorStore';
-import { splitRightFromActive } from '../stores/layout/editorGroupsStore';
+import { getActiveGroupId, splitRightFromActive } from '../stores/layout/editorGroupsStore';
 import { revealNode } from '../stores/fileTreeStore';
 import { fileService } from '../services/fileService';
 import { workspaceStore } from '../stores/workspaceStore';
@@ -57,18 +57,20 @@ export type FileTreeActionId =
 
 export function open(node: FileNode): void {
   if (node.type !== 'file') return;
+  const targetGroupId = getActiveGroupId();
   editorStore.ensureTabForFile(node.id || node.path, {
     activate: true,
-    groupId: 1
+    groupId: targetGroupId
   });
 }
 
 export function openToSide(node: FileNode): void {
   if (node.type !== 'file') return;
+  const targetGroupId = getActiveGroupId();
 
   const tab = editorStore.ensureTabForFile(node.id || node.path, {
     activate: true,
-    groupId: 1
+    groupId: targetGroupId
   });
 
   if (!tab) return;

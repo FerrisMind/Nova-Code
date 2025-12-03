@@ -1,16 +1,19 @@
 <script lang="ts">
-    import { activeEditor } from "../stores/editorStore";
+    import { activeEditor, type EditorTab } from "../stores/editorStore";
     import { workspaceStore } from "../stores/workspaceStore";
     import Icon from "../common/Icon.svelte";
     import { getLanguageIcon } from "../mocks/languageIcons";
     import { onDestroy } from "svelte";
 
+    export let tab: EditorTab | null = null;
+
     let currentPath: string | null = null;
     let pathParts: string[] = [];
     let fileName: string = "";
     let workspaceRoot: string | null = null;
+    let activeFromStore: EditorTab | null = null;
 
-    // Реактивное вычисление иконки при изменении fileName
+    // Derived icon based on the current filename
     $: fileIcon = fileName ? getLanguageIcon(fileName) : "lucide:File";
 
     const unsubscribeWorkspace = workspaceStore.subscribe((state) => {
@@ -18,22 +21,23 @@
     });
 
     const unsubscribeEditor = activeEditor.subscribe(($active) => {
-        if ($active) {
-            currentPath = $active.path || $active.id;
+        activeFromStore = $active;
+    });
+
+    const applyTab = (target: EditorTab | null) => {
+        if (target) {
+            currentPath = target.path || target.id;
 
             let displayPath = currentPath.replace(/\\/g, "/");
 
-            // Make relative to workspace root if possible
             if (workspaceRoot) {
                 const normalizedRoot = workspaceRoot.replace(/\\/g, "/");
-                // Case-insensitive check for Windows paths
                 if (
                     displayPath
                         .toLowerCase()
                         .startsWith(normalizedRoot.toLowerCase())
                 ) {
                     displayPath = displayPath.slice(normalizedRoot.length);
-                    // Remove leading slash if present
                     if (displayPath.startsWith("/")) {
                         displayPath = displayPath.slice(1);
                     }
@@ -47,7 +51,9 @@
             pathParts = [];
             fileName = "";
         }
-    });
+    };
+
+    $: applyTab(tab ?? activeFromStore);
 
     onDestroy(() => {
         unsubscribeEditor();

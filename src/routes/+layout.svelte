@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import Titlebar from '../lib/layout/Titlebar.svelte';
   import ActivityBar from '../lib/layout/ActivityBar.svelte';
   import SideBar from '../lib/layout/SideBar.svelte';
   import RightSideBar from '../lib/layout/RightSideBar.svelte';
-  import EditorTabs from '../lib/layout/EditorTabs.svelte';
-  import EditorArea from '../lib/layout/EditorArea.svelte';
+  import EditorContainer from '../lib/layout/EditorContainer.svelte';
   import BottomPanel from '../lib/layout/BottomPanel.svelte';
   import StatusBar from '../lib/layout/StatusBar.svelte';
   import CommandPalette from '../lib/commands/CommandPalette.svelte';
@@ -19,6 +19,13 @@
     getPaletteById,
     type ThemePaletteId
   } from '../lib/stores/THEME_PALETTES';
+  import {
+    editorGroups,
+    getActiveTab as getActiveGroupTabId,
+    setActiveGroup,
+    splitRightFromActive
+  } from '../lib/stores/layout/editorGroupsStore';
+  import { editorStore } from '../lib/stores/editorStore';
 
   // Для SvelteKit layout корректно принимаем children через $props (Svelte 5 runes, use context7).
   const { children } = $props();
@@ -113,7 +120,32 @@
         return;
       }
 
-      // F1 — open command palette.
+      // Ctrl+\ - split editor right from active tab.
+      if (isCtrlOrCmd && e.key === '\\') {
+        e.preventDefault();
+        const activeTabId = getActiveGroupTabId();
+        if (activeTabId) {
+          splitRightFromActive();
+          editorStore.setActiveEditor(activeTabId);
+        }
+        return;
+      }
+
+      // Ctrl+1/2/3/4 - focus group by index.
+      if (isCtrlOrCmd && ['1', '2', '3', '4'].includes(e.key)) {
+        e.preventDefault();
+        const targetIndex = Number(e.key) - 1;
+        const state = get(editorGroups);
+        const targetGroup = state.groups[targetIndex];
+        if (!targetGroup) return;
+        setActiveGroup(targetGroup.id);
+        if (targetGroup.activeTabId) {
+          editorStore.setActiveEditor(targetGroup.activeTabId);
+        }
+        return;
+      }
+
+      // F1 - open command palette.
       if (e.key === 'F1') {
         e.preventDefault();
         openCommandPalette();
@@ -200,9 +232,8 @@
 
       <!-- EditorRegion + BottomPanel делят вертикаль; справа опциональный RightSideBar -->
       <div class="nova-editor-region">
-        <EditorTabs />
         <div class="nova-editor-stack">
-          <EditorArea />
+          <EditorContainer />
           <BottomPanel />
         </div>
         {@render children?.()}
@@ -304,7 +335,7 @@
     background-color: var(--nc-level-0);
   }
 
-  .nova-editor-stack > :global(.editor-area-root) {
+  .nova-editor-stack > :global(.editor-container) {
     flex: 1;
     min-height: 0;
   }

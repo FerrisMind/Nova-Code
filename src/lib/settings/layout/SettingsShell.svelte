@@ -281,7 +281,6 @@
     <main 
       class="content-panel" 
       bind:this={contentContainer}
-      role="tabpanel"
       id={`section-${activeSectionId}`}
       aria-labelledby={`tab-${activeSectionId}`}
     >

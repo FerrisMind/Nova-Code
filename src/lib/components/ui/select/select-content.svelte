@@ -26,20 +26,69 @@
 		{sideOffset}
 		{preventScroll}
 		data-slot="select-content"
-		class={cn(
-			"bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-end-2 data-[side=right]:slide-in-from-start-2 data-[side=top]:slide-in-from-bottom-2 max-h-(--bits-select-content-available-height) origin-(--bits-select-content-transform-origin) relative z-50 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border shadow-md data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-			className
-		)}
+		class={cn("nc-select-content", className)}
 		{...restProps}
 	>
 		<SelectScrollUpButton />
-		<SelectPrimitive.Viewport
-			class={cn(
-				"h-(--bits-select-anchor-height) min-w-(--bits-select-anchor-width) w-full scroll-my-1 p-1"
-			)}
-		>
+		<SelectPrimitive.Viewport class="nc-select-viewport">
 			{@render children?.()}
 		</SelectPrimitive.Viewport>
 		<SelectScrollDownButton />
 	</SelectPrimitive.Content>
 </SelectPortal>
+
+<style>
+	:global(.nc-select-content) {
+		position: relative;
+		z-index: 50;
+		min-width: 140px;
+		max-height: var(--bits-select-content-available-height, 300px);
+		overflow: hidden;
+		background: var(--nc-level-0, hsl(var(--popover)));
+		border: 1px solid var(--nc-palette-border, hsl(var(--border)));
+		border-radius: 8px;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+		transform-origin: var(--bits-select-content-transform-origin);
+	}
+
+	:global(.nc-select-content[data-state="open"]) {
+		animation: selectFadeIn 0.15s ease-out;
+	}
+
+	:global(.nc-select-content[data-state="closed"]) {
+		animation: selectFadeOut 0.1s ease-in;
+	}
+
+	@keyframes selectFadeIn {
+		from {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	@keyframes selectFadeOut {
+		from {
+			opacity: 1;
+			transform: scale(1);
+		}
+		to {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+	}
+
+	:global(.nc-select-viewport) {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		width: 100%;
+		padding: 6px;
+		overflow-y: auto;
+		max-height: inherit;
+		box-sizing: border-box;
+	}
+</style>

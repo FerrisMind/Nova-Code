@@ -24,6 +24,7 @@ import { editorStore } from '../stores/editorStore';
 import {
   editorGroups,
   getActiveTab as getActiveGroupTabId,
+  splitRightFromActive,
   setActiveGroup,
   setActiveTab as setActiveGroupTab
 } from '../stores/layout/editorGroupsStore';
@@ -123,6 +124,20 @@ export function initDefaultCommands(): void {
     }
   });
 
+  // workbench.action.splitEditorRight -> split active tab into a new group.
+  commands.push({
+    id: 'workbench.action.splitEditorRight',
+    label: 'Split Editor Right',
+    category: 'View',
+    keybinding: 'Ctrl+\\',
+    run: () => {
+      const activeTabId = getActiveGroupTabId();
+      if (!activeTabId) return;
+      splitRightFromActive();
+      editorStore.setActiveEditor(activeTabId);
+    }
+  });
+
   // ---------------------------------------------------------------------------
   // Navigation between groups (если есть несколько групп)
   // ---------------------------------------------------------------------------
@@ -174,6 +189,31 @@ export function initDefaultCommands(): void {
       focusRelativeGroup(1);
     }
   });
+
+  // Focus specific group (1-4)
+  const registerFocusGroupCommand = (index: number): void => {
+    commands.push({
+      id: `workbench.action.focusEditorGroup${index + 1}`,
+      label: `Focus Editor Group ${index + 1}`,
+      category: 'View',
+      keybinding: `Ctrl+${index + 1}`,
+      run: () => {
+        const state = get(editorGroups);
+        const target = state.groups[index];
+        if (!target) return;
+        setActiveGroup(target.id);
+        if (target.activeTabId) {
+          setActiveGroupTab(target.id, target.activeTabId);
+          editorStore.setActiveEditor(target.activeTabId);
+        }
+      }
+    });
+  };
+
+  registerFocusGroupCommand(0);
+  registerFocusGroupCommand(1);
+  registerFocusGroupCommand(2);
+  registerFocusGroupCommand(3);
 
   // ---------------------------------------------------------------------------
   // Stage 2: Enhanced Commands
