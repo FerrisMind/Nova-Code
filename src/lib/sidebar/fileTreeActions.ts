@@ -1,7 +1,7 @@
 // src/lib/sidebar/fileTreeActions.ts
-// ----------------------------------------------------------------------------- 
+// -----------------------------------------------------------------------------
 // Команды файлового Tree в Explorer: открытие, новые файлы/папки, переименование и удаление.
-// ----------------------------------------------------------------------------- 
+// -----------------------------------------------------------------------------
 
 import type { FileNode } from '../types/fileNode';
 import { editorStore } from '../stores/editorStore';
@@ -60,7 +60,7 @@ export function open(node: FileNode): void {
   const targetGroupId = getActiveGroupId();
   editorStore.ensureTabForFile(node.id || node.path, {
     activate: true,
-    groupId: targetGroupId
+    groupId: targetGroupId,
   });
 }
 
@@ -70,7 +70,7 @@ export function openToSide(node: FileNode): void {
 
   const tab = editorStore.ensureTabForFile(node.id || node.path, {
     activate: true,
-    groupId: targetGroupId
+    groupId: targetGroupId,
   });
 
   if (!tab) return;
@@ -123,9 +123,7 @@ export async function rename(node: FileNode): Promise<void> {
 }
 
 export async function deleteNode(node: FileNode): Promise<void> {
-  const useTrash = window.confirm(
-    'Move to Trash? Press Cancel to delete permanently.'
-  );
+  const useTrash = window.confirm('Move to Trash? Press Cancel to delete permanently.');
 
   try {
     await fileService.deleteFile(node.path, useTrash);

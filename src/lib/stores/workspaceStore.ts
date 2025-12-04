@@ -31,7 +31,7 @@ const internal = writable<WorkspaceState>({
   name: deriveWorkspaceName(currentRoot),
   files: [],
   loading: true,
-  root: currentRoot
+  root: currentRoot,
 });
 
 const loadWorkspaceFiles = async () => {
@@ -40,7 +40,7 @@ const loadWorkspaceFiles = async () => {
       name: 'No Folder Opened',
       files: [],
       loading: false,
-      root: null
+      root: null,
     });
     return;
   }
@@ -49,7 +49,7 @@ const loadWorkspaceFiles = async () => {
     ...state,
     loading: true,
     root: currentRoot,
-    error: undefined
+    error: undefined,
   }));
 
   try {
@@ -58,7 +58,7 @@ const loadWorkspaceFiles = async () => {
       name: deriveWorkspaceName(currentRoot),
       files,
       loading: false,
-      root: currentRoot
+      root: currentRoot,
     });
   } catch (error) {
     internal.set({
@@ -66,7 +66,7 @@ const loadWorkspaceFiles = async () => {
       files: [],
       loading: false,
       error: String(error),
-      root: currentRoot
+      root: currentRoot,
     });
   }
 };
@@ -113,7 +113,7 @@ export const workspaceStore = {
     // Normalize path separators
     const normalized = relativePath.replace(/\\/g, '/');
     return `${currentRoot}/${normalized}`;
-  }
+  },
 };
 
 /**

@@ -1,11 +1,17 @@
-declare module 'monaco-editor/esm/vs/basic-languages/rust/rust' {
-  export const language: any;
+import type { languages } from 'monaco-editor';
+
+declare module 'monaco-editor/esm/vs/basic-languages/rust/rust.js' {
+  export const language: languages.IMonarchLanguage;
 }
 
-declare module 'monaco-editor/esm/vs/basic-languages/ini/ini' {
-  export const language: any;
+declare module 'monaco-editor/esm/vs/basic-languages/ini/ini.js' {
+  export const language: languages.IMonarchLanguage;
 }
 
-declare module 'monaco-editor/esm/vs/basic-languages/python/python' {
-  export const language: any;
+declare module 'monaco-editor/esm/vs/basic-languages/python/python.js' {
+  export const language: languages.IMonarchLanguage;
+}
+
+declare module 'monaco-editor/esm/vs/basic-languages/*' {
+  export const language: languages.IMonarchLanguage;
 }

@@ -1,6 +1,6 @@
 /**
  * QUICK START: Система палитр и тем
- * 
+ *
  * Используется для управления цветовыми схемами темной и светлой тем с 4 готовыми палитрами.
  */
 
@@ -20,8 +20,8 @@ theme.setPalette('dark-alt-1');
 
 // 4. Подписаться на изменения
 theme.subscribe((state) => {
-  console.log(state.mode);      // 'dark' | 'light'
-  console.log(state.palette);   // 'palette1' | 'palette2' | ...
+  console.log(state.mode); // 'dark' | 'light'
+  console.log(state.palette); // 'palette1' | 'palette2' | ...
 });
 
 // ============================================================================
@@ -76,7 +76,7 @@ theme.subscribe((state) => {
 // Level 3: Кнопки в обычном состоянии - +12-14 пунктов
 // Level 4: Промежуточный - +14-16 пунктов
 // Level 5: Hover-состояния - +14-16 пунктов
-// 
+//
 // Для темной темы: светлее с каждым уровнем (+яркость)
 // Для светлой темы: темнее с каждым уровнем (-яркость)
 
@@ -94,7 +94,7 @@ theme.subscribe((state) => {
 //   background: var(--nc-level-3);        /* кнопки */
 //   background: var(--nc-level-4);        /* промежуточный */
 //   background: var(--nc-level-5);        /* hover */
-//   
+//
 //   /* Цвета палитры */
 //   color: var(--nc-palette-text);        /* основной текст */
 //   border: 1px solid var(--nc-palette-border);  /* граница */

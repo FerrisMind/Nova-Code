@@ -9,21 +9,23 @@
   import BottomPanel from '../lib/layout/BottomPanel.svelte';
   import StatusBar from '../lib/layout/StatusBar.svelte';
   import CommandPalette from '../lib/commands/CommandPalette.svelte';
-  import { layoutState, toggleLeftSidebar, setRightSidebarWidth, setRightSidebarVisible } from '../lib/stores/layout/layoutStore';
+  import {
+    layoutState,
+    toggleLeftSidebar,
+    setRightSidebarWidth,
+    setRightSidebarVisible,
+  } from '../lib/stores/layout/layoutStore';
   import { initDefaultCommands } from '../lib/commands/defaultCommands';
   import { openCommandPalette } from '../lib/stores/commandPaletteStore';
   import * as Tooltip from '$lib/components/ui/tooltip';
 
   import { theme, type ThemeState } from '../lib/stores/themeStore';
-  import {
-    getPaletteById,
-    type ThemePaletteId
-  } from '../lib/stores/THEME_PALETTES';
+  import { getPaletteById } from '../lib/stores/THEME_PALETTES';
   import {
     editorGroups,
     getActiveTab as getActiveGroupTabId,
     setActiveGroup,
-    splitRightFromActive
+    splitRightFromActive,
   } from '../lib/stores/layout/editorGroupsStore';
   import { editorStore } from '../lib/stores/editorStore';
 
@@ -36,7 +38,7 @@
    */
   let themeState = $state<ThemeState>({
     mode: 'dark',
-    palette: 'dark-default'
+    palette: 'dark-default',
   });
 
   // Right sidebar resizing state
@@ -83,10 +85,7 @@
 
     // Границы:
     // Для согласованности используем фиксированные значения под тему, без выдуманных цветов.
-    root.style.setProperty(
-      '--nc-palette-border',
-      isLight ? '#D0D0D0' : '#3A3A3A'
-    );
+    root.style.setProperty('--nc-palette-border', isLight ? '#D0D0D0' : '#3A3A3A');
 
     // CSS-класс для применения theme-dark / theme-light маппинга.
     document.documentElement.className = `theme-${state.mode}`;
@@ -221,47 +220,51 @@
 </script>
 
 <Tooltip.Provider>
-<div class={`nova-root theme-${themeState.mode}`}>
-  <Titlebar />
+  <div class={`nova-root theme-${themeState.mode}`}>
+    <Titlebar />
 
-  <div class="nova-main">
-    <ActivityBar />
+    <div class="nova-main">
+      <ActivityBar />
 
-    <div class="nova-center" class:sidebar-hidden={!$layoutState.leftSidebarVisible} class:right-sidebar-visible={$layoutState.rightSidebarVisible}>
-      <SideBar />
+      <div
+        class="nova-center"
+        class:sidebar-hidden={!$layoutState.leftSidebarVisible}
+        class:right-sidebar-visible={$layoutState.rightSidebarVisible}
+      >
+        <SideBar />
 
-      <!-- EditorRegion + BottomPanel делят вертикаль; справа опциональный RightSideBar -->
-      <div class="nova-editor-region">
-        <div class="nova-editor-stack">
-          <EditorContainer />
-          <BottomPanel />
+        <!-- EditorRegion + BottomPanel делят вертикаль; справа опциональный RightSideBar -->
+        <div class="nova-editor-region">
+          <div class="nova-editor-stack">
+            <EditorContainer />
+            <BottomPanel />
+          </div>
+          {@render children?.()}
         </div>
-        {@render children?.()}
+
+        <!-- Resize handle для правой панели (между editor region и правой панелью) -->
+        {#if $layoutState.rightSidebarVisible}
+          <div
+            class="right-resize-handle"
+            class:resizing={isRightResizing}
+            role="button"
+            aria-label="Resize right sidebar"
+            tabindex="0"
+            onmousedown={handleRightSidebarResize}
+          ></div>
+        {/if}
+
+        <!-- Правая боковая панель (опциональная, управляется layoutStore) -->
+        <RightSideBar />
       </div>
-
-      <!-- Resize handle для правой панели (между editor region и правой панелью) -->
-      {#if $layoutState.rightSidebarVisible}
-        <div
-          class="right-resize-handle"
-          class:resizing={isRightResizing}
-          role="button"
-          aria-label="Resize right sidebar"
-          tabindex="0"
-          onmousedown={handleRightSidebarResize}
-        ></div>
-      {/if}
-
-      <!-- Правая боковая панель (опциональная, управляется layoutStore) -->
-      <RightSideBar />
     </div>
-  </div>
 
-  <StatusBar />
+    <StatusBar />
 
-  <!-- Command Palette overlay (inspired by VS Code Command Palette).
+    <!-- Command Palette overlay (inspired by VS Code Command Palette).
        Рендерится рядом с корневым layout, чтобы перекрывать весь UI. -->
-  <CommandPalette />
-</div>
+    <CommandPalette />
+  </div>
 </Tooltip.Provider>
 
 <style>
@@ -278,8 +281,14 @@
     overflow: hidden;
     background-color: var(--nc-bg);
     color: var(--nc-fg);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', -system-ui, sans-serif;
-    font-size: 13px;                      /* базовый размер: 3.25 * 4px ~ комфортно */
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'SF Pro Text',
+      -system-ui,
+      sans-serif;
+    font-size: 13px; /* базовый размер: 3.25 * 4px ~ комфортно */
     line-height: 1.5;
   }
 
@@ -358,18 +367,18 @@
 
   .theme-dark {
     /* Уровни яркости палитры */
-    --nc-bg: var(--nc-level-0, #1a1d2e);              /* Level 0: Базовый фон */
-    --nc-bg-elevated: var(--nc-level-1, #1e2135);    /* Level 1: Рабочая область */
-    --nc-bg-button: var(--nc-level-3, #24273a);      /* Level 3: Кнопки */
-    --nc-bg-hover: var(--nc-level-5, #282d3e);       /* Level 5: Hover-состояния */
-    
+    --nc-bg: var(--nc-level-0, #1a1d2e); /* Level 0: Базовый фон */
+    --nc-bg-elevated: var(--nc-level-1, #1e2135); /* Level 1: Рабочая область */
+    --nc-bg-button: var(--nc-level-3, #24273a); /* Level 3: Кнопки */
+    --nc-bg-hover: var(--nc-level-5, #282d3e); /* Level 5: Hover-состояния */
+
     --nc-fg: var(--nc-palette-text, #e8e8e8);
     --nc-fg-muted: #a8aab0;
     --nc-border-subtle: var(--nc-palette-border, #3a3a3a);
     --nc-tab-bg: var(--nc-level-0);
-    
+
     /* Акцент остается фиксированным */
-    --nc-accent: #6F9DFF;
+    --nc-accent: #6f9dff;
     --nc-accent-soft: rgba(111, 157, 255, 0.18);
     --nc-highlight: rgba(111, 157, 255, 0.55);
     --nc-highlight-subtle: rgba(111, 157, 255, 0.12);
@@ -379,18 +388,18 @@
 
   .theme-light {
     /* Уровни яркости палитры */
-    --nc-bg: var(--nc-level-0, #f5f7fa);              /* Level 0: Базовый фон */
-    --nc-bg-elevated: var(--nc-level-1, #f1f3f6);    /* Level 1: Рабочая область */
-    --nc-bg-button: var(--nc-level-3, #e7eaef);      /* Level 3: Кнопки */
-    --nc-bg-hover: var(--nc-level-5, #dfe3e9);       /* Level 5: Hover-состояния */
-    
-    --nc-fg: var(--nc-palette-text, #2E2E2E);
+    --nc-bg: var(--nc-level-0, #f5f7fa); /* Level 0: Базовый фон */
+    --nc-bg-elevated: var(--nc-level-1, #f1f3f6); /* Level 1: Рабочая область */
+    --nc-bg-button: var(--nc-level-3, #e7eaef); /* Level 3: Кнопки */
+    --nc-bg-hover: var(--nc-level-5, #dfe3e9); /* Level 5: Hover-состояния */
+
+    --nc-fg: var(--nc-palette-text, #2e2e2e);
     --nc-fg-muted: #5a5a5a;
     --nc-border-subtle: var(--nc-palette-border, #d0d0d0);
     --nc-tab-bg: var(--nc-level-0);
-    
+
     /* Акцент остается фиксированным */
-    --nc-accent: #4F6FAF;
+    --nc-accent: #4f6faf;
     --nc-accent-soft: rgba(79, 111, 175, 0.12);
     --nc-highlight: rgba(79, 111, 175, 0.16);
     --nc-highlight-subtle: rgba(79, 111, 175, 0.08);

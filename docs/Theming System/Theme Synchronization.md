@@ -12,6 +12,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Theme Store as Single Source of Truth](#theme-store-as-single-source-of-truth)
 3. [Event-Driven Architecture for Theme Updates](#event-driven-architecture-for-theme-updates)
@@ -23,9 +24,11 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 The theme synchronization system ensures visual consistency between the application interface and code editor by maintaining synchronized themes across both components. This document details the architecture and implementation of this synchronization mechanism, focusing on how UI and editor themes update simultaneously when theme changes occur. The system uses a centralized theme store as the single source of truth, coordinates theme application through a theme manager, provides pre-configured theme combinations through a quick start system, and handles edge cases such as unavailable editor themes and loading errors. The implementation addresses timing considerations to prevent visual flickering during theme transitions.
 
 ## Theme Store as Single Source of Truth
+
 The theme store serves as the central authority for theme selection and state management throughout the application. It maintains a unified state that includes both the UI theme mode (light/dark) and the selected color palette, ensuring all components reference the same theme information.
 
 The theme store exposes methods to modify the theme state, including `setTheme()` for changing the light/dark mode, `toggleTheme()` for switching between modes while preserving the palette "slot", and `setPalette()` for selecting a specific color palette. When the theme mode changes, the store intelligently preserves the palette slot (e.g., switching from "dark-alt-2" to "light-alt-2") to maintain visual consistency across mode transitions.
@@ -48,12 +51,15 @@ ThemeStore --> ThemeState : "contains"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 ## Event-Driven Architecture for Theme Updates
+
 The theme synchronization system employs an event-driven architecture where the theme store acts as the publisher of theme state changes, and various components act as subscribers that react to these changes. This decoupled approach ensures that theme updates propagate consistently throughout the application without tight coupling between components.
 
 When a theme change occurs, the theme store emits the new state through its subscription mechanism. The application layout component subscribes to these changes and responds by updating CSS custom properties that define the visual appearance of the UI. This approach allows for immediate visual updates across all components that use these CSS variables, creating a cohesive and synchronized appearance.
@@ -78,17 +84,21 @@ Note over Store,Editor : All components receive<br/>theme update simultaneously
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 
 ## Quick Start Theme System
+
 The quick start theme system provides pre-configured combinations of UI and editor themes that ensure visual harmony between the application interface and code editor. This system offers four ready-to-use palettes for both light and dark modes, each with distinct color characteristics that maintain readability and aesthetic consistency.
 
 The available palettes include:
+
 - **Default**: The standard color scheme for each mode
 - **Alt 1**: An alternative palette with different base colors
 - **Alt 2**: A second alternative option
@@ -117,14 +127,17 @@ style End fill:#bbf,stroke:#333
 ```
 
 **Diagram sources**
+
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 **Section sources**
+
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 ## Editor Theme Synchronization
+
 The editor theme synchronization mechanism ensures that the code editor's appearance remains coordinated with the application's UI theme. This is achieved through the ThemeManager class, which acts as an intermediary between the central theme store and the Monaco editor instance.
 
 The synchronization process follows a specific priority hierarchy. When determining the editor theme, the system first checks if a specific editor theme has been explicitly set in the editor settings. If no explicit theme is set (or if it's set to 'auto'), the system derives the editor theme from the current UI palette by prefixing it with "nova-". This creates a direct mapping between UI palettes and editor themes, ensuring visual consistency.
@@ -163,14 +176,17 @@ ThemeManager --> "monaco.editor" : "controls"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 ## Fallback Mechanisms and Error Handling
+
 The theme synchronization system includes robust fallback mechanisms and error handling to ensure graceful degradation when theme loading issues occur. When a requested theme is not available, the system implements a hierarchical fallback strategy to maintain functionality and visual coherence.
 
 If a custom theme fails to load or apply, the ThemeManager class catches the error and returns a failure status, allowing the application to handle the situation appropriately. The system validates theme JSON structures before attempting to register them with Monaco, preventing malformed themes from causing editor instability. When theme application fails, the editor typically reverts to a default theme that matches the current light/dark mode.
@@ -196,12 +212,15 @@ style Error fill:#f96,stroke:#333
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Timing Considerations and Visual Flickering Prevention
+
 The theme synchronization system addresses timing considerations to prevent visual flickering during theme transitions. This is achieved through careful coordination of when theme changes are applied and how they propagate through the system.
 
 During application initialization, the system retrieves the current theme state synchronously using the `getState()` method before establishing subscriptions. This ensures that both the UI and editor are initialized with the correct theme from the start, preventing a flash of unstyled content or incorrect theme application.
@@ -239,16 +258,19 @@ Note over Layout,Editor : Changes appear simultaneous
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Custom Synchronization Logic Implementation
+
 Developers can implement custom synchronization logic for specialized use cases by leveraging the existing theme system's extensible architecture. The system provides several extension points that allow for customized theme behavior while maintaining compatibility with the core synchronization mechanism.
 
 To implement custom logic, developers can subscribe to the theme store and respond to state changes with specialized behavior. For example, a custom component might need to animate between themes rather than applying changes instantly, or a plugin might need to coordinate theme changes with external services. The subscription pattern allows these custom behaviors to be added without modifying the core theme store.
@@ -276,12 +298,15 @@ style End2 fill:#bbf,stroke:#333
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Conclusion
+
 The theme synchronization system provides a robust and flexible mechanism for maintaining visual consistency between the application interface and code editor. By establishing the theme store as a single source of truth and implementing an event-driven architecture, the system ensures that theme changes are propagated reliably throughout the application. The quick start theme system offers pre-configured combinations that guarantee visual harmony, while the fallback mechanisms and error handling ensure graceful degradation when issues occur. Timing considerations have been addressed to prevent visual flickering during transitions, and the extensible architecture allows for custom synchronization logic in specialized use cases. This comprehensive approach to theme management enhances the user experience by providing a cohesive and predictable visual environment across all application components.

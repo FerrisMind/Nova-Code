@@ -1,4 +1,3 @@
-import type { ComponentType } from 'svelte';
 import type { Component } from 'svelte';
 import ExplorerView from '../sidebar/ExplorerView.svelte';
 import SearchView from '../sidebar/SearchView.svelte';
@@ -37,14 +36,14 @@ export const sidebarViews: SidebarViewConfig[] = [
     icon: 'lucide:Files',
     title: 'Explorer',
     component: ExplorerView,
-    position: 'left'
+    position: 'left',
   },
   {
     id: 'search',
     icon: 'lucide:Search',
     title: 'Search',
     component: SearchView,
-    position: 'left'
+    position: 'left',
   },
   {
     id: 'scm',
@@ -52,7 +51,7 @@ export const sidebarViews: SidebarViewConfig[] = [
     icon: 'lucide:GitFork',
     title: 'Source Control',
     component: GitView,
-    position: 'left'
+    position: 'left',
   },
   {
     id: 'extensions',
@@ -60,13 +59,13 @@ export const sidebarViews: SidebarViewConfig[] = [
     icon: 'lucide:Blocks',
     title: 'Extensions',
     component: ExtensionsView,
-    position: 'left'
+    position: 'left',
   },
   {
     id: 'outline',
     icon: 'lucide:List',
     title: 'Outline',
     component: OutlineView,
-    position: 'right'
-  }
+    position: 'right',
+  },
 ];

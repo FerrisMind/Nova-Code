@@ -1,35 +1,34 @@
-<svelte:options runes={true} />
 <script lang="ts">
   /**
    * ProfilesManager.svelte
    * Компонент для управления профилями настроек
-   * 
+   *
    * Функционал:
    * - Создание нового профиля из текущих настроек
    * - Переключение между профилями
    * - Удаление профилей
    * - Редактирование названия и иконки профиля
    */
-  
+
   import { settingsProfilesStore } from '$lib/stores/settingsProfilesStore';
   import Icon from '$lib/common/Icon.svelte';
-  
+  import type { SettingsProfilesState } from '$lib/stores/settingsProfilesStore';
+
   let {
     onclose,
-    onprofileselected
+    onprofileselected,
   }: {
     onclose?: () => void;
     onprofileselected?: (detail: { profileId: string }) => void;
   } = $props();
 
-  interface ProfilesState {
-    profiles: any[];
-    activeProfileId: string | null;
-    loading: boolean;
-    error: string | null;
-  }
-
-  let profilesState: any = $state({ profiles: [], activeProfileId: null, loading: false, error: null });
+  let profilesState: SettingsProfilesState = $state({
+    profiles: [],
+    activeProfileId: null,
+    defaultProfileId: null,
+    loading: false,
+    error: null,
+  });
   let showCreateDialog = $state(false);
   let newProfileName = $state('');
   let newProfileIcon = $state('lucide:User');
@@ -55,7 +54,7 @@
     'lucide:Gamepad2',
     'lucide:Sparkles',
     'lucide:Heart',
-    'lucide:Star'
+    'lucide:Star',
   ];
 
   async function createProfile() {
@@ -65,9 +64,9 @@
     try {
       await settingsProfilesStore.createProfileFromCurrent({
         label: newProfileName.trim(),
-        icon: newProfileIcon
+        icon: newProfileIcon,
       });
-      
+
       newProfileName = '';
       newProfileIcon = 'lucide:User';
       showCreateDialog = false;
@@ -94,7 +93,7 @@
 
   async function deleteProfile(profileId: string, event: Event) {
     event.stopPropagation();
-    
+
     if (isProcessing) return;
 
     const confirmed = confirm(`Удалить профиль?`);
@@ -154,7 +153,7 @@
         <div class="profile-icon">
           <Icon name={profile.icon || 'lucide:User'} size={24} />
         </div>
-        
+
         <div class="profile-info">
           <div class="profile-name">{profile.label}</div>
           <div class="profile-meta">
@@ -168,8 +167,8 @@
         </div>
 
         {#if !profile.isDefault}
-          <div 
-            class="delete-btn-wrapper" 
+          <div
+            class="delete-btn-wrapper"
             role="presentation"
             onclick={(e) => e.stopPropagation()}
             onkeydown={(e) => e.stopPropagation()}
@@ -195,22 +194,17 @@
 
 <!-- Диалог создания профиля -->
 {#if showCreateDialog}
-  <div 
-    class="modal-overlay" 
+  <div
+    class="modal-overlay"
     role="dialog"
     aria-modal="true"
     tabindex="-1"
     onclick={handleCreateDialogOverlayClick}
     onkeydown={(e) => e.key === 'Escape' && closeCreateDialog()}
   >
-    <div 
-      class="modal-content" 
-      role="document"
-    >
+    <div class="modal-content" role="document">
       <h3>Новый профиль</h3>
-      <p class="modal-description">
-        Создаст новый профиль с текущими настройками
-      </p>
+      <p class="modal-description">Создаст новый профиль с текущими настройками</p>
 
       <div class="form-group">
         <label for="profile-name">Название профиля</label>
@@ -227,10 +221,10 @@
       <div class="form-group">
         <label for="profile-icon-select">Иконка</label>
         <div class="icon-grid" id="profile-icon-select">
-          {#each availableIcons as iconName}
+          {#each availableIcons as iconName (iconName)}
             <button
               class="icon-option {newProfileIcon === iconName ? 'selected' : ''}"
-              onclick={() => newProfileIcon = iconName}
+              onclick={() => (newProfileIcon = iconName)}
               type="button"
             >
               <Icon name={iconName} size={20} />
@@ -240,11 +234,9 @@
       </div>
 
       <div class="modal-actions">
-        <button class="btn btn-secondary" onclick={closeCreateDialog}>
-          Отмена
-        </button>
-        <button 
-          class="btn btn-primary" 
+        <button class="btn btn-secondary" onclick={closeCreateDialog}> Отмена </button>
+        <button
+          class="btn btn-primary"
           onclick={createProfile}
           disabled={!newProfileName.trim() || isProcessing}
         >
@@ -339,7 +331,7 @@
   }
 
   .profile-card.active {
-    border-color: var(--nc-accent, #007ACC);
+    border-color: var(--nc-accent, #007acc);
     background: linear-gradient(
       135deg,
       rgba(var(--nc-accent-rgb, 0, 122, 204), 0.1),
@@ -393,7 +385,7 @@
   }
 
   .active-badge {
-    background: var(--nc-accent, #007ACC);
+    background: var(--nc-accent, #007acc);
     color: white;
   }
 
@@ -484,8 +476,12 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slideUp {
@@ -601,7 +597,7 @@
   }
 
   .btn-primary {
-    background: var(--nc-accent, #007ACC);
+    background: var(--nc-accent, #007acc);
     color: white;
   }
 
@@ -614,3 +610,5 @@
     cursor: not-allowed;
   }
 </style>
+
+<svelte:options runes={true} />

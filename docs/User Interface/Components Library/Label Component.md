@@ -10,6 +10,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Component Architecture](#component-architecture)
 3. [Props and Attributes](#props-and-attributes)
@@ -21,13 +22,16 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 The Label component in the NC code editor is a reusable UI element designed to provide accessible labeling for form controls. Built using Svelte and styled with Tailwind CSS utility classes, this component enhances user experience by ensuring proper association between labels and their corresponding inputs. The implementation leverages the bits-ui library to provide enhanced functionality while maintaining simplicity for developers.
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L1-L16)
 - [index.ts](file://src/lib/components/ui/label/index.ts#L1-L8)
 
 ## Component Architecture
+
 The Label component follows a composition pattern typical of modern Svelte component libraries. It wraps the bits-ui Label primitive, adding project-specific styling and conventions. The architecture consists of two main files: the Svelte component file and an index export file that provides named exports for easier importing.
 
 The component uses Svelte's `$props()` mechanism to receive and distribute properties, allowing for flexible usage patterns. It extends the base LabelPrimitive from bits-ui, maintaining compatibility with the underlying library while adding NC-specific styling through the `cn` utility function.
@@ -50,19 +54,23 @@ LabelComponent --> Utils : "uses"
 ```
 
 **Diagram sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L1-L16)
 - [index.ts](file://src/lib/components/ui/label/index.ts#L1-L8)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L1-L40)
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L1-L16)
 - [index.ts](file://src/lib/components/ui/label/index.ts#L1-L8)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L1-L40)
 
 ## Props and Attributes
+
 The Label component accepts standard HTML label attributes along with a `class` prop for custom styling. The props are destructured from `$props()` using the LabelPrimitive.RootProps type, which includes all standard label attributes and additional properties defined by the bits-ui library.
 
 Key props include:
+
 - `class`: Additional CSS classes to apply to the label
 - All standard HTML label attributes (id, for, etc.) are passed through to the underlying element
 
@@ -78,14 +86,17 @@ E --> F["Render LabelPrimitive.Root"]
 ```
 
 **Diagram sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L5-L15)
 - [types.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/types.ts#L1-L8)
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L5-L15)
 - [types.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/types.ts#L1-L8)
 
 ## Styling and Tailwind CSS
+
 The Label component uses Tailwind CSS utility classes for styling, combined with the `cn` utility function for class composition. The base styling includes:
 
 - Text size: `text-sm` (small text)
@@ -109,14 +120,17 @@ I --> J["Final Class String"]
 ```
 
 **Diagram sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L10-L13)
 - [utils.js](file://src/lib/utils.js)
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L10-L13)
 - [utils.js](file://src/lib/utils.js)
 
 ## Integration with Form Controls
+
 The Label component is designed to work seamlessly with form controls through the use of the `for` attribute, which associates the label with a specific input element by its ID. This integration provides several benefits:
 
 - Clicking the label focuses or toggles the associated input
@@ -138,14 +152,17 @@ Label->>Label : Prevents default (text selection)
 ```
 
 **Diagram sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L8-L15)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L26-L28)
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L8-L15)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L26-L28)
 
 ## Accessibility Features
+
 The Label component includes several accessibility features to ensure it meets WCAG standards:
 
 - Proper semantic HTML structure using the `<label>` element
@@ -171,29 +188,35 @@ F --> G
 ```
 
 **Diagram sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L1-L16)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L26-L28)
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L1-L16)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L26-L28)
 
 ## Usage Examples
+
 The Label component can be used in various contexts within the NC code editor, particularly in forms and settings interfaces. Here are common usage patterns:
 
 ### Basic Form Usage
+
 ```svelte
 <Label for="email">Email Address</Label>
 <Input id="email" type="email" />
 ```
 
 ### With Custom Styling
+
 ```svelte
 <Label class="text-lg font-bold" for="username">Username</Label>
 <Input id="username" />
 ```
 
 ### In Complex Forms
+
 ```svelte
 <div class="grid gap-2">
   <Label for="password">Password</Label>
@@ -205,25 +228,31 @@ The Label component can be used in various contexts within the NC code editor, p
 The component's simplicity allows for easy integration into various UI patterns while maintaining consistency across the application.
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L1-L16)
 - [index.ts](file://src/lib/components/ui/label/index.ts#L1-L8)
 
 ## Common Issues and Solutions
+
 When implementing the Label component, developers may encounter several common issues:
 
 ### Issue 1: Label-For Attribute Binding
+
 **Problem**: The label doesn't properly associate with the input.
 **Solution**: Ensure the `for` attribute in the Label matches the `id` attribute of the input exactly.
 
 ### Issue 2: Styling Conflicts
+
 **Problem**: Custom classes override essential accessibility styles.
 **Solution**: Use the `cn` function to merge classes properly, ensuring base styles are preserved.
 
 ### Issue 3: Double-Click Text Selection
+
 **Problem**: Double-clicking the label selects text instead of focusing the input.
 **Solution**: The component already handles this via the `onmousedown` event handler in the bits-ui implementation.
 
 ### Issue 4: Screen Reader Announcements
+
 **Problem**: Screen readers don't properly announce the label-input relationship.
 **Solution**: Verify that both `for` and `id` attributes are present and correctly matched.
 
@@ -240,12 +269,15 @@ E --> I["Verify attribute pairing"]
 ```
 
 **Diagram sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L5-L15)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L26-L28)
 
 **Section sources**
+
 - [label.svelte](file://src/lib/components/ui/label/label.svelte#L5-L15)
 - [label.svelte.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/label/label.svelte.ts#L26-L28)
 
 ## Conclusion
+
 The Label component in the NC code editor provides a robust, accessible solution for labeling form controls. By leveraging the bits-ui library and Tailwind CSS, it offers a balance of flexibility and consistency. The component's design prioritizes accessibility, ensuring that all users can effectively interact with form elements. Its simple API makes it easy to use for beginners while providing the necessary features for advanced use cases. Developers should follow the documented patterns for label-input association and styling to ensure optimal user experience and accessibility compliance.

@@ -51,18 +51,24 @@ interface MonacoEnvironmentConfig {
 // -----------------------------------------------------------------------------
 
 const globalScope =
-  typeof self !== 'undefined' ? self :
-  typeof window !== 'undefined' ? window :
-  ({} as typeof globalThis);
+  typeof self !== 'undefined'
+    ? self
+    : typeof window !== 'undefined'
+      ? window
+      : ({} as typeof globalThis);
 
 /**
  * Инициализирует MonacoEnvironment один раз за жизненный цикл приложения.
  * Использует флаг __MONACO_ENV_INITIALIZED__ для предотвращения повторной инициализации.
  */
 function initializeMonacoEnvironment(): void {
-  // Приводим к any для доступа к кастомным свойствам
-  const scope = globalScope as any;
-  
+  type MonacoGlobalScope = typeof globalThis & {
+    __MONACO_ENV_INITIALIZED__?: boolean;
+    MonacoEnvironment?: MonacoEnvironmentConfig;
+  };
+
+  const scope = globalScope as MonacoGlobalScope;
+
   // Проверяем singleton-флаг
   if (scope.__MONACO_ENV_INITIALIZED__) {
     return;
@@ -88,7 +94,7 @@ function initializeMonacoEnvironment(): void {
 /**
  * Фабрика воркеров Monaco Editor.
  * Маппинг языковых меток на соответствующие Worker-классы.
- * 
+ *
  * @returns Функция getWorker для MonacoEnvironment
  */
 function createWorkerFactory(): (workerId: string, label: string) => Worker {

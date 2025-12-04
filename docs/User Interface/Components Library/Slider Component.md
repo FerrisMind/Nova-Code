@@ -10,6 +10,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Architecture Overview](#architecture-overview)
 3. [Core Components](#core-components)
@@ -21,9 +22,11 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 The Slider UI component in the NC code editor provides a flexible and accessible way to select values within a range. Built using Svelte and integrated with the bits-ui component library, this slider supports both single and multiple thumb configurations, vertical and horizontal orientations, and precise value control. It is extensively used throughout the editor's settings interface for adjusting numeric values such as word wrap columns and auto-save delays. The component combines robust functionality with modern styling using Tailwind CSS utility classes, making it both powerful and visually consistent with the overall editor design.
 
 **Section sources**
+
 - [src/lib/components/ui/slider/index.ts](file://src/lib/components/ui/slider/index.ts)
 
 ## Architecture Overview
@@ -48,6 +51,7 @@ M --> P[onValueCommit]
 ```
 
 **Diagram sources**
+
 - [tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte](file://tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte)
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte)
 
@@ -58,6 +62,7 @@ The Slider component is structured as a composition of multiple parts, with the 
 The underlying architecture uses a state management pattern where the slider's value, position, and interaction state are managed internally and exposed through bindable props and callback functions. This allows for both controlled and uncontrolled usage patterns while maintaining accessibility and performance.
 
 **Section sources**
+
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte)
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/types.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/types.ts)
 
@@ -95,9 +100,11 @@ class SliderProps {
 ```
 
 **Diagram sources**
+
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/types.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/types.ts)
 
 **Section sources**
+
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/types.ts](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/types.ts)
 
 ## Events and Value Binding
@@ -125,9 +132,11 @@ Slider->>Callback : onValueCommit(finalValue)
 ```
 
 **Diagram sources**
+
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte)
 
 **Section sources**
+
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte)
 
 ## Styling with Tailwind CSS
@@ -159,9 +168,11 @@ End([Styled Component])
 ```
 
 **Diagram sources**
+
 - [tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte](file://tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte)
 
 **Section sources**
+
 - [tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte](file://tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte)
 
 ## Usage in Editor Settings
@@ -189,9 +200,11 @@ L --> M[Update store]
 ```
 
 **Diagram sources**
+
 - [src/lib/settings/registry.ts](file://src/lib/settings/registry.ts)
 
 **Section sources**
+
 - [src/lib/settings/registry.ts](file://src/lib/settings/registry.ts)
 
 ## Common Implementation Issues
@@ -209,8 +222,10 @@ When implementing the Slider component, several common issues may arise:
 **Accessibility**: The component includes ARIA attributes for screen readers, but ensure that labels are properly associated when used in forms or settings panels.
 
 **Section sources**
+
 - [tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte](file://tp/shadcn-svelte/docs/src/lib/registry/ui/slider/slider.svelte)
 - [tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte](file://tp/bits-ui/packages/bits-ui/src/lib/bits/slider/components/slider.svelte)
 
 ## Conclusion
+
 The Slider component in the NC code editor provides a robust, accessible, and visually consistent way to select values within a range. Built on the bits-ui foundation and styled with Tailwind CSS, it offers both simplicity for basic use cases and flexibility for advanced configurations. Its integration with the editor's settings system demonstrates a clean separation of concerns, where the UI component handles interaction and presentation while the settings registry manages data flow and persistence. By understanding its props, events, and common usage patterns, developers can effectively implement sliders for various editor configuration options while maintaining a high standard of user experience.

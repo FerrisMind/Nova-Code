@@ -29,10 +29,13 @@ export interface CursorPosition {
 const initialState: CursorPosition = {
   fileId: null,
   line: 1,
-  column: 1
+  column: 1,
 };
 
-const { subscribe, set }: { subscribe: Readable<CursorPosition>['subscribe']; set: (v: CursorPosition) => void } =
+const {
+  subscribe,
+  set,
+}: { subscribe: Readable<CursorPosition>['subscribe']; set: (v: CursorPosition) => void } =
   writable<CursorPosition>(initialState);
 
 let initialized = false;
@@ -65,7 +68,7 @@ export function initCursorTracking(core: EditorCoreApi): void {
     set({
       fileId,
       line: lineNumber,
-      column
+      column,
     });
   });
 }

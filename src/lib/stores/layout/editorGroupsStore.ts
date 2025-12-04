@@ -46,11 +46,11 @@ const INITIAL_STATE: EditorGroupsState = {
     {
       id: 1,
       tabIds: [],
-      activeTabId: null
-    }
+      activeTabId: null,
+    },
   ],
   activeGroupId: 1,
-  proportions: [1]
+  proportions: [1],
 };
 
 // Внутренний writable-store. Внешнему коду отдаём только управляемое API.
@@ -80,11 +80,11 @@ function ensureActiveGroup(state: EditorGroupsState): EditorGroupsState {
           {
             id: 1,
             tabIds: [],
-            activeTabId: null
-          }
+            activeTabId: null,
+          },
         ],
         activeGroupId: 1,
-        proportions: [1]
+        proportions: [1],
       };
 }
 
@@ -93,7 +93,8 @@ function normalizeProportions(groups: EditorGroupState[], proportions: number[])
   if (count === 0) return [];
 
   const base =
-    proportions.length === count && proportions.every((value) => Number.isFinite(value) && value > 0)
+    proportions.length === count &&
+    proportions.every((value) => Number.isFinite(value) && value > 0)
       ? proportions
       : Array.from({ length: count }, () => 1 / count);
 
@@ -107,7 +108,7 @@ function ensureStateShape(state: EditorGroupsState): EditorGroupsState {
   const proportions = normalizeProportions(pruned.groups, pruned.proportions);
   return {
     ...pruned,
-    proportions
+    proportions,
   };
 }
 
@@ -115,7 +116,7 @@ function ensureActiveTabForGroup(group: EditorGroupState): EditorGroupState {
   if (group.tabIds.length === 0) {
     return {
       ...group,
-      activeTabId: null
+      activeTabId: null,
     };
   }
 
@@ -127,7 +128,7 @@ function ensureActiveTabForGroup(group: EditorGroupState): EditorGroupState {
   const nextActive = group.tabIds[group.tabIds.length - 1] ?? null;
   return {
     ...group,
-    activeTabId: nextActive
+    activeTabId: nextActive,
   };
 }
 
@@ -158,11 +159,11 @@ function pruneEmptyGroups(
         {
           id: 1,
           tabIds: [],
-          activeTabId: null
-        }
+          activeTabId: null,
+        },
       ],
       proportions: [1],
-      activeGroupId: 1
+      activeGroupId: 1,
     };
   }
 
@@ -173,7 +174,7 @@ function pruneEmptyGroups(
   return {
     groups: prunedGroups,
     proportions: prunedProportions,
-    activeGroupId: nextActiveGroupId
+    activeGroupId: nextActiveGroupId,
   };
 }
 
@@ -189,7 +190,7 @@ export function reconcileGroupsWithOpenTabs(openTabIds: string[]): void {
       const nextTabIds = group.tabIds.filter((id) => openSet.has(id));
       return ensureActiveTabForGroup({
         ...group,
-        tabIds: nextTabIds
+        tabIds: nextTabIds,
       });
     });
 
@@ -197,7 +198,7 @@ export function reconcileGroupsWithOpenTabs(openTabIds: string[]): void {
 
     return ensureStateShape({
       ...state,
-      ...pruned
+      ...pruned,
     });
   });
 }
@@ -211,7 +212,7 @@ export function reconcileGroupsWithOpenTabs(openTabIds: string[]): void {
  * Управление осуществляется через экспортируемые функции ниже.
  */
 export const editorGroups: Readable<EditorGroupsState> = {
-  subscribe: (run) => internal.subscribe((state) => run(ensureStateShape(state)))
+  subscribe: (run) => internal.subscribe((state) => run(ensureStateShape(state))),
 };
 
 /**
@@ -227,11 +228,11 @@ export function initSingleGroup(): void {
       {
         id: 1,
         tabIds: [],
-        activeTabId: null
-      }
+        activeTabId: null,
+      },
     ],
     activeGroupId: 1,
-    proportions: [1]
+    proportions: [1],
   });
 }
 
@@ -245,7 +246,7 @@ export function setActiveGroup(groupId: EditorGroupId): void {
     if (state.activeGroupId === groupId) return state;
     return ensureStateShape({
       ...state,
-      activeGroupId: groupId
+      activeGroupId: groupId,
     });
   });
 }
@@ -265,14 +266,14 @@ export function setActiveTab(groupId: EditorGroupId, tabId: string): void {
       g.id === groupId
         ? {
             ...g,
-            activeTabId: tabId
+            activeTabId: tabId,
           }
         : g
     );
 
     return ensureStateShape({
       ...state,
-      groups
+      groups,
     });
   });
 }
@@ -289,13 +290,13 @@ export function addTabToGroup(groupId: EditorGroupId, tabId: string): void {
       return {
         ...g,
         tabIds: [...g.tabIds, tabId],
-        activeTabId: g.activeTabId ?? tabId // если не было активной – делаем эту активной
+        activeTabId: g.activeTabId ?? tabId, // если не было активной – делаем эту активной
       };
     });
 
     return ensureStateShape({
       ...state,
-      groups
+      groups,
     });
   });
 }
@@ -315,7 +316,7 @@ export function removeTab(tabId: string): void {
       const nextGroup: EditorGroupState = {
         ...g,
         tabIds: nextTabIds,
-        activeTabId: g.activeTabId === tabId ? null : g.activeTabId
+        activeTabId: g.activeTabId === tabId ? null : g.activeTabId,
       };
 
       return ensureActiveTabForGroup(nextGroup);
@@ -325,7 +326,7 @@ export function removeTab(tabId: string): void {
 
     return ensureStateShape({
       ...state,
-      ...pruned
+      ...pruned,
     });
   });
 }
@@ -360,14 +361,14 @@ export function reorderTabsWithinGroup(
 
     const updatedGroup: EditorGroupState = ensureActiveTabForGroup({
       ...group,
-      tabIds
+      tabIds,
     });
 
     const groups = state.groups.map((g) => (g.id === groupId ? updatedGroup : g));
 
     return ensureStateShape({
       ...state,
-      groups
+      groups,
     });
   });
 }
@@ -396,7 +397,7 @@ export function moveTabToGroup(
     const updatedSource = ensureActiveTabForGroup({
       ...source,
       tabIds: nextSourceTabIds,
-      activeTabId: source.activeTabId === tabId ? null : source.activeTabId
+      activeTabId: source.activeTabId === tabId ? null : source.activeTabId,
     });
 
     // Добавляем в target
@@ -405,7 +406,7 @@ export function moveTabToGroup(
       ? target.tabIds.filter((id) => id !== tabId)
       : [...target.tabIds];
 
-    let insertIndex =
+    const insertIndex =
       typeof targetIndex === 'number'
         ? Math.max(0, Math.min(targetIndex, baseTargetTabIds.length))
         : baseTargetTabIds.length;
@@ -417,7 +418,7 @@ export function moveTabToGroup(
       tabIds: baseTargetTabIds,
       // При перемещении делаем вкладку активной в целевой группе —
       // это соответствует ожиданиям split/move UX.
-      activeTabId: tabId
+      activeTabId: tabId,
     };
 
     const updatedGroups = state.groups.map((g) => {
@@ -431,7 +432,7 @@ export function moveTabToGroup(
     return ensureStateShape({
       ...state,
       ...pruned,
-      activeGroupId: pruned.activeGroupId
+      activeGroupId: pruned.activeGroupId,
     });
   });
 }
@@ -465,7 +466,7 @@ export function splitRightFromActive(): void {
     const newGroup: EditorGroupState = {
       id: newGroupId,
       tabIds: [activeTabId],
-      activeTabId: activeTabId
+      activeTabId: activeTabId,
     };
 
     // Дублируем вкладку: исходная группа остаётся с активной вкладкой.
@@ -484,7 +485,7 @@ export function splitRightFromActive(): void {
       ...state,
       groups,
       proportions: nextProportions,
-      activeGroupId: newGroupId
+      activeGroupId: newGroupId,
     });
   });
 }
@@ -516,9 +517,8 @@ export const groupProportions: Readable<number[]> = derived(editorGroups, ($stat
  * Derived helper: ������� ������ ���� tabIds �� �������.
  * ����� ���� ������� ��� �������� ��������������� ��� ������.
  */
-export const allGroupTabIds: Readable<string[]> = derived(
-  editorGroups,
-  ($state) => Array.from(new Set($state.groups.flatMap((g) => g.tabIds)))
+export const allGroupTabIds: Readable<string[]> = derived(editorGroups, ($state) =>
+  Array.from(new Set($state.groups.flatMap((g) => g.tabIds)))
 );
 
 // -----------------------------------------------------------------------------
@@ -548,7 +548,7 @@ export function updateProportions(groupIndex: number, delta: number): void {
 
     return ensureStateShape({
       ...state,
-      proportions: next
+      proportions: next,
     });
   });
 }
@@ -565,13 +565,15 @@ export function closeGroup(groupId: EditorGroupId): void {
     const target = state.groups[targetIndex];
     const closing = state.groups[index];
 
-    const mergedTabIds = Array.from(new Set([...(target?.tabIds ?? []), ...(closing?.tabIds ?? [])]));
+    const mergedTabIds = Array.from(
+      new Set([...(target?.tabIds ?? []), ...(closing?.tabIds ?? [])])
+    );
     const mergedActive = closing.activeTabId ?? target?.activeTabId ?? mergedTabIds.at(-1) ?? null;
     const updatedTarget = target
       ? ensureActiveTabForGroup({
           ...target,
           tabIds: mergedTabIds,
-          activeTabId: mergedActive
+          activeTabId: mergedActive,
         })
       : undefined;
 
@@ -591,7 +593,10 @@ export function closeGroup(groupId: EditorGroupId): void {
       ...state,
       groups,
       proportions: nextProportions,
-      activeGroupId: state.activeGroupId === groupId ? groups[shareIndex]?.id ?? state.activeGroupId : state.activeGroupId
+      activeGroupId:
+        state.activeGroupId === groupId
+          ? (groups[shareIndex]?.id ?? state.activeGroupId)
+          : state.activeGroupId,
     });
   });
 }
@@ -603,7 +608,7 @@ export function hydrateEditorGroups(snapshot: EditorGroupsState): void {
     ensureActiveTabForGroup({
       id: group.id,
       tabIds: Array.from(new Set(group.tabIds ?? [])),
-      activeTabId: group.activeTabId ?? null
+      activeTabId: group.activeTabId ?? null,
     })
   );
 
@@ -613,7 +618,7 @@ export function hydrateEditorGroups(snapshot: EditorGroupsState): void {
     ensureStateShape({
       groups: sanitizedGroups,
       activeGroupId: snapshot.activeGroupId,
-      proportions: snapshot.proportions ?? []
+      proportions: snapshot.proportions ?? [],
     })
   );
 }

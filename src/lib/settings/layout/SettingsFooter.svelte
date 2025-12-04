@@ -33,35 +33,35 @@
 
   async function handleExport() {
     if (isExporting) return;
-    
+
     isExporting = true;
-    
+
     try {
       // Получаем текущий snapshot настроек
       const snapshot = settingsStore.getSnapshot();
-      
+
       // Формируем JSON
       const exportData = {
         version: '1.0',
         exportedAt: new Date().toISOString(),
-        settings: snapshot
+        settings: snapshot,
       };
-      
+
       const jsonString = JSON.stringify(exportData, null, 2);
-      
+
       // Создаём blob и скачиваем
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `nova-code-settings-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
-      
+
       lastSaved = new Date();
     } catch (error) {
       console.error('Failed to export settings:', error);
@@ -81,33 +81,33 @@
   function handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    
+
     if (file && file.type === 'application/json') {
       importFile = file;
       showImportDialog = true;
     }
-    
+
     // Reset input для повторного выбора того же файла
     input.value = '';
   }
 
   async function confirmImport() {
     if (!importFile || isImporting) return;
-    
+
     isImporting = true;
-    
+
     try {
       const text = await importFile.text();
       const data = JSON.parse(text);
-      
+
       // Валидация структуры
       if (!data.settings || typeof data.settings !== 'object') {
         throw new Error('Invalid settings file format');
       }
-      
+
       // Применяем настройки через store
       await settingsStore.applyChanges(data.settings, { source: 'import' });
-      
+
       lastSaved = new Date();
       showImportDialog = false;
       importFile = null;
@@ -130,16 +130,16 @@
 
   function formatLastSaved(date: Date | null): string {
     if (!date) return '';
-    
+
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
-    
+
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
-    
+
     return date.toLocaleDateString();
   }
 </script>
@@ -168,22 +168,12 @@
     <!-- Right side: Export/Import -->
     <div class="footer-right">
       <div class="action-buttons">
-        <Button
-          variant="outline"
-          size="sm"
-          onclick={handleExport}
-          disabled={isExporting}
-        >
+        <Button variant="outline" size="sm" onclick={handleExport} disabled={isExporting}>
           <Download size={16} />
           <span>Export</span>
         </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onclick={handleImportClick}
-          disabled={isImporting}
-        >
+
+        <Button variant="outline" size="sm" onclick={handleImportClick} disabled={isImporting}>
           <Upload size={16} />
           <span>Import</span>
         </Button>
@@ -201,15 +191,14 @@
         This will replace your current settings with the imported ones.
         {#if importFile}
           <br /><br />
-          <strong>File:</strong> {importFile.name}
+          <strong>File:</strong>
+          {importFile.name}
         {/if}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
       <AlertDialog.Cancel onclick={cancelImport}>Cancel</AlertDialog.Cancel>
-      <AlertDialog.Action onclick={confirmImport}>
-        Import
-      </AlertDialog.Action>
+      <AlertDialog.Action onclick={confirmImport}>Import</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>
@@ -272,7 +261,7 @@
   }
 
   /* Кнопки Export/Import - темно-серый фон с рамкой и скругленными углами */
-  :global(.settings-footer .action-buttons button[data-slot="button"]) {
+  :global(.settings-footer .action-buttons button[data-slot='button']) {
     background: var(--nc-level-1, hsl(var(--muted))) !important;
     color: var(--nc-palette-text, hsl(var(--foreground))) !important;
     border: 1px solid var(--nc-palette-border, hsl(var(--border))) !important;
@@ -281,13 +270,13 @@
     padding: calc(0.5rem + 0.5px) calc(0.75rem + 0.5px) !important;
   }
 
-  :global(.settings-footer .action-buttons button[data-slot="button"]:hover:not(:disabled)) {
+  :global(.settings-footer .action-buttons button[data-slot='button']:hover:not(:disabled)) {
     background: var(--nc-level-2, hsl(var(--accent))) !important;
     color: var(--nc-palette-text, hsl(var(--foreground))) !important;
     border-color: var(--nc-palette-border, hsl(var(--border))) !important;
   }
 
-  :global(.settings-footer button[data-slot="button"]:disabled) {
+  :global(.settings-footer button[data-slot='button']:disabled) {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
   }

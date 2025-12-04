@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/sections/EditorSection.svelte
   // ----------------------------------------------------------------------------
@@ -22,10 +21,9 @@
   import * as Tooltip from '$lib/components/ui/tooltip';
   import Toggle from '$lib/settings/controls/Toggle.svelte';
   import RangeInput from '$lib/settings/controls/RangeInput.svelte';
-  import CardSelect from '$lib/settings/controls/CardSelect.svelte';
   import SelectControl from '$lib/settings/controls/SelectControl.svelte';
   import SaveIndicator from '$lib/settings/controls/SaveIndicator.svelte';
-  import { getSetting, getSettingsBySection } from '$lib/settings/registry';
+  import { getSetting } from '$lib/settings/registry';
   import { editorSettings } from '$lib/stores/editorSettingsStore';
 
   // ---------------------------------------------------------------------------
@@ -40,7 +38,12 @@
 
   // Подписка на editorSettings для live preview
   let currentSettings = $state(editorSettings.getSettings());
-  
+
+  const previewText = `function greet(name) {
+  const message = 'Hello, world';
+  return message;
+}`;
+
   $effect(() => {
     const unsubscribe = editorSettings.subscribe((settings) => {
       currentSettings = settings;
@@ -56,13 +59,11 @@
   const fontSizeDef = getSetting('editor.fontSize');
   const fontFamilyDef = getSetting('editor.fontFamily');
   const fontLigaturesDef = getSetting('editor.fontLigatures');
-  const editorThemeDef = getSetting('editor.theme');
 
   // Layout
   const tabSizeDef = getSetting('editor.tabSize');
   const insertSpacesDef = getSetting('editor.insertSpaces');
   const wordWrapDef = getSetting('editor.wordWrap');
-  const wordWrapColumnDef = getSetting('editor.wordWrapColumn');
 
   // UI Settings
   const minimapDef = getSetting('editor.minimap');
@@ -99,21 +100,21 @@
     { value: 'off', label: 'Off' },
     { value: 'on', label: 'On' },
     { value: 'wordWrapColumn', label: 'At Column' },
-    { value: 'bounded', label: 'Bounded' }
+    { value: 'bounded', label: 'Bounded' },
   ];
 
   const lineNumbersOptions = [
     { value: 'on', label: 'On' },
     { value: 'off', label: 'Off' },
     { value: 'relative', label: 'Relative' },
-    { value: 'interval', label: 'Interval' }
+    { value: 'interval', label: 'Interval' },
   ];
 
   const autoSaveOptions = [
     { value: 'off', label: 'Off' },
     { value: 'afterDelay', label: 'After Delay' },
     { value: 'onFocusChange', label: 'On Focus Change' },
-    { value: 'onWindowChange', label: 'On Window Change' }
+    { value: 'onWindowChange', label: 'On Window Change' },
   ];
 
   const renderWhitespaceOptions = [
@@ -121,7 +122,7 @@
     { value: 'selection', label: 'Selection' },
     { value: 'boundary', label: 'Boundary' },
     { value: 'trailing', label: 'Trailing' },
-    { value: 'all', label: 'All' }
+    { value: 'all', label: 'All' },
   ];
 </script>
 
@@ -133,27 +134,22 @@
     </div>
     <div class="header-content">
       <h2 class="section-title">Editor Settings</h2>
-      <p class="section-description">
-        Настройте поведение и внешний вид редактора кода
-      </p>
+      <p class="section-description">Настройте поведение и внешний вид редактора кода</p>
     </div>
   </header>
 
   <!-- Live Preview -->
   <div class="live-preview">
     <div class="preview-label">Preview</div>
-    <pre 
+    <pre
       class="preview-code"
-      style="font-family: {currentSettings.fontFamily}; font-size: {currentSettings.fontSize}px;"
-    ><code><span class="keyword">function</span> <span class="function">greet</span>(<span class="param">name</span>) {'{'}</code>
-<code>  <span class="keyword">const</span> message = <span class="string">`Hello, ${'${'}name{'}'}`</span>;</code>
-<code>  <span class="keyword">return</span> message;</code>
-<code>{'}'}</code></pre>
+      style="font-family: {currentSettings.fontFamily}; font-size: {currentSettings.fontSize}px;">
+      {previewText}
+    </pre>
   </div>
 
   <!-- Accordions -->
   <Accordion.Root type="multiple" bind:value={openItems} class="settings-accordions">
-    
     <!-- =====================================================================
          Basics
          ===================================================================== -->
@@ -164,7 +160,6 @@
       </Accordion.Trigger>
       <Accordion.Content class="accordion-content">
         <div class="settings-group">
-          
           <!-- Font Size -->
           {#if fontSizeDef}
             <div class="setting-row">
@@ -181,10 +176,10 @@
                   compact
                   onchange={() => handleChange('editor.fontSize')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.fontSize'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.fontSize')} 
+                <SaveIndicator
+                  visible={saveStates['editor.fontSize'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.fontSize')}
                 />
               </div>
             </div>
@@ -207,10 +202,10 @@
                     handleChange('editor.fontFamily');
                   }}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.fontFamily'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.fontFamily')} 
+                <SaveIndicator
+                  visible={saveStates['editor.fontFamily'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.fontFamily')}
                 />
               </div>
             </div>
@@ -229,15 +224,14 @@
                   compact
                   onchange={() => handleChange('editor.fontLigatures')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.fontLigatures'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.fontLigatures')} 
+                <SaveIndicator
+                  visible={saveStates['editor.fontLigatures'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.fontLigatures')}
                 />
               </div>
             </div>
           {/if}
-
         </div>
       </Accordion.Content>
     </Accordion.Item>
@@ -252,7 +246,6 @@
       </Accordion.Trigger>
       <Accordion.Content class="accordion-content">
         <div class="settings-group">
-
           <!-- Tab Size -->
           {#if tabSizeDef}
             <div class="setting-row">
@@ -269,10 +262,10 @@
                   compact
                   onchange={() => handleChange('editor.tabSize')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.tabSize'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.tabSize')} 
+                <SaveIndicator
+                  visible={saveStates['editor.tabSize'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.tabSize')}
                 />
               </div>
             </div>
@@ -291,10 +284,10 @@
                   compact
                   onchange={() => handleChange('editor.insertSpaces')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.insertSpaces'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.insertSpaces')} 
+                <SaveIndicator
+                  visible={saveStates['editor.insertSpaces'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.insertSpaces')}
                 />
               </div>
             </div>
@@ -313,15 +306,14 @@
                   options={wordWrapOptions}
                   onchange={() => handleChange('editor.wordWrap')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.wordWrap'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.wordWrap')} 
+                <SaveIndicator
+                  visible={saveStates['editor.wordWrap'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.wordWrap')}
                 />
               </div>
             </div>
           {/if}
-
         </div>
       </Accordion.Content>
     </Accordion.Item>
@@ -336,7 +328,6 @@
       </Accordion.Trigger>
       <Accordion.Content class="accordion-content">
         <div class="settings-group">
-
           <!-- Minimap -->
           {#if minimapDef}
             <div class="setting-row">
@@ -350,10 +341,10 @@
                   compact
                   onchange={() => handleChange('editor.minimap')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.minimap'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.minimap')} 
+                <SaveIndicator
+                  visible={saveStates['editor.minimap'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.minimap')}
                 />
               </div>
             </div>
@@ -372,10 +363,10 @@
                   options={lineNumbersOptions}
                   onchange={() => handleChange('editor.lineNumbers')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.lineNumbers'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.lineNumbers')} 
+                <SaveIndicator
+                  visible={saveStates['editor.lineNumbers'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.lineNumbers')}
                 />
               </div>
             </div>
@@ -394,15 +385,14 @@
                   compact
                   onchange={() => handleChange('editor.folding')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.folding'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.folding')} 
+                <SaveIndicator
+                  visible={saveStates['editor.folding'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.folding')}
                 />
               </div>
             </div>
           {/if}
-
         </div>
       </Accordion.Content>
     </Accordion.Item>
@@ -417,7 +407,6 @@
       </Accordion.Trigger>
       <Accordion.Content class="accordion-content">
         <div class="settings-group">
-
           <!-- Auto Save -->
           {#if autoSaveDef}
             <div class="setting-row">
@@ -431,10 +420,10 @@
                   options={autoSaveOptions}
                   onchange={() => handleChange('editor.autoSave')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.autoSave'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.autoSave')} 
+                <SaveIndicator
+                  visible={saveStates['editor.autoSave'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.autoSave')}
                 />
               </div>
             </div>
@@ -456,15 +445,14 @@
                   compact
                   onchange={() => handleChange('editor.autoSaveDelay')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.autoSaveDelay'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.autoSaveDelay')} 
+                <SaveIndicator
+                  visible={saveStates['editor.autoSaveDelay'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.autoSaveDelay')}
                 />
               </div>
             </div>
           {/if}
-
         </div>
       </Accordion.Content>
     </Accordion.Item>
@@ -479,7 +467,6 @@
       </Accordion.Trigger>
       <Accordion.Content class="accordion-content">
         <div class="settings-group">
-
           <!-- Bracket Pair Colorization -->
           {#if bracketPairDef}
             <div class="setting-row">
@@ -487,11 +474,14 @@
                 <div class="setting-label-row">
                   <div class="setting-label">Bracket Pair Colorization</div>
                   <Tooltip.Root>
-                  <Tooltip.Trigger class="help-trigger">
-                    <HelpCircle size={14} class="help-icon" />
-                  </Tooltip.Trigger>
+                    <Tooltip.Trigger class="help-trigger">
+                      <HelpCircle size={14} class="help-icon" />
+                    </Tooltip.Trigger>
                     <Tooltip.Content>
-                      <p>Colorizes matching brackets with different colors to help you identify nested code blocks more easily.</p>
+                      <p>
+                        Colorizes matching brackets with different colors to help you identify
+                        nested code blocks more easily.
+                      </p>
                     </Tooltip.Content>
                   </Tooltip.Root>
                 </div>
@@ -503,10 +493,10 @@
                   compact
                   onchange={() => handleChange('editor.bracketPairColorization')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.bracketPairColorization'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.bracketPairColorization')} 
+                <SaveIndicator
+                  visible={saveStates['editor.bracketPairColorization'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.bracketPairColorization')}
                 />
               </div>
             </div>
@@ -519,11 +509,14 @@
                 <div class="setting-label-row">
                   <div class="setting-label">Render Whitespace</div>
                   <Tooltip.Root>
-                  <Tooltip.Trigger class="help-trigger">
-                    <HelpCircle size={14} class="help-icon" />
-                  </Tooltip.Trigger>
+                    <Tooltip.Trigger class="help-trigger">
+                      <HelpCircle size={14} class="help-icon" />
+                    </Tooltip.Trigger>
                     <Tooltip.Content>
-                      <p>Shows spaces and tabs as visible dots/arrows. "Selection" shows only in selected text, "Trailing" shows only at end of lines.</p>
+                      <p>
+                        Shows spaces and tabs as visible dots/arrows. "Selection" shows only in
+                        selected text, "Trailing" shows only at end of lines.
+                      </p>
                     </Tooltip.Content>
                   </Tooltip.Root>
                 </div>
@@ -535,19 +528,17 @@
                   options={renderWhitespaceOptions}
                   onchange={() => handleChange('editor.renderWhitespace')}
                 />
-                <SaveIndicator 
-                  visible={saveStates['editor.renderWhitespace'] ?? false} 
-                  compact 
-                  onHide={() => hideSaveIndicator('editor.renderWhitespace')} 
+                <SaveIndicator
+                  visible={saveStates['editor.renderWhitespace'] ?? false}
+                  compact
+                  onHide={() => hideSaveIndicator('editor.renderWhitespace')}
                 />
               </div>
             </div>
           {/if}
-
         </div>
       </Accordion.Content>
     </Accordion.Item>
-
   </Accordion.Root>
 </div>
 
@@ -633,26 +624,6 @@
     overflow-x: auto;
   }
 
-  .preview-code code {
-    display: block;
-  }
-
-  .preview-code .keyword {
-    color: hsl(var(--settings-primary, 217 91% 60%));
-  }
-
-  .preview-code .function {
-    color: hsl(38 92% 50%);
-  }
-
-  .preview-code .param {
-    color: hsl(280 60% 65%);
-  }
-
-  .preview-code .string {
-    color: hsl(160 84% 39%);
-  }
-
   /* =========================================================================
    * Accordion Styles
    * ========================================================================= */
@@ -674,7 +645,7 @@
     border-radius: var(--settings-radius-lg, 12px);
     font-size: var(--settings-font-size-base, 14px);
     cursor: pointer;
-    transition: 
+    transition:
       background-color var(--settings-transition-fast, 150ms),
       border-color var(--settings-transition-fast, 150ms);
   }
@@ -684,7 +655,7 @@
     border-color: var(--nc-level-4, hsl(var(--border)));
   }
 
-  :global(.accordion-trigger[data-state="open"]) {
+  :global(.accordion-trigger[data-state='open']) {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom-color: transparent;
@@ -775,7 +746,8 @@
     justify-content: center;
     border-radius: 6px;
     cursor: help;
-    transition: background-color var(--settings-transition-fast, 150ms),
+    transition:
+      background-color var(--settings-transition-fast, 150ms),
       color var(--settings-transition-fast, 150ms),
       opacity var(--settings-transition-fast, 150ms);
   }
@@ -827,3 +799,4 @@
   }
 </style>
 
+<svelte:options runes={true} />

@@ -80,5 +80,5 @@ export const fileService: FileService = {
 
   getWorkspaceRoot() {
     return workspaceRoot;
-  }
+  },
 };

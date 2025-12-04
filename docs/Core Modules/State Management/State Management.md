@@ -26,6 +26,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Core State Stores](#core-state-stores)
 3. [Store Relationships and Communication](#store-relationships-and-communication)
@@ -52,6 +53,7 @@ The primary stores include editorStore for managing open editor tabs and their s
 These stores are implemented as modules that export store instances, allowing them to be easily imported and used by components. They follow a consistent pattern of using writable stores for mutable state, derived stores for computed state, and readable stores for state that should not be directly modified. This approach ensures that state changes are predictable and traceable, making the application easier to debug and maintain.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -79,6 +81,7 @@ editorGroupsStore --> |group changes| editorStore
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -88,6 +91,7 @@ editorGroupsStore --> |group changes| editorStore
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L20-L413)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -117,11 +121,13 @@ G --> |notify| H[Component]
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -158,9 +164,11 @@ EditorStore --> EditorTab : "contains"
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 
 ### workspaceStore Implementation
@@ -194,9 +202,11 @@ WorkspaceStore --> FileNode : "contains"
 ```
 
 **Diagram sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 ### themeStore Implementation
@@ -223,9 +233,11 @@ ThemeStore --> ThemeState : "contains"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 ### fileTreeStore Implementation
@@ -255,9 +267,11 @@ FileTreeStore --> FileTreeState : "contains"
 ```
 
 **Diagram sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 
 ### settingsStore Implementation
@@ -283,9 +297,11 @@ SettingsStore --> SettingsSnapshot : "contains"
 ```
 
 **Diagram sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L19-L313)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L19-L313)
 
 ### layoutStore Implementation
@@ -324,9 +340,11 @@ LayoutStore --> LayoutState : "contains"
 ```
 
 **Diagram sources**
+
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 
 **Section sources**
+
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 
 ## Common Issues and Solutions
@@ -350,6 +368,7 @@ Memory management is important for preventing memory leaks and ensuring optimal 
 Additionally, the stores themselves are designed to be lightweight and avoid holding onto unnecessary references. For example, the fileTreeStore only stores the IDs of expanded directories and the selected file, rather than references to the actual file nodes.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L19-L313)
@@ -375,6 +394,7 @@ Lazy loading is used to improve startup performance and reduce memory usage. The
 For example, the diagnosticsStore is only initialized when the editor is first loaded, rather than at application startup. This reduces the initial memory footprint and improves startup time.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L20-L381)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L16-L290)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L19-L313)

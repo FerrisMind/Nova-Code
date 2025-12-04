@@ -12,6 +12,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Theme Architecture Overview](#theme-architecture-overview)
 3. [Theme Store and State Management](#theme-store-and-state-management)
@@ -30,6 +31,7 @@ The NC code editor provides a comprehensive theming system that allows users to 
 The theming system consists of two main components: the UI theme store that manages the application's visual appearance, and the editor theme manager that handles syntax highlighting in the Monaco editor. These components work together to provide a cohesive theming experience while allowing for independent customization of interface and code editor elements.
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
@@ -64,6 +66,7 @@ style ThemeManager fill:#f9f,stroke:#333
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
@@ -73,6 +76,7 @@ style ThemeManager fill:#f9f,stroke:#333
 The theme store is the central state management system for the NC code editor's UI themes. It maintains the current theme mode (light/dark) and selected color palette, serving as the single source of truth for theme-related state across the application.
 
 The theme store exposes several key methods for managing theme state:
+
 - `setTheme(mode)`: Sets the theme mode (light/dark)
 - `toggleTheme()`: Toggles between light and dark modes while preserving the palette slot
 - `setPalette(paletteId)`: Sets the current color palette
@@ -109,10 +113,12 @@ ThemePalette --> ThemeMode : "references"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
@@ -128,6 +134,7 @@ The system supports eight predefined palettes: four for light mode (`light-defau
 - `textColor`: The primary text color for the palette
 
 The background levels follow a specific hierarchy:
+
 - Level 0: Base background (sidebar)
 - Level 1-2: Working area/cards (+8-10 points)
 - Level 3: Buttons in normal state (+12-14 points)
@@ -149,9 +156,11 @@ style End fill:#4CAF50,stroke:#333
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 ## Editor Theme Management
@@ -159,6 +168,7 @@ style End fill:#4CAF50,stroke:#333
 The editor theme management system is responsible for handling syntax highlighting themes in the Monaco editor. It provides a comprehensive API for registering, applying, and managing both built-in and custom themes.
 
 The `ThemeManager` class serves as the central component for editor theme management. It provides methods for:
+
 - Initializing the theme manager with a Monaco editor instance
 - Registering built-in themes
 - Registering custom themes from JSON
@@ -168,6 +178,7 @@ The `ThemeManager` class serves as the central component for editor theme manage
 - Removing custom themes
 
 The system supports three types of themes:
+
 - Built-in themes: The standard Monaco editor themes (vs, vs-dark, hc-black, hc-light)
 - Popular themes: Pre-loaded popular themes like Monokai, Dracula, and Nord
 - Custom themes: User-defined themes created programmatically or imported
@@ -202,9 +213,11 @@ ThemeManager --> MonacoEditor : "controls"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Theme Registration and Application API
@@ -212,11 +225,13 @@ ThemeManager --> MonacoEditor : "controls"
 The NC code editor provides a comprehensive API for registering and applying custom themes. The API is designed to be intuitive and consistent across both UI and editor theming systems.
 
 For UI themes, the theme store provides methods to set the theme mode and palette:
+
 - `theme.setTheme('light')` or `theme.setTheme('dark')` to set the theme mode
 - `theme.setPalette('dark-alt-1')` to set a specific palette
 - `theme.toggleTheme()` to toggle between light and dark modes
 
 For editor themes, the theme manager provides methods to register and apply custom themes:
+
 - `themeManager.registerCustomTheme(themeJson)` to register a custom theme from JSON
 - `themeManager.applyTheme(themeId)` to apply a theme by ID
 - `themeManager.getAvailableThemes()` to get a list of all available themes
@@ -242,11 +257,13 @@ Editor-->>User : Display updated theme
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [registry.ts](file://src/lib/settings/registry.ts#L1-L558)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [registry.ts](file://src/lib/settings/registry.ts#L1-L558)
@@ -256,12 +273,14 @@ Editor-->>User : Display updated theme
 The NC code editor implements robust validation and error handling for custom themes to ensure stability and prevent rendering issues. The validation process occurs at multiple levels: during theme registration, application, and serialization.
 
 When registering a custom theme via `registerCustomTheme(themeJson)`, the system performs the following validation checks:
+
 - Ensures the theme JSON can be parsed successfully
 - Validates that required fields exist (name, base, rules, colors)
 - Checks that the base theme is one of the allowed values (vs, vs-dark, hc-black, hc-light)
 - Verifies that rules is an array and colors is an object
 
 If any validation check fails, the method returns an error object with a descriptive message. For example:
+
 - "Monaco не инициализирован" if the Monaco editor instance is not available
 - "Неверная структура темы" if the theme structure is invalid
 - "Ошибка парсинга JSON" if the JSON cannot be parsed
@@ -287,9 +306,11 @@ style ReturnSuccess fill:#4CAF50,stroke:#333
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L109)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L109)
 
 ## Theme Serialization and Storage
@@ -297,6 +318,7 @@ style ReturnSuccess fill:#4CAF50,stroke:#333
 Custom themes in the NC code editor are serialized and stored using a JSON-based format that is compatible with the Monaco editor's theme definition structure. This serialization format allows themes to be easily shared, imported, and exported.
 
 The serialization format for custom themes includes the following properties:
+
 - `name`: The display name of the theme
 - `base`: The base theme to inherit from (vs, vs-dark, hc-black, hc-light)
 - `inherit`: Boolean indicating whether to inherit from the base theme
@@ -329,10 +351,12 @@ CustomTheme --> JSON : "serializable"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L8-L19)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L160-L165)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L8-L19)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L160-L165)
 
@@ -360,7 +384,7 @@ export function installMyTheme(themeManager) {
       "editor.selectionBackground": "#264F78"
     }
   }`;
-  
+
   return themeManager.registerCustomTheme(themeJson);
 }
 ```
@@ -384,10 +408,12 @@ style UseTheme fill:#4CAF50,stroke:#333
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L225-L253)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L105)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L225-L253)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L105)
 
@@ -460,6 +486,7 @@ const monacoThemeId = getMonacoThemeId(themeState, editorTheme);
 These examples demonstrate the flexibility of the theming system, allowing developers to create custom themes programmatically and integrate them seamlessly into the editor environment.
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L13-L117)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L105)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L264-L273)

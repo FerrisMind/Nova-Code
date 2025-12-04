@@ -19,6 +19,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -31,9 +32,11 @@
 10. [Appendices](#appendices)
 
 ## Introduction
+
 EditorCore is the central component that encapsulates the Monaco Editor instance and provides a unified, typed API for all editor operations. It serves as the primary interface between the application and the Monaco Editor, handling initialization, configuration, lifecycle management, model management, diagnostics integration, and event subscriptions. Its design ensures clean separation of concerns, predictable behavior, and extensibility for features like IntelliSense, diff editors, and custom language providers.
 
 Key responsibilities:
+
 - Encapsulate Monaco Editor APIs and expose a minimal, typed surface.
 - Manage editor lifecycle: attach, configure, and dispose.
 - Manage multiple document models keyed by file identifiers.
@@ -42,6 +45,7 @@ Key responsibilities:
 - Support diff sessions and language provider registration.
 
 ## Project Structure
+
 The EditorCore module lives under src/lib/editor and collaborates with several stores and utilities across the codebase. The diagram below shows the main files involved in the EditorCore ecosystem.
 
 ```mermaid
@@ -85,6 +89,7 @@ FV --> EC
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
@@ -101,10 +106,12 @@ FV --> EC
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L111)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L120)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 ## Core Components
+
 - EditorCoreApi: Public API surface exposing editor operations, model management, configuration, diagnostics, diff sessions, and event subscriptions.
 - CoreState: Internal state holding Monaco instance, editor instance, models, active file identifier, options, and event subscriptions.
 - EditorCapabilities: Flags indicating core capabilities such as multi-model support, preserved undo stack on switch, diff readiness, and extensible languages.
@@ -113,6 +120,7 @@ FV --> EC
 - EditorDiagnostic: Minimal representation of diagnostic messages compatible with Monaco’s IMarkerData.
 
 Key implementation highlights:
+
 - Constructor-like factory function that initializes state and returns a typed API.
 - attachTo(container, options?): Creates or recreates the editor with performance-oriented defaults and applies user options.
 - dispose(): Safely disposes editor, models, and event subscriptions.
@@ -123,11 +131,13 @@ Key implementation highlights:
 - Event subscriptions: onDidChangeContent(listener) and onDidChangeCursorPosition(listener) with proper cleanup.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L120-L200)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L340-L541)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L541-L891)
 
 ## Architecture Overview
+
 The EditorCore orchestrates Monaco Editor integration and exposes a thin, typed API. It delegates language support and IntelliSense to dedicated modules, synchronizes diagnostics via a dedicated adapter, and coordinates theme application through ThemeManager. Stores manage application state and UI integration.
 
 ```mermaid
@@ -160,6 +170,7 @@ Core-->>App : Events delivered to listeners
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L407-L891)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
@@ -167,6 +178,7 @@ Core-->>App : Events delivered to listeners
 ## Detailed Component Analysis
 
 ### EditorCore Class and API
+
 EditorCore is implemented as a factory that returns a strongly typed API. Internally, it maintains a state object with Monaco instance, editor instance, models map, active file identifier, options, and event subscriptions. The API exposes methods for lifecycle, model management, configuration, diagnostics, diff sessions, and event subscriptions.
 
 ```mermaid
@@ -236,16 +248,19 @@ EditorCoreApi --> EditorCoreOptions : "configures"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L120-L200)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L316-L340)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L340-L541)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L120-L200)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L316-L340)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L340-L541)
 
 ### Initialization Sequence
+
 The initialization sequence ensures that Monaco workers are configured, EditorCore is created, and the editor is attached to a container with optional configuration.
 
 ```mermaid
@@ -264,14 +279,17 @@ Core-->>App : Editor ready
 ```
 
 **Diagram sources**
+
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L407-L541)
 
 **Section sources**
+
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L407-L541)
 
 ### Shutdown Procedures
+
 Proper disposal is essential to prevent memory leaks. The dispose method cleans up content and cursor subscriptions, disposes the editor, and disposes all managed models.
 
 ```mermaid
@@ -285,12 +303,15 @@ ClearState --> End(["Disposed"])
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L517-L541)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L517-L541)
 
 ### Model Management System
+
 EditorCore manages multiple models keyed by file identifiers. It creates models when needed, switches active models without losing undo/redo history, and provides utilities to update content and query metadata.
 
 ```mermaid
@@ -312,12 +333,15 @@ Core-->>Core : activeFileId = fileId
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L543-L601)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L543-L601)
 
 ### Diagnostics Integration
+
 EditorCore integrates with Monaco markers and a diagnostics adapter to synchronize diagnostics with the diagnostics store for UI consumption.
 
 ```mermaid
@@ -335,16 +359,19 @@ Adapter->>Store : updateDiagnosticsForFile(fileId, diagnostics)
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L693-L725)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L693-L725)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 
 ### Theme Synchronization
+
 Theme synchronization is handled by ThemeManager, which registers and applies themes. EditorCore reads editor settings and applies theme changes via ThemeManager and Monaco’s theme API.
 
 ```mermaid
@@ -360,16 +387,19 @@ Core->>Monaco : updateOptions({ theme })
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L256-L274)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L619-L650)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L619-L650)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 ### Language Support and IntelliSense
+
 Language support and IntelliSense are integrated through dedicated modules. LanguageSupport maps internal IDs to Monaco language IDs and registers basic languages. IntelliSense sets up language services and providers with performance optimizations.
 
 ```mermaid
@@ -387,16 +417,19 @@ Intell->>Monaco : register completion/hover providers
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L652-L691)
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L652-L691)
 
 ### Diff Editor Session
+
 EditorCore supports creating diff sessions backed by existing or lazily created models. The diff editor is mounted into a container and can be updated independently of the core editor.
 
 ```mermaid
@@ -416,12 +449,15 @@ Diff-->>Core : mount(container) returns diffEditor
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L727-L891)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L727-L891)
 
 ## Dependency Analysis
+
 EditorCore depends on Monaco Editor APIs and integrates with several modules and stores. The dependency graph below illustrates these relationships.
 
 ```mermaid
@@ -446,6 +482,7 @@ FV["fileValidator.ts"] --> EC
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
@@ -462,6 +499,7 @@ FV["fileValidator.ts"] --> EC
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L111)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
@@ -478,6 +516,7 @@ FV["fileValidator.ts"] --> EC
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L111)
 
 ## Performance Considerations
+
 - Automatic layout and reduced animations: The editor is configured with automatic layout and disabled smooth scrolling and cursor animation to improve responsiveness.
 - Quick suggestions delay: A short delay reduces UI responsiveness overhead while maintaining IntelliSense feedback.
 - Minimap optimizations: Minimap rendering can be tuned to reduce CPU/GPU load.
@@ -485,34 +524,41 @@ FV["fileValidator.ts"] --> EC
 - Worker configuration: MonacoEnvironment configures ESM workers for Monaco, enabling efficient language services and diagnostics.
 
 Practical tips:
+
 - Disable minimap, code lens, and links for very large files.
 - Prefer lightweight fonts and disable heavy decorations when editing large files.
 - Use largeFileOptimizations to reduce rendering overhead.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L407-L541)
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L111)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 ## Troubleshooting Guide
+
 Common issues and resolutions:
+
 - Memory leaks during disposal: Ensure dispose() is called to release editor, models, and subscriptions. Verify that content and cursor subscriptions are disposed.
 - Unhandled rejections during disposal: Use silenceMonacoCancellationErrors() to ignore cancellation-related rejections that are expected during disposal.
 - Worker initialization: Import monacoEnvironment before using Monaco to ensure workers are configured.
 - Diagnostics not updating: Confirm diagnostics adapter is attached and markers are applied to the correct model.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L517-L541)
 - [monacoUnhandledRejection.ts](file://src/lib/editor/monacoUnhandledRejection.ts#L1-L30)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 
 ## Conclusion
+
 EditorCore provides a robust, extensible foundation for integrating Monaco Editor into the application. It encapsulates lifecycle management, model orchestration, configuration, diagnostics, and event handling while delegating specialized concerns to dedicated modules. By following the patterns outlined here—proper initialization, configuration, disposal, and integration with stores and adapters—you can build a performant and maintainable editor experience.
 
 ## Appendices
 
 ### Practical Usage Examples
+
 - Instantiate and configure EditorCore:
   - Create the core with the Monaco instance.
   - Attach to a DOM container and pass initial options.

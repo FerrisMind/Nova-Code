@@ -13,6 +13,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -24,7 +25,9 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 This document explains the editorStore, the central state manager for the code editor in NC. It covers:
+
 - State properties: current editor instance, active tab, cursor position, selection range, and editor configuration
 - Methods for creating, switching, and closing tabs, and managing split views
 - Interaction with EditorCore to initialize and configure Monaco Editor instances
@@ -35,7 +38,9 @@ This document explains the editorStore, the central state manager for the code e
 - Safe updates and performance guidance for rapid state changes
 
 ## Project Structure
+
 The editor subsystem is composed of:
+
 - editorStore: logical tabs and active tab state
 - editorGroupsStore: split view and tab grouping
 - EditorCore: Monaco Editor integration and event subscriptions
@@ -70,6 +75,7 @@ EBEH --> HOST
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L358-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L120)
 - [editorMetaStore.ts](file://src/lib/stores/editorMetaStore.ts#L1-L90)
@@ -80,6 +86,7 @@ EBEH --> HOST
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L120)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L120)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L120)
@@ -90,6 +97,7 @@ EBEH --> HOST
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L40)
 
 ## Core Components
+
 - editorStore: maintains open tabs and active editor id; exposes methods to open/close tabs, set active editor, mark dirty, update content, and ensure a tab exists for a given file id/path
 - editorGroupsStore: manages split views and tab ordering per group; keeps track of active group and active tab per group
 - EditorCore: encapsulates Monaco Editor lifecycle, model management, configuration, and event subscriptions
@@ -100,6 +108,7 @@ EBEH --> HOST
 - fileService: persists content to the backend and lists workspace files
 
 Key responsibilities:
+
 - editorStore: logical tabs and dirty state
 - editorGroupsStore: split view layout and active tab routing
 - EditorCore: Monaco instance, models, events, and configuration
@@ -107,6 +116,7 @@ Key responsibilities:
 - MonacoHost.svelte: runtime integration and event bridging
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L81-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L220)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L160-L315)
@@ -117,7 +127,9 @@ Key responsibilities:
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 ## Architecture Overview
+
 The editor architecture separates concerns:
+
 - editorStore: logical tabs and active tab id
 - editorGroupsStore: split view and tab ordering
 - EditorCore: Monaco Editor integration and event subscriptions
@@ -153,6 +165,7 @@ Meta-->>UI : {languageId, eol, tabSize, insertSpaces}
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L192-L349)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L173-L222)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L171-L210)
@@ -163,6 +176,7 @@ Meta-->>UI : {languageId, eol, tabSize, insertSpaces}
 ## Detailed Component Analysis
 
 ### editorStore
+
 - State shape:
   - openTabs: array of EditorTab with id, title, path, language, isDirty
   - activeEditorId: string | null
@@ -178,6 +192,7 @@ Meta-->>UI : {languageId, eol, tabSize, insertSpaces}
   - activeEditor: resolves active tab from activeEditorId
 
 Integration points:
+
 - Works with editorGroupsStore to manage split views and active tabs
 - Interacts with fileService for persistence
 - Emits events consumed by MonacoHost via EditorCore
@@ -204,12 +219,15 @@ Done --> End
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L110-L190)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L81-L381)
 
 ### editorGroupsStore
+
 - Manages:
   - groups: array of EditorGroupState with id, tabIds, activeTabId
   - activeGroupId
@@ -223,13 +241,16 @@ Done --> End
   - getActiveGroup(), getActiveTab()
 
 Split view behavior:
+
 - Splitting moves the active tab from the source group to a newly created group and makes the new group active
 - Moving tabs between groups updates activeTabId appropriately
 
 **Section sources**
+
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 ### EditorCore
+
 - Responsibilities:
   - Attach to DOM container and create IStandaloneCodeEditor
   - Manage models by fileId and keep activeFileId
@@ -284,12 +305,15 @@ EditorCoreApi --> MonacoEditor : "wraps"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L163-L315)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L210)
 
 ### MonacoHost.svelte
+
 - Mounts EditorCore, applies theme, registers language support and providers
 - Reacts to prop changes (fileId, uri, value, language) to update the active model
 - Applies editor options via core.configure
@@ -314,13 +338,16 @@ Host-->>Host : dispatch("change", {fileId, value})
 ```
 
 **Diagram sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L120-L210)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L205-L210)
 
 **Section sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L210)
 
 ### editorMetaStore
+
 - Provides derived metadata for the active editor:
   - languageId
   - eol (LF or CRLF)
@@ -329,9 +356,11 @@ Host-->>Host : dispatch("change", {fileId, value})
 - Requires explicit initialization with EditorCoreApi to avoid circular dependencies
 
 **Section sources**
+
 - [editorMetaStore.ts](file://src/lib/stores/editorMetaStore.ts#L1-L90)
 
 ### editorSettingsStore
+
 - Maintains editor appearance and behavior preferences:
   - theme, fontSize, fontFamily, fontLigatures
   - tabSize, insertSpaces
@@ -340,18 +369,22 @@ Host-->>Host : dispatch("change", {fileId, value})
 - Exposes setters and a reset function
 
 **Section sources**
+
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 ### editorBehaviorStore
+
 - Controls auto-save behavior:
   - autoSaveMode: off | afterDelay | onFocusChange | onWindowChange
   - autoSaveDelay: number
 - Provides getters and toggles
 
 **Section sources**
+
 - [editorBehaviorStore.ts](file://src/lib/stores/editorBehaviorStore.ts#L1-L56)
 
 ## Dependency Analysis
+
 - editorStore depends on:
   - editorGroupsStore for split view management
   - fileService for persistence
@@ -376,18 +409,21 @@ CORE --> MONACO["monaco-editor"]
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L356-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L120)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L120)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L120)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L356-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L120)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L120)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L120)
 
 ## Performance Considerations
+
 - Monaco Editor optimizations:
   - automaticLayout: true
   - smoothScrolling: false
@@ -407,7 +443,9 @@ CORE --> MONACO["monaco-editor"]
 [No sources needed since this section provides general guidance]
 
 ## Troubleshooting Guide
+
 Common issues and resolutions:
+
 - Content not persisting:
   - Ensure updateContent is called with a valid file id and that fileService.writeFile completes
   - Verify markDirty is set to false after successful write
@@ -423,10 +461,12 @@ Common issues and resolutions:
   - Avoid unnecessary re-renders in Svelte components by using derived stores and memoized computations
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L284-L349)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L543-L601)
 - [editorMetaStore.ts](file://src/lib/stores/editorMetaStore.ts#L32-L41)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L146-L172)
 
 ## Conclusion
+
 The editorStore orchestrates logical tabs and active tab state while delegating Monaco-specific operations to EditorCore. Together with editorGroupsStore, editorMetaStore, editorSettingsStore, and editorBehaviorStore, it provides a robust foundation for a modern code editor with split views, metadata display, configurable preferences, and reliable persistence. Integrating with MonacoHost.svelte ensures seamless Svelte-to-Monaco bridging, enabling responsive editing experiences with efficient event handling and performance optimizations.

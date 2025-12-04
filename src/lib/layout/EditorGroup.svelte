@@ -1,23 +1,15 @@
-<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import EditorTabs from './EditorTabs.svelte';
   import EditorArea from './EditorArea.svelte';
-  import {
-    activeTabForGroup,
-    editorStore,
-    type EditorTab
-  } from '../stores/editorStore';
+  import { activeTabForGroup, editorStore, type EditorTab } from '../stores/editorStore';
   import {
     setActiveGroup,
     setActiveTab as setActiveGroupTab,
-    type EditorGroupId
+    type EditorGroupId,
   } from '../stores/layout/editorGroupsStore';
 
-  let {
-    groupId,
-    isActive = false
-  }: { groupId: EditorGroupId; isActive?: boolean } = $props();
+  let { groupId, isActive = false }: { groupId: EditorGroupId; isActive?: boolean } = $props();
 
   let activeTab: EditorTab | null = null;
 
@@ -69,3 +61,5 @@
     border-top-color: transparent;
   }
 </style>
+
+<svelte:options runes={true} />

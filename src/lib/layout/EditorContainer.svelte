@@ -7,7 +7,7 @@
     hydrateEditorGroups,
     updateProportions,
     type EditorGroupState,
-    type EditorGroupsState
+    type EditorGroupsState,
   } from '../stores/layout/editorGroupsStore';
   import { loadEditorLayout, persistEditorLayout } from '../stores/layout/editorLayoutPersistence';
 
@@ -116,12 +116,9 @@
   {#if groups.length === 0}
     <div class="empty-state">No editor groups</div>
   {:else}
-    {#each groups as group, index}
+    {#each groups as group, index (group.id)}
       <div class="group-slot" style={`flex: ${proportions[index] ?? 1} 1 0%`}>
-        <EditorGroup
-          groupId={group.id}
-          isActive={group.id === activeGroupId}
-        />
+        <EditorGroup groupId={group.id} isActive={group.id === activeGroupId} />
       </div>
 
       {#if index < groups.length - 1}
@@ -164,7 +161,9 @@
     align-self: stretch;
     background: transparent;
     cursor: col-resize;
-    transition: width 0.12s ease, background-color 0.12s ease;
+    transition:
+      width 0.12s ease,
+      background-color 0.12s ease;
     border-radius: 2px;
     border: none;
     padding: 0;

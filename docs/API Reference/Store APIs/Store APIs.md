@@ -17,6 +17,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Core Stores Overview](#core-stores-overview)
 3. [Editor Store](#editor-store)
@@ -39,6 +40,7 @@ The Svelte store system in the NC code editor provides a comprehensive state man
 The NC code editor implements a modular store architecture with specialized stores for different aspects of application state. The system follows a hierarchical pattern where domain-specific stores (like editorSettingsStore) are aggregated by higher-level stores (like settingsStore) to provide unified access points. The stores are initialized during application startup and maintain their state throughout the application lifecycle. Each store exposes a consistent API pattern with subscribe methods for reactive updates and specific functions for state modification. The architecture emphasizes separation of concerns, with stores like editorGroupsStore managing layout state independently from editorStore which maintains the core editor tab state. This design allows for complex features like split editor views while maintaining a clean separation between content and presentation state.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -84,10 +86,12 @@ editorStore --> fileService : "uses"
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 
 ## Workspace Store
@@ -129,10 +133,12 @@ workspaceStore --> fileService : "uses"
 ```
 
 **Diagram sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 ## Theme Store
@@ -168,11 +174,13 @@ themeManager --> THEME_PALETTES : "uses"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 ## Settings Store
@@ -221,12 +229,14 @@ themeStore --> ThemeState : "manages"
 ```
 
 **Diagram sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [registry.ts](file://src/lib/settings/registry.ts#L1-L558)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 
 ## File Tree Store
@@ -263,11 +273,13 @@ fileTreeStore --> editorStore : "subscribes to"
 ```
 
 **Diagram sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 
 ## Store Relationships and Data Flow
@@ -297,6 +309,7 @@ style F fill:#f9f,stroke:#333
 ```
 
 **Diagram sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -306,6 +319,7 @@ style F fill:#f9f,stroke:#333
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -335,11 +349,13 @@ Component->>Component : Efficient re-render only changed parts
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
@@ -349,6 +365,7 @@ Component->>Component : Efficient re-render only changed parts
 The store system in the NC code editor initializes during application startup with a well-defined sequence of operations. Each store sets up its initial state and establishes necessary subscriptions and integrations. The workspaceStore initializes first, loading the workspace files and setting up a file watcher to monitor file system changes. The editorStore is then initialized with a reference to the workspaceStore's file provider function, establishing the connection between editor tabs and workspace files. The themeStore initializes with a default dark mode and corresponding palette, setting the initial visual theme. The settingsStore subscribes to changes in dependent stores like editorSettings and theme, establishing the reactive pipeline for settings updates. The fileTreeStore sets up its internal state with empty sets for expanded directories and no selected file. Throughout the initialization process, stores establish their interconnections, such as the editorStore's integration with editorGroupsStore for layout management. This coordinated initialization ensures that all stores are properly configured and interconnected before the application becomes interactive.
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -360,6 +377,7 @@ The store system in the NC code editor initializes during application startup wi
 The store system in the NC code editor incorporates several performance optimizations to ensure responsive operation. Stores minimize unnecessary updates by using derived stores and computed properties that only recalculate when dependencies change. The settingsStore batches updates to reduce the frequency of UI re-renders, while the fileTreeStore uses Sets for tracking expanded directories to enable efficient lookups. The editorStore optimizes tab management by using immutable updates with spread syntax, allowing Svelte's reactivity system to efficiently detect changes. The themeStore caches its current state to avoid redundant computations when multiple components access the theme simultaneously. The workspaceStore implements debounced file change detection to prevent excessive updates during rapid file system modifications. Stores avoid memory leaks by properly cleaning up subscriptions, particularly in the workspaceStore which unsubscribes from file change events when necessary. The architecture also considers the performance implications of store interdependencies, ensuring that updates propagate efficiently through the system without creating circular update patterns.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -371,6 +389,7 @@ The store system in the NC code editor incorporates several performance optimiza
 When working with the store system in the NC code editor, several best practices should be followed to maintain code quality and application performance. Always use the provided store APIs rather than directly modifying store state to ensure proper change notification and maintainability. Subscribe to stores using Svelte's $ syntax for automatic subscription management and cleanup. When creating derived stores, ensure they have minimal dependencies to avoid unnecessary recalculations. For asynchronous operations, handle errors gracefully and update store state appropriately to reflect loading and error states. Avoid creating circular dependencies between stores, as this can lead to infinite update loops. When updating complex state, use immutable patterns with spread syntax to ensure Svelte's reactivity system can efficiently detect changes. For performance-critical operations, consider debouncing or throttling updates to prevent excessive UI re-renders. Finally, always clean up subscriptions in onDestroy handlers when manually subscribing to stores to prevent memory leaks.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)

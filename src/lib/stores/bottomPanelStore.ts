@@ -6,7 +6,7 @@ interface BottomPanelState {
 
 const createBottomPanelStore = () => {
   const { subscribe, update, set } = writable<BottomPanelState>({
-    visible: false
+    visible: false,
   });
 
   const toggle = () => update((s) => ({ ...s, visible: !s.visible }));
@@ -17,7 +17,7 @@ const createBottomPanelStore = () => {
     subscribe,
     toggle,
     open,
-    close
+    close,
   };
 };
 

@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/editor/MonacoHost.svelte
   // -------------------------------------------------------------------------
@@ -15,31 +14,25 @@
   //
   // Готов к расширению: diff-режим, IntelliSense, кастомные языки.
 
-  import { onMount, onDestroy } from "svelte";
-  import {
-    createEditorCore,
-    type EditorCoreOptions,
-    type EditorCoreApi,
-  } from "./EditorCore";
-  import {
-    setupBasicLanguageSupport,
-    setupDefaultProviders,
-  } from "./intellisense";
-  import "./monacoEnvironment";
-  import { getMonacoThemeId, themeManager } from "./themeManager";
-  import { theme, type ThemeState } from "../stores/themeStore";
-  import { initCursorTracking } from "../stores/editorCursorStore";
-  import { initEditorMeta } from "../stores/editorMetaStore";
-  import { attachDiagnosticsTracking, detachDiagnosticsTracking } from "./diagnosticsAdapter";
-  import { ensureLanguageRegistered } from "./languageSupport";
-  import { silenceMonacoCancellationErrors } from "./monacoUnhandledRejection";
-  import InlineSearch from "$lib/components/search/InlineSearch.svelte";
+  import { onMount, onDestroy } from 'svelte';
+  import type * as monacoNamespace from 'monaco-editor';
+  import { createEditorCore, type EditorCoreOptions, type EditorCoreApi } from './EditorCore';
+  import { setupBasicLanguageSupport, setupDefaultProviders } from './intellisense';
+  import './monacoEnvironment';
+  import { getMonacoThemeId, themeManager } from './themeManager';
+  import { theme, type ThemeState } from '../stores/themeStore';
+  import { initCursorTracking } from '../stores/editorCursorStore';
+  import { initEditorMeta } from '../stores/editorMetaStore';
+  import { attachDiagnosticsTracking, detachDiagnosticsTracking } from './diagnosticsAdapter';
+  import { ensureLanguageRegistered } from './languageSupport';
+  import { silenceMonacoCancellationErrors } from './monacoUnhandledRejection';
+  import InlineSearch from '$lib/components/search/InlineSearch.svelte';
 
   // Входные параметры.
   let {
     fileId,
     uri,
-    value = $bindable(""),
+    value = $bindable(''),
     language,
     options,
     onchange,
@@ -54,15 +47,15 @@
 
   let containerElement: HTMLDivElement;
   let core: EditorCoreApi | null = null;
-  let monacoEditor = $state<any>(null); // Monaco editor instance for InlineSearch
-  let monacoInstance: typeof import("monaco-editor") | null = null;
-  let lastAppliedValue = "";
+  let monacoEditor = $state<monacoNamespace.editor.IStandaloneCodeEditor | null>(null);
+  let monacoInstance: typeof import('monaco-editor') | null = null;
+  let lastAppliedValue = '';
   let lastFileId = fileId;
   let lastUri = uri;
   let lastLanguage = language;
 
   // Текущая тема
-  let currentTheme: ThemeState = { mode: "dark", palette: "dark-default" };
+  let currentTheme: ThemeState = { mode: 'dark', palette: 'dark-default' };
 
   /**
    * Инициализация Monaco + EditorCore.
@@ -75,35 +68,35 @@
 
     (async () => {
       // Runtime import Monaco ESM API on demand.
-      const monaco = await import("monaco-editor");
-      monacoInstance = monaco as any;
+      const monaco = (await import('monaco-editor')) as typeof import('monaco-editor');
+      monacoInstance = monaco;
       if (isDisposed) return;
 
       // Match VS Code: ignore cancellation rejections fired during dispose.
       silenceMonacoCancellationErrors();
 
       // Boot basic languages/providers before creating the editor core.
-      setupBasicLanguageSupport(monaco as any);
-      setupDefaultProviders(monaco as any);
+      setupBasicLanguageSupport(monaco);
+      setupDefaultProviders(monaco);
 
       if (!themeManager.isInitialized()) {
-        themeManager.initialize(monaco as any);
+        themeManager.initialize(monaco);
 
         // ����㦠�� ������� ⥬� � 䮭� (�� ������㥬 ���樠������)
         themeManager
           .loadPopularThemes()
-          .catch((err) => console.error("Failed to load themes:", err));
+          .catch((err) => console.error('Failed to load themes:', err));
 
         // ������� � ॣ�����㥬 ⥬� ��� ��� ������
         const palettes = [
-          "light-default",
-          "light-alt-1",
-          "light-alt-2",
-          "light-alt-3",
-          "dark-default",
-          "dark-alt-1",
-          "dark-alt-2",
-          "dark-alt-3",
+          'light-default',
+          'light-alt-1',
+          'light-alt-2',
+          'light-alt-3',
+          'dark-default',
+          'dark-alt-1',
+          'dark-alt-2',
+          'dark-alt-3',
         ] as const;
         palettes.forEach((paletteId) => {
           const themeData = themeManager.createThemeFromPalette(paletteId);
@@ -117,30 +110,32 @@
         });
       }
 
-      core = createEditorCore(monaco as any);
+      core = createEditorCore(monaco);
       core.attachTo(containerElement, options);
 
       // Get the Monaco editor instance for InlineSearch
-      monacoEditor = (core as any).editor || (core as any).state?.editor;
+      type EditorCoreWithEditor = EditorCoreApi & {
+        editor?: monacoNamespace.editor.IStandaloneCodeEditor | null;
+        state?: { editor?: monacoNamespace.editor.IStandaloneCodeEditor | null } | null;
+      };
+      const coreWithEditor = core as EditorCoreWithEditor | null;
+      monacoEditor = coreWithEditor?.editor ?? coreWithEditor?.state?.editor ?? null;
 
-      const monacoLanguage = await ensureLanguageRegistered(
-        monaco as any,
-        language,
-      );
+      const monacoLanguage = await ensureLanguageRegistered(monaco, language);
       core.setModel({
         fileId,
         uri,
         value,
         language: monacoLanguage,
       });
-      lastAppliedValue = value ?? "";
+      lastAppliedValue = value ?? '';
       lastFileId = fileId;
       lastUri = uri;
       lastLanguage = language;
 
       initCursorTracking(core);
       initEditorMeta(core);
-      attachDiagnosticsTracking(monaco as any, core);
+      attachDiagnosticsTracking(monaco, core);
 
       // Применяем начальную тему
       const initialTheme = theme.getState();
@@ -195,16 +190,12 @@
     if (!core || !monacoInstance) return;
     if (!fileId || !uri) return;
 
-    const incoming = value ?? "";
-    const needsReset =
-      fileId !== lastFileId || uri !== lastUri || language !== lastLanguage;
+    const incoming = value ?? '';
+    const needsReset = fileId !== lastFileId || uri !== lastUri || language !== lastLanguage;
 
     void (async () => {
       if (needsReset) {
-        const monacoLanguage = await ensureLanguageRegistered(
-          monacoInstance as any,
-          language,
-        );
+        const monacoLanguage = await ensureLanguageRegistered(monacoInstance, language);
 
         core?.setModel({
           fileId,
@@ -241,11 +232,7 @@
    * Публичный метод для выполнения команд (undo, redo, format и т.п.).
    * Может вызываться через bind:this снаружи.
    */
-  export function triggerCommand(
-    source: string,
-    commandId: string,
-    payload?: unknown,
-  ) {
+  export function triggerCommand(source: string, commandId: string, payload?: unknown) {
     core?.triggerCommand(source, commandId, payload);
   }
 </script>
@@ -276,3 +263,5 @@
     color: var(--nc-fg);
   }
 </style>
+
+<svelte:options runes={true} />

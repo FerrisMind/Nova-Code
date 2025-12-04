@@ -3,7 +3,7 @@
 /* Светлая тема: все цвета на 20% темнее автоматически */
 
 /* Глобальное затемнение ВСЕХ devicon иконок в светлой теме */
-:root[data-theme="light"] [class*="devicon-"].colored {
+:root[data-theme='light'] [class*='devicon-'].colored {
   filter: brightness(0.85) !important;
 }
 

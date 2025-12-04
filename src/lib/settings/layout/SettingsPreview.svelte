@@ -24,7 +24,7 @@
   let {
     activeSettingDefinition,
     relatedSettings,
-    helpText
+    helpText,
   }: {
     activeSettingDefinition?: SettingDefinition;
     relatedSettings?: SettingDefinition[];
@@ -79,9 +79,9 @@
           </p>
         {:else}
           <p class="help-text">
-            This setting is wired to real application state via the settings registry.
-            Changes applied through proper controls will immediately reflect in the editor
-            and theme stores according to the agreed contracts.
+            This setting is wired to real application state via the settings registry. Changes
+            applied through proper controls will immediately reflect in the editor and theme stores
+            according to the agreed contracts.
           </p>
         {/if}
       </div>
@@ -105,9 +105,9 @@
       <div class="preview-block-label">Live behavior</div>
       <div class="preview-block">
         <p class="hint">
-          The actual interactive controls and visual previews are provided by higher-level
-          settings controls and preview providers. This pane is ready to host them without
-          additional API changes.
+          The actual interactive controls and visual previews are provided by higher-level settings
+          controls and preview providers. This pane is ready to host them without additional API
+          changes.
         </p>
       </div>
     </section>

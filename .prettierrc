@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "plugins": ["prettier-plugin-svelte"],
+  "svelteStrictMode": true,
+  "svelteSortOrder": "scripts-markup-styles-options",
+  "svelteAllowShorthand": true,
+  "endOfLine": "auto"
+}

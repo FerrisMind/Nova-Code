@@ -1,6 +1,6 @@
 # Nova Code
 
-[![English](https://img.shields.io/badge/lang-English-lightgrey.svg)](README.md) [![Русский](https://img.shields.io/badge/lang-Русский-lightgrey.svg)](README.ru.md) [![Português (Brasil)](https://img.shields.io/badge/lang-Português_(Brasil)-blue.svg)](README.pt-br.md)
+[![English](https://img.shields.io/badge/lang-English-lightgrey.svg)](README.md) [![Русский](https://img.shields.io/badge/lang-Русский-lightgrey.svg)](README.ru.md) [![Português (Brasil)](<https://img.shields.io/badge/lang-Português_(Brasil)-blue.svg>)](README.pt-br.md)
 
 Nova Code é um editor de código moderno, leve e de alto desempenho, construído usando tecnologias web de ponta e o poderoso ecossistema Rust.
 
@@ -12,24 +12,25 @@ O projeto combina a flexibilidade das interfaces web com o desempenho de aplicat
 
 ## Stack Tecnológico
 
-*   **[Tauri v2](https://v2.tauri.app/)**: Framework para criar aplicativos multiplataforma usando tecnologias web e Rust.
-*   **[Svelte 5](https://svelte.dev/)**: Compilador e framework para criar interfaces de usuário.
-*   **[Tailwind CSS v4](https://tailwindcss.com/)**: Framework CSS utilitário para estilização rápida.
-*   **[Monaco Editor](https://microsoft.github.io/monaco-editor/)**: Poderoso editor de código com suporte a realce de sintaxe, autocompletar e muito mais.
-*   **[Vite](https://vitejs.dev/)**: Ferramenta de frontend de próxima geração.
-*   **TypeScript**: JavaScript tipado para desenvolvimento robusto.
+- **[Tauri v2](https://v2.tauri.app/)**: Framework para criar aplicativos multiplataforma usando tecnologias web e Rust.
+- **[Svelte 5](https://svelte.dev/)**: Compilador e framework para criar interfaces de usuário.
+- **[Tailwind CSS v4](https://tailwindcss.com/)**: Framework CSS utilitário para estilização rápida.
+- **[Monaco Editor](https://microsoft.github.io/monaco-editor/)**: Poderoso editor de código com suporte a realce de sintaxe, autocompletar e muito mais.
+- **[Vite](https://vitejs.dev/)**: Ferramenta de frontend de próxima geração.
+- **TypeScript**: JavaScript tipado para desenvolvimento robusto.
 
 ## Requisitos
 
 Para trabalhar com o projeto, você precisará de:
 
-*   [Node.js](https://nodejs.org/) (versão LTS recomendada)
-*   [Rust](https://www.rust-lang.org/tools/install) (incluindo `cargo`, necessário para o build do Tauri)
-*   Ferramentas de build para seu SO (veja a [documentação do Tauri](https://v2.tauri.app/start/prerequisites/))
+- [Node.js](https://nodejs.org/) (versão LTS recomendada)
+- [Rust](https://www.rust-lang.org/tools/install) (incluindo `cargo`, necessário para o build do Tauri)
+- Ferramentas de build para seu SO (veja a [documentação do Tauri](https://v2.tauri.app/start/prerequisites/))
 
 ## Instalação
 
 1.  Clone o repositório:
+
     ```bash
     git clone https://github.com/FerrisMind/Nova-Code.git
     cd nova-code

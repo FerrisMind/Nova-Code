@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/sidebar/FileTree.svelte
   // ---------------------------------------------------------------------------
@@ -13,24 +12,19 @@
   // цветовой/типографической системой Nova Code.
   // ---------------------------------------------------------------------------
 
-  import type { FileNode } from "../types/fileNode";
-  import Icon from "../common/Icon.svelte";
-  import FileTree from "./FileTree.svelte";
-  import { getLanguageIcon } from "../mocks/languageIcons";
-  import {
-    fileTreeState,
-    toggleDir,
-    selectFile,
-    type FileNodeId,
-  } from "../stores/fileTreeStore";
-  import { editorStore } from "../stores/editorStore";
-  import * as fileTreeActions from "./fileTreeActions";
-  import FileTreeContextMenu from "./FileTreeContextMenu.svelte";
+  import type { FileNode } from '../types/fileNode';
+  import Icon from '../common/Icon.svelte';
+  import FileTree from './FileTree.svelte';
+  import { getLanguageIcon } from '../mocks/languageIcons';
+  import { fileTreeState, toggleDir, selectFile, type FileNodeId } from '../stores/fileTreeStore';
+  import { editorStore } from '../stores/editorStore';
+  import * as fileTreeActions from './fileTreeActions';
+  import FileTreeContextMenu from './FileTreeContextMenu.svelte';
 
   let {
     nodes = [],
     depth = 0,
-    onopen
+    onopen,
   }: {
     nodes?: FileNode[];
     depth?: number;
@@ -75,25 +69,25 @@
     contextVisible = false;
 
     switch (id) {
-      case "open":
+      case 'open':
         fileTreeActions.open(node);
         break;
-      case "openToSide":
+      case 'openToSide':
         fileTreeActions.openToSide(node);
         break;
-      case "revealInExplorer":
+      case 'revealInExplorer':
         fileTreeActions.revealInExplorer(node);
         break;
-      case "newFile":
+      case 'newFile':
         fileTreeActions.newFile(node);
         break;
-      case "newFolder":
+      case 'newFolder':
         fileTreeActions.newFolder(node);
         break;
-      case "rename":
+      case 'rename':
         fileTreeActions.rename(node);
         break;
-      case "delete":
+      case 'delete':
         fileTreeActions.deleteNode(node);
         break;
       default:
@@ -110,7 +104,7 @@
 
 <div class="file-tree">
   {#each nodes as node (node.id)}
-    {#if node.type === "dir"}
+    {#if node.type === 'dir'}
       <div
         class="row dir-row"
         style={`padding-left:${baseIndent + depth * perDepth}px`}
@@ -119,19 +113,14 @@
         aria-expanded={$fileTreeState.expanded.has(node.id)}
         onclick={() => onDirClick(node)}
         onkeydown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
+          if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             onDirClick(node);
           }
-          if (
-            event.key === "ContextMenu" ||
-            (event.shiftKey && event.key === "F10")
-          ) {
+          if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
             event.preventDefault();
-            const rect = (
-              event.currentTarget as HTMLDivElement
-            ).getBoundingClientRect();
-            const syntheticEvent = new MouseEvent("contextmenu", {
+            const rect = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
+            const syntheticEvent = new MouseEvent('contextmenu', {
               bubbles: true,
               cancelable: true,
               clientX: rect.left,
@@ -144,8 +133,8 @@
       >
         <Icon
           name={$fileTreeState.expanded.has(node.id)
-            ? "lucide:chevron-down"
-            : "lucide:chevron-right"}
+            ? 'lucide:chevron-down'
+            : 'lucide:chevron-right'}
           size={14}
           className="chevron"
         />
@@ -154,7 +143,7 @@
 
       {#if $fileTreeState.expanded.has(node.id) && node.children}
         <!-- Рекурсивный вызов того же компонента для поддерева -->
-        <FileTree nodes={node.children} depth={depth + 1} onopen={onopen} />
+        <FileTree nodes={node.children} depth={depth + 1} {onopen} />
       {/if}
     {:else}
       <button
@@ -174,14 +163,14 @@
   {/each}
 
   {#if contextVisible && contextNode}
-      <FileTreeContextMenu
-        visible={contextVisible}
-        x={contextX}
-        y={contextY}
-        node={contextNode}
-        onaction={handleContextAction}
-        onclose={closeContextMenu}
-      />
+    <FileTreeContextMenu
+      visible={contextVisible}
+      x={contextX}
+      y={contextY}
+      node={contextNode}
+      onaction={handleContextAction}
+      onclose={closeContextMenu}
+    />
   {/if}
 </div>
 
@@ -275,3 +264,5 @@
     min-height: 14px;
   }
 </style>
+
+<svelte:options runes={true} />

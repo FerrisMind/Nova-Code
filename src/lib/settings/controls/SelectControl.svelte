@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/SelectControl.svelte
   // ----------------------------------------------------------------------------
@@ -11,11 +10,7 @@
   // API совместим с другими контролами (definition, on:change)
   // ----------------------------------------------------------------------------
   import * as Select from '$lib/components/ui/select';
-  import type {
-    SettingDefinition,
-    SettingId,
-    SettingValue
-  } from '$lib/settings/types';
+  import type { SettingDefinition, SettingId, SettingValue } from '$lib/settings/types';
 
   // ---------------------------------------------------------------------------
   // Типы
@@ -49,8 +44,10 @@
     onChange = undefined,
     disabled = false,
     placeholder = 'Select...',
-    onchange
-  }: SelectControlProps & { onchange?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void } = $props();
+    onchange,
+  }: SelectControlProps & {
+    onchange?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void;
+  } = $props();
 
   // ---------------------------------------------------------------------------
   // Состояние
@@ -66,17 +63,14 @@
     }
   };
 
-  let selectedValue = $state(getCurrentValue());
-
-  // Синхронизация при изменении value извне
-  $effect(() => {
-    selectedValue = getCurrentValue();
-  });
+  const selectedValue = $derived(getCurrentValue());
 
   // Получаем label для текущего значения
   const getSelectedLabel = (): string => {
-    const option = options.find(opt => opt.value === selectedValue);
-    return option?.label ?? selectedValue;
+    const option = options.find((opt) => opt.value === selectedValue);
+    if (option) return option.label;
+    if (!selectedValue && placeholder) return placeholder;
+    return selectedValue;
   };
 
   // ---------------------------------------------------------------------------
@@ -85,10 +79,10 @@
 
   function handleValueChange(newValue: string | undefined) {
     if (!newValue || disabled) return;
-    
+
     const meta: SettingChangeMeta = {
       settingId: definition.id,
-      source: 'user'
+      source: 'user',
     };
 
     if (onChange) {
@@ -96,22 +90,15 @@
     } else {
       definition.set(newValue as SettingValue);
     }
-
-    selectedValue = newValue;
     onchange?.({ value: newValue, meta });
   }
 </script>
 
-<Select.Root 
-  type="single"
-  value={selectedValue}
-  onValueChange={handleValueChange}
-  {disabled}
->
+<Select.Root type="single" value={selectedValue} onValueChange={handleValueChange} {disabled}>
   <Select.Trigger>
     {getSelectedLabel()}
   </Select.Trigger>
-  
+
   <Select.Content>
     {#each options as option (option.value)}
       <Select.Item value={option.value}>
@@ -120,3 +107,5 @@
     {/each}
   </Select.Content>
 </Select.Root>
+
+<svelte:options runes={true} />

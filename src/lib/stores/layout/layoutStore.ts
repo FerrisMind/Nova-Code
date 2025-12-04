@@ -33,7 +33,7 @@ const initialState: LayoutState = {
 
   leftSidebarWidth: 280,
   rightSidebarWidth: 280,
-  bottomPanelHeight: 180
+  bottomPanelHeight: 180,
 };
 
 const internal = writable<LayoutState>(initialState);
@@ -43,7 +43,7 @@ const internal = writable<LayoutState>(initialState);
  * Мутации выполняются только через экспортируемые функции ниже.
  */
 export const layoutState: Readable<LayoutState> = {
-  subscribe: internal.subscribe
+  subscribe: internal.subscribe,
 };
 
 /**
@@ -53,7 +53,7 @@ export const layoutState: Readable<LayoutState> = {
 export const toggleLeftSidebar = () => {
   internal.update((state) => ({
     ...state,
-    leftSidebarVisible: !state.leftSidebarVisible
+    leftSidebarVisible: !state.leftSidebarVisible,
   }));
 };
 
@@ -63,7 +63,7 @@ export const toggleLeftSidebar = () => {
 export const setLeftSidebarVisible = (visible: boolean) => {
   internal.update((state) => ({
     ...state,
-    leftSidebarVisible: visible
+    leftSidebarVisible: visible,
   }));
 };
 
@@ -73,7 +73,7 @@ export const setLeftSidebarVisible = (visible: boolean) => {
 export const setRightSidebarVisible = (visible: boolean) => {
   internal.update((state) => ({
     ...state,
-    rightSidebarVisible: visible
+    rightSidebarVisible: visible,
   }));
 };
 
@@ -84,7 +84,7 @@ export const setRightSidebarVisible = (visible: boolean) => {
 export const toggleRightSidebar = () => {
   internal.update((state) => ({
     ...state,
-    rightSidebarVisible: !state.rightSidebarVisible
+    rightSidebarVisible: !state.rightSidebarVisible,
   }));
 };
 
@@ -95,7 +95,7 @@ export const toggleRightSidebar = () => {
 export const toggleBottomPanel = () => {
   internal.update((state) => ({
     ...state,
-    bottomPanelVisible: !state.bottomPanelVisible
+    bottomPanelVisible: !state.bottomPanelVisible,
   }));
 };
 
@@ -106,7 +106,7 @@ export const toggleBottomPanel = () => {
 export const setLeftSidebarWidth = (width: number) => {
   internal.update((state) => ({
     ...state,
-    leftSidebarWidth: width
+    leftSidebarWidth: width,
   }));
 };
 
@@ -116,7 +116,7 @@ export const setLeftSidebarWidth = (width: number) => {
 export const setRightSidebarWidth = (width: number) => {
   internal.update((state) => ({
     ...state,
-    rightSidebarWidth: width
+    rightSidebarWidth: width,
   }));
 };
 
@@ -126,6 +126,6 @@ export const setRightSidebarWidth = (width: number) => {
 export const setBottomPanelHeight = (height: number) => {
   internal.update((state) => ({
     ...state,
-    bottomPanelHeight: height
+    bottomPanelHeight: height,
   }));
 };

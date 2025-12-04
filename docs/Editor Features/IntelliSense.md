@@ -10,6 +10,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Architecture Overview](#architecture-overview)
 3. [Core Components](#core-components)
@@ -66,11 +67,13 @@ style K fill:#9ff,stroke:#333
 ```
 
 **Diagram sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L33-L152)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L346-L891)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L68-L115)
 
 **Section sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L23-L327)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
@@ -125,11 +128,13 @@ EditorCore --> SignatureHelpProvider : registers
 ```
 
 **Diagram sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L43-L327)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L9-L68)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L668-L691)
 
 **Section sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L23-L327)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L111-L697)
@@ -161,6 +166,7 @@ The language support system includes configuration for TypeScript and JavaScript
 Both configurations enable eager model synchronization with the TypeScript worker to ensure up-to-date IntelliSense information. This approach balances comprehensive type checking with acceptable performance characteristics for a code editor.
 
 **Section sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L173-L301)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L668-L691)
 
@@ -231,11 +237,13 @@ Core->>Monaco : set editor model
 ```
 
 **Diagram sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L82-L84)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L43-L152)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L357-L891)
 
 **Section sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L68-L115)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L43-L152)
 
@@ -293,10 +301,12 @@ Track --> Return
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L9-L68)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L120-L135)
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L120-L140)
 
@@ -309,12 +319,14 @@ The IntelliSense implementation in the NC editor incorporates several performanc
 The editor uses a sophisticated worker configuration system implemented in the `monacoEnvironment.ts` file. This system sets up Web Workers for heavy operations like syntax analysis, validation, and code completion. The workers are configured using the `MonacoEnvironment.getWorker` function, which maps language labels to specific worker classes.
 
 Key performance optimizations in the worker configuration include:
+
 - Using ESM workers with Vite for native bundler support
 - Implementing singleton initialization to prevent multiple configurations
 - Creating a worker factory that maps language labels to worker instances
 - Using direct worker instances instead of URLs for better control
 
 The worker mapping includes specialized workers for different language types:
+
 - JSON worker for JSON schema validation and formatting
 - CSS worker for CSS language features
 - HTML worker for HTML language features
@@ -358,6 +370,7 @@ This section addresses common issues related to IntelliSense in the NC code edit
 **Issue**: Completion suggestions appear slowly or with noticeable delay.
 
 **Solutions**:
+
 1. Verify that the `quickSuggestionsDelay` is set to an appropriate value (10ms in the current implementation)
 2. Check if `skipLibCheck` is enabled in the TypeScript configuration to reduce compilation time
 3. Ensure that the editor is not processing large files that could impact performance
@@ -368,6 +381,7 @@ This section addresses common issues related to IntelliSense in the NC code edit
 **Issue**: Hover documentation is not displayed for certain language constructs.
 
 **Solutions**:
+
 1. Verify that the hover provider is properly registered for the language in question
 2. Check that the language ID is correctly mapped in the `mapLanguageIdToMonaco` function
 3. Ensure that the file extension is associated with the correct language mode
@@ -378,6 +392,7 @@ This section addresses common issues related to IntelliSense in the NC code edit
 **Issue**: Syntax highlighting and IntelliSense features are not available for a specific language.
 
 **Solutions**:
+
 1. Check if the language is included in the `mapLanguageIdToMonaco` mapping
 2. Verify that the file extension is registered in the `ensureLanguageRegistered` function
 3. For custom languages, ensure that the language support configuration is properly defined
@@ -388,6 +403,7 @@ This section addresses common issues related to IntelliSense in the NC code edit
 **Issue**: Custom providers are not functioning as expected.
 
 **Solutions**:
+
 1. Verify that the provider is registered through the `EditorCore` API or directly with Monaco
 2. Check that the language ID used for registration matches the actual language mode
 3. Ensure that trigger characters are correctly specified for completion providers
@@ -402,6 +418,7 @@ This section addresses common issues related to IntelliSense in the NC code edit
 5. Verify that the file being edited has the correct language mode applied
 
 **Section sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L64-L118)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L22-L118)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L444-L495)
@@ -413,6 +430,7 @@ The IntelliSense implementation in the NC code editor provides a robust and exte
 The architecture follows best practices with clear separation of concerns, using singleton patterns for efficient initialization and lazy loading for optimal performance. The system is designed to be accessible to beginners while providing sufficient depth for experienced developers who want to extend IntelliSense for new languages.
 
 Key strengths of the implementation include:
+
 - Comprehensive language support with flexible mapping and registration
 - Performance optimizations through worker configuration and language service tuning
 - Responsive UI with proper cancellation token handling

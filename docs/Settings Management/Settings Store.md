@@ -13,6 +13,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Svelte Store Pattern for Settings Management](#svelte-store-pattern-for-settings-management)
 3. [Initialization Process](#initialization-process)
@@ -23,13 +24,16 @@
 8. [Conclusion](#conclusion)
 
 ## Introduction
+
 The Settings Store implementation in the NC code editor provides a comprehensive system for managing application settings with reactivity, persistence, and type safety. This document explains how the Svelte store pattern is used to manage settings in memory, the initialization process that loads settings from persistent storage, methods for getting and setting configuration values, reactive properties that trigger UI updates, the persistence mechanism that saves settings to disk, and the validation process that ensures settings conform to their defined types and constraints.
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [types.ts](file://src/lib/settings/types.ts#L1-L192)
 
 ## Svelte Store Pattern for Settings Management
+
 The Settings Store implementation uses the Svelte store pattern to manage application settings in memory with reactivity. The core of this system is the `settingsStore` which is implemented as a readable store that aggregates settings from various domain-specific stores like `editorSettingsStore` and `themeStore`. This approach follows the "single source of truth" principle, ensuring that all components access settings through a unified interface.
 
 The store is designed to be compatible with Svelte 5's readable pattern, using the standard `readable` function from Svelte's store module. It does not duplicate state but instead builds snapshots on demand from the underlying domain stores. This design minimizes memory usage and ensures consistency across the application.
@@ -75,14 +79,17 @@ SettingsStore --> SettingsDirtyState : "returns"
 ```
 
 **Diagram sources **
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L67-L85)
 - [types.ts](file://src/lib/settings/types.ts#L148-L152)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L19-L313)
 - [types.ts](file://src/lib/settings/types.ts#L24-L152)
 
 ## Initialization Process
+
 The initialization process for the Settings Store begins when the application starts and the `settingsStore` module is imported. During initialization, the store creates a baseline snapshot by calling the `buildSnapshot()` function, which collects the current state from all domain-specific stores. This baseline serves as the reference point for determining dirty state and resetting settings to their original values.
 
 The store maintains two internal state variables: `baselineSnapshot` and `currentSnapshot`. The `baselineSnapshot` is initialized with the current state of all settings and can be updated using the `setBaselineFromCurrent()` method. The `currentSnapshot` is updated whenever settings change and is used to provide a consistent view of the current state.
@@ -118,16 +125,19 @@ HistoryStore->>HistoryStore : Update state
 ```
 
 **Diagram sources **
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L186-L189)
 - [settingsProfilesStore.ts](file://src/lib/stores/settingsProfilesStore.ts#L176-L230)
 - [settingsHistoryStore.ts](file://src/lib/stores/settingsHistoryStore.ts#L125-L142)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L183-L189)
 - [settingsProfilesStore.ts](file://src/lib/stores/settingsProfilesStore.ts#L176-L230)
 - [settingsHistoryStore.ts](file://src/lib/stores/settingsHistoryStore.ts#L125-L142)
 
 ## Getting, Setting, and Updating Configuration Values
+
 The Settings Store provides a type-safe interface for getting, setting, and updating configuration values. The system uses a registry pattern where all settings are defined in the `settingsRegistry` with their metadata, including type information, validation rules, and UI presentation details.
 
 To get a setting value, components can either subscribe to the `settingsStore` to receive updates when any setting changes, or use the `getSnapshot()` method to retrieve the current state of all settings. For individual settings, the `getSetting()` function from the registry can be used to retrieve a specific setting definition, which includes a `get()` method to read the current value.
@@ -164,16 +174,19 @@ LogError --> End
 ```
 
 **Diagram sources **
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L248-L285)
 - [registry.ts](file://src/lib/settings/registry.ts#L51-L53)
 - [types.ts](file://src/lib/settings/types.ts#L104-L108)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L248-L285)
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L455)
 - [types.ts](file://src/lib/settings/types.ts#L69-L108)
 
 ## Reactive Properties and UI Updates
+
 The Settings Store implements reactivity through Svelte's store pattern, automatically triggering UI updates when settings change. The core mechanism is the readable store created with Svelte's `readable()` function, which maintains a list of subscribers and notifies them when the state changes.
 
 The store listens to changes in the underlying domain stores (`editorSettings` and `theme`) by subscribing to them during initialization. When any of these stores emit a change notification, the settings store's `updateSnapshot()` function is called, which rebuilds the current snapshot and notifies all subscribers. This ensures that components using the settings store receive updates whenever any setting changes, regardless of which domain store was modified.
@@ -205,16 +218,19 @@ SettingsStore->>SettingsStore : Remove from subscribers
 ```
 
 **Diagram sources **
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L198-L232)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L155-L157)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L107-L109)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L198-L232)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L155-L157)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L107-L109)
 
 ## Persistence Mechanism
+
 The Settings Store implements persistence through integration with Tauri's backend system, saving settings to disk and handling potential write errors. The core settings store itself is in-memory and does not directly handle persistence, but related stores like `settingsProfilesStore` and `settingsHistoryStore` provide persistent storage capabilities.
 
 The persistence mechanism uses Tauri's `invoke` function to call Rust commands that handle file operations. For example, the `settingsProfilesStore` uses `invoke('settings_profiles_save', { profiles })` to save profiles to disk and `invoke('settings_profiles_load')` to load them on startup. This separation of concerns keeps the frontend logic focused on state management while delegating persistence to the secure backend.
@@ -255,15 +271,18 @@ ProfilesStore->>ProfilesStore : Update active profile
 ```
 
 **Diagram sources **
+
 - [settingsProfilesStore.ts](file://src/lib/stores/settingsProfilesStore.ts#L150-L159)
 - [settingsProfilesStore.ts](file://src/lib/stores/settingsProfilesStore.ts#L261-L265)
 - [settingsHistoryStore.ts](file://src/lib/stores/settingsHistoryStore.ts#L84-L91)
 
 **Section sources**
+
 - [settingsProfilesStore.ts](file://src/lib/stores/settingsProfilesStore.ts#L150-L160)
 - [settingsHistoryStore.ts](file://src/lib/stores/settingsHistoryStore.ts#L84-L91)
 
 ## Validation Process
+
 The Settings Store implements a comprehensive validation process to ensure settings conform to their defined types and constraints. The validation is primarily handled through the settings registry, which defines the metadata and behavior for each setting.
 
 Each setting in the registry includes a `SettingDefinition` that specifies the setting's type, valid values, and constraints. The `control` property defines the UI control type (boolean, select, text, number, radio, slider, toggle), which determines how the setting is presented and validated in the UI. For select and radio controls, the `options` property defines the allowed values and their labels.
@@ -298,15 +317,18 @@ ReturnApplied --> End([Validation Complete])
 ```
 
 **Diagram sources **
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L257-L278)
 - [registry.ts](file://src/lib/settings/registry.ts#L202-L204)
 - [registry.ts](file://src/lib/settings/registry.ts#L280-L284)
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L257-L278)
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L455)
 
 ## Conclusion
+
 The Settings Store implementation in the NC code editor provides a robust, type-safe system for managing application settings with reactivity and persistence. By leveraging Svelte's store pattern, the system efficiently manages settings in memory while automatically triggering UI updates when changes occur. The initialization process loads settings from persistent storage on startup, ensuring a consistent user experience across sessions.
 
 The architecture separates concerns effectively, with the core settings store focusing on in-memory state management while delegating persistence to specialized stores that integrate with Tauri's backend. This design enables features like settings profiles and history while maintaining a clean, maintainable codebase.

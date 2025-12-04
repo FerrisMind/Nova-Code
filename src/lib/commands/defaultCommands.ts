@@ -17,7 +17,11 @@
 // -----------------------------------------------------------------------------
 
 import { registerCommand, type CommandDefinition } from './commandRegistry';
-import { toggleLeftSidebar, toggleRightSidebar, toggleBottomPanel } from '../stores/layout/layoutStore';
+import {
+  toggleLeftSidebar,
+  toggleRightSidebar,
+  toggleBottomPanel,
+} from '../stores/layout/layoutStore';
 import { activityStore } from '../stores/activityStore';
 import { sidebarViews } from '../layout/sidebarRegistry';
 import { editorStore } from '../stores/editorStore';
@@ -26,7 +30,7 @@ import {
   getActiveTab as getActiveGroupTabId,
   splitRightFromActive,
   setActiveGroup,
-  setActiveTab as setActiveGroupTab
+  setActiveTab as setActiveGroupTab,
 } from '../stores/layout/editorGroupsStore';
 import { get } from 'svelte/store';
 
@@ -51,7 +55,7 @@ export function initDefaultCommands(): void {
     keybinding: 'Ctrl+B',
     run: () => {
       toggleLeftSidebar();
-    }
+    },
   });
 
   // workbench.action.toggleRightSidebarVisibility -> правая панель (если используется).
@@ -61,7 +65,7 @@ export function initDefaultCommands(): void {
     category: 'View',
     run: () => {
       toggleRightSidebar();
-    }
+    },
   });
 
   // workbench.action.togglePanel -> нижняя панель (layoutStore-only).
@@ -71,7 +75,7 @@ export function initDefaultCommands(): void {
     category: 'View',
     run: () => {
       toggleBottomPanel();
-    }
+    },
   });
 
   // ---------------------------------------------------------------------------
@@ -96,7 +100,7 @@ export function initDefaultCommands(): void {
         // - SideBar читает layoutState.leftSidebarVisible;
         // - открытие view через ActivityBar уже управляет видимостью.
         // Здесь мы не насильно меняем видимость, чтобы не ломать текущее поведение.
-      }
+      },
     });
   };
 
@@ -121,7 +125,7 @@ export function initDefaultCommands(): void {
       const activeTabId = getActiveGroupTabId();
       if (!activeTabId) return;
       editorStore.closeEditor(activeTabId);
-    }
+    },
   });
 
   // workbench.action.splitEditorRight -> split active tab into a new group.
@@ -135,7 +139,7 @@ export function initDefaultCommands(): void {
       if (!activeTabId) return;
       splitRightFromActive();
       editorStore.setActiveEditor(activeTabId);
-    }
+    },
   });
 
   // ---------------------------------------------------------------------------
@@ -177,7 +181,7 @@ export function initDefaultCommands(): void {
     category: 'View',
     run: () => {
       focusRelativeGroup(-1);
-    }
+    },
   });
 
   // workbench.action.focusRightGroup
@@ -187,7 +191,7 @@ export function initDefaultCommands(): void {
     category: 'View',
     run: () => {
       focusRelativeGroup(1);
-    }
+    },
   });
 
   // Focus specific group (1-4)
@@ -206,7 +210,7 @@ export function initDefaultCommands(): void {
           setActiveGroupTab(target.id, target.activeTabId);
           editorStore.setActiveEditor(target.activeTabId);
         }
-      }
+      },
     });
   };
 
@@ -227,7 +231,7 @@ export function initDefaultCommands(): void {
     run: () => {
       // This will be implemented with EditorCore integration
       console.log('Toggle word wrap - implement via EditorCore');
-    }
+    },
   });
 
   // Switch theme command
@@ -239,7 +243,7 @@ export function initDefaultCommands(): void {
       // This will open theme selector in settings
       activityStore.setActivity('settings');
       console.log('Switch theme - open settings theme selector');
-    }
+    },
   });
 
   // Toggle terminal (bottom panel)
@@ -250,7 +254,7 @@ export function initDefaultCommands(): void {
     keybinding: 'Ctrl+`',
     run: () => {
       toggleBottomPanel();
-    }
+    },
   });
 
   // Project-wide search
@@ -261,7 +265,7 @@ export function initDefaultCommands(): void {
     keybinding: 'Ctrl+Shift+F',
     run: () => {
       activityStore.setActivity('search');
-    }
+    },
   });
 
   // Open settings
@@ -271,7 +275,7 @@ export function initDefaultCommands(): void {
     category: 'Preferences',
     run: () => {
       editorStore.openSettings();
-    }
+    },
   });
 
   // Go to line
@@ -283,7 +287,7 @@ export function initDefaultCommands(): void {
     run: () => {
       // This will be implemented with Monaco integration
       console.log('Go to line - implement via Monaco action');
-    }
+    },
   });
 
   // Go to symbol
@@ -295,7 +299,7 @@ export function initDefaultCommands(): void {
     run: () => {
       // This will be implemented with Monaco integration
       console.log('Go to symbol - implement via Monaco action');
-    }
+    },
   });
 
   // ---------------------------------------------------------------------------

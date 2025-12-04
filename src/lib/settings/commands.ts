@@ -13,15 +13,8 @@
 // -----------------------------------------------------------------------------
 
 import type { SettingId } from '$lib/settings/types';
-import {
-  getSectionById,
-  isKnownSetting,
-  getSetting
-} from '$lib/settings/registry';
-import {
-  registerCommand,
-  type CommandDefinition
-} from '$lib/commands/commandRegistry';
+import { getSectionById, isKnownSetting, getSetting } from '$lib/settings/registry';
+import { registerCommand, type CommandDefinition } from '$lib/commands/commandRegistry';
 
 // Контекст открытия SettingsShell (передается хостом).
 export interface SettingsCommandContext {
@@ -61,7 +54,7 @@ export function registerSettingsCommands(options: SettingsCommandsRegistrationOp
     label: 'Open Settings',
     run: () => {
       open({ source: 'command' });
-    }
+    },
   });
 
   // settings.search — открыть поиск по настройкам (host трактует source: 'search').
@@ -70,7 +63,7 @@ export function registerSettingsCommands(options: SettingsCommandsRegistrationOp
     label: 'Search Settings',
     run: () => {
       open({ source: 'search' });
-    }
+    },
   });
 }
 
@@ -82,15 +75,9 @@ export function registerSettingsCommands(options: SettingsCommandsRegistrationOp
  * Реализация без динамического API:
  * - команды регистрируются как обертки, которые в рантайме проверяют registry.
  */
-export function registerPerSettingCommands(
-  options: SettingsCommandsRegistrationOptions
-): void {
+export function registerPerSettingCommands(options: SettingsCommandsRegistrationOptions): void {
   const { context } = options;
-  const open = (opts?: {
-    sectionId?: string;
-    settingId?: SettingId;
-    source?: 'command' | 'search';
-  }) => context.openSettingsShell(opts);
+  void context;
 
   // Обобщенная команда-namespace для секций (может использоваться из UI).
   safeRegister({
@@ -99,7 +86,7 @@ export function registerPerSettingCommands(
     run: () => {
       // Namespace команда: конкретные section.* команды описаны ниже.
       // Host может показать UI выбора секции.
-    }
+    },
   });
 
   // Обертка: settings.open.section.<sectionId>
@@ -116,7 +103,7 @@ export function registerPerSettingCommands(
     label: 'Open Setting...',
     run: () => {
       // Namespace команда, конкретные id обрабатываются через фабрику ниже.
-    }
+    },
   });
 
   // Регистрация универсальных фабричных команд:
@@ -141,9 +128,9 @@ export function createSectionOpenCommand(
     run: () => {
       context.openSettingsShell({
         sectionId: section.id,
-        source: 'command'
+        source: 'command',
       });
-    }
+    },
   };
 }
 
@@ -167,8 +154,8 @@ export function createSettingOpenCommand(
       context.openSettingsShell({
         sectionId: def.section,
         settingId: def.id,
-        source: 'command'
+        source: 'command',
       });
-    }
+    },
   };
 }

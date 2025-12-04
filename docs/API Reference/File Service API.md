@@ -13,6 +13,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -25,9 +26,11 @@
 10. [Appendices](#appendices)
 
 ## Introduction
+
 This document provides comprehensive API documentation for the fileService module that bridges the frontend and Tauri’s backend file operations. It covers all exposed methods, their parameters, return types, and error conditions, along with the underlying Tauri commands implemented in Rust. It also explains integration with fileTreeStore and workspaceStore for maintaining file system state and handling file watcher events. Guidance is included for encoding scenarios, large file operations, error handling strategies, and safe usage patterns to prevent race conditions and ensure data integrity.
 
 ## Project Structure
+
 The file service is implemented in the frontend TypeScript module and delegates to Tauri commands defined in the Rust backend. Stores manage UI state and synchronization with the file system.
 
 ```mermaid
@@ -41,6 +44,7 @@ TYPES --> STORES
 ```
 
 **Diagram sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [lib.rs](file://src-tauri/src/lib.rs#L248-L425)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
@@ -49,6 +53,7 @@ TYPES --> STORES
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [lib.rs](file://src-tauri/src/lib.rs#L248-L425)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
@@ -57,12 +62,14 @@ TYPES --> STORES
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 
 ## Core Components
+
 - fileService: Provides a unified asynchronous API for file operations and integrates with Tauri commands and event listeners.
 - Tauri commands: Implemented in Rust, expose file operations and file watching.
 - Stores: Maintain UI state and synchronize with file system changes.
 - Sidebar actions: Demonstrate usage patterns for file creation, renaming, deletion, and revealing in explorer.
 
 Key methods exposed by fileService:
+
 - readFile(fileId): Promise<string>
 - writeFile(fileId, content): Promise<void>
 - listWorkspaceFiles(rootOverride?): Promise<FileNode[]>
@@ -77,10 +84,12 @@ Key methods exposed by fileService:
 - getWorkspaceRoot(): string
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L15-L84)
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L10-L19)
 
 ## Architecture Overview
+
 The frontend invokes Tauri commands via @tauri-apps/api/core. The backend executes file operations and emits file-changed events. Stores subscribe to these events to refresh the workspace tree and keep UI state consistent.
 
 ```mermaid
@@ -107,6 +116,7 @@ STORE-->>TREE : UI updates
 ```
 
 **Diagram sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L30-L84)
 - [lib.rs](file://src-tauri/src/lib.rs#L266-L388)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L74-L95)
@@ -115,6 +125,7 @@ STORE-->>TREE : UI updates
 ## Detailed Component Analysis
 
 ### fileService API Reference
+
 - readFile(fileId)
   - Parameters: path string (file identifier/path)
   - Returns: Promise<string> (content decoded using lossy UTF-8 conversion)
@@ -215,6 +226,7 @@ STORE-->>TREE : UI updates
     - [fileService.ts](file://src/lib/services/fileService.ts#L76-L84)
 
 ### Tauri Commands Implementation (lib.rs)
+
 - read_file(path: String) -> Result<String, String>
   - Validates path existence and file type; reads bytes and converts to string using lossy UTF-8 decoding
   - Section sources
@@ -262,6 +274,7 @@ STORE-->>TREE : UI updates
     - [lib.rs](file://src-tauri/src/lib.rs#L390-L425)
 
 ### Integration with fileTreeStore and workspaceStore
+
 - workspaceStore refreshes the file tree upon receiving "file-changed" events and manages workspace root.
 - fileTreeStore maintains UI state (expanded directories, selected file) and synchronizes with active editor tabs.
 - Section sources
@@ -269,11 +282,13 @@ STORE-->>TREE : UI updates
   - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L138-L264)
 
 ### Sidebar Actions Usage Patterns
+
 - Demonstrates createFile, createDirectory, renameFile, deleteFile, and revealInExplorer with error handling and workspace refresh.
 - Section sources
   - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L84-L134)
 
 ### Encoding Scenarios and Large Files
+
 - readFile uses lossy UTF-8 conversion to handle non-UTF-8 files safely.
 - A validator utility checks file size and detects binary content to prevent opening unsupported files in the editor.
 - Section sources
@@ -281,7 +296,9 @@ STORE-->>TREE : UI updates
   - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 
 ### Error Handling Strategy
+
 Common backend errors include:
+
 - Permission denied: occurs when creating, writing, renaming, or deleting files/directories without sufficient permissions
 - File not found: occurs when reading a non-existent file or revealing a non-existent path
 - Disk full: occurs when writing fails due to insufficient disk space
@@ -289,37 +306,46 @@ Common backend errors include:
 - Watcher initialization failures: occurs when starting the file watcher
 
 Frontend handling:
+
 - Use try/catch around fileService calls
 - Display user-friendly messages
 - Optionally retry or fallback to safe defaults
 
 Backend handling:
+
 - Commands return Result<T, String>; errors are propagated to the frontend
 - Directory listing tolerates permission issues by skipping inaccessible entries
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs#L221-L246)
 - [lib.rs](file://src-tauri/src/lib.rs#L266-L325)
 - [lib.rs](file://src-tauri/src/lib.rs#L390-L425)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L44-L47)
 
 ### Usage Patterns and Race Conditions
+
 Safe patterns:
+
 - Always refresh workspaceStore after mutating operations (create, rename, delete) to keep UI state consistent
 - Use onFileChange to subscribe to file-changed events and trigger refresh cycles
 - Avoid concurrent writes to the same file; queue operations or use optimistic UI updates with server-side reconciliation
 - For large files, consider streaming or chunked writes and disable heavy editor features
 
 Race condition risks:
+
 - Simultaneous writes to the same path can overwrite each other; coordinate via application-level locks or transaction-like patterns
 - Refreshing the workspace concurrently with file mutations can cause inconsistent UI; debounce refresh triggers
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L74-L95)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L84-L134)
 
 ## Dependency Analysis
+
 External dependencies relevant to file operations:
+
 - notify: file watching
 - trash: moving files to trash
 - serde/serde_json: serialization for settings commands (not part of fileService)
@@ -334,14 +360,17 @@ LIB --> Tauri["tauri"]
 ```
 
 **Diagram sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs#L24-L41)
 - [Cargo.toml](file://src-tauri/Cargo.toml#L20-L33)
 
 **Section sources**
+
 - [Cargo.toml](file://src-tauri/Cargo.toml#L20-L33)
 - [lib.rs](file://src-tauri/src/lib.rs#L24-L41)
 
 ## Performance Considerations
+
 - read_workspace enforces a maximum tree depth to avoid deep traversal overhead.
 - Directory listing tolerates permission errors by skipping inaccessible entries.
 - readFile uses lossy conversion to avoid parsing failures on non-text files.
@@ -350,6 +379,7 @@ LIB --> Tauri["tauri"]
 [No sources needed since this section provides general guidance]
 
 ## Troubleshooting Guide
+
 - Permission denied
   - Cause: Insufficient privileges to create/write/rename/delete files/directories
   - Resolution: Run with appropriate permissions or adjust file system permissions
@@ -382,11 +412,13 @@ LIB --> Tauri["tauri"]
     - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 
 ## Conclusion
+
 The fileService module provides a clean, asynchronous API for frontend-to-backend file operations. Its Tauri command implementations are robust, handle common errors gracefully, and integrate seamlessly with UI stores for real-time updates. By following the recommended usage patterns and error handling strategies, developers can build reliable file operations with predictable behavior and strong resilience against common file system issues.
 
 ## Appendices
 
 ### API Method Index
+
 - readFile(fileId)
 - writeFile(fileId, content)
 - listWorkspaceFiles(rootOverride?)
@@ -401,4 +433,5 @@ The fileService module provides a clean, asynchronous API for frontend-to-backen
 - getWorkspaceRoot()
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L15-L84)

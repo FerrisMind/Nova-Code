@@ -39,7 +39,7 @@
     profile,
     isActive = false,
     onApply = undefined,
-    onDelete = undefined
+    onDelete = undefined,
   }: ProfileCardProps = $props();
 
   // ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@
   }
 </script>
 
-<div 
+<div
   class="profile-card"
   class:active={isActive}
   role="article"
@@ -97,13 +97,7 @@
 
   <div class="card-actions">
     {#if !isActive}
-      <Button 
-        size="sm" 
-        variant="outline"
-        onclick={handleApply}
-      >
-        Apply
-      </Button>
+      <Button size="sm" variant="outline" onclick={handleApply}>Apply</Button>
     {:else}
       <span class="current-label">Current profile</span>
     {/if}
@@ -131,7 +125,7 @@
     background: var(--nc-level-0, hsl(var(--card)));
     border: 1px solid var(--nc-palette-border, hsl(var(--border)));
     border-radius: var(--settings-radius-lg, 12px);
-    transition: 
+    transition:
       border-color var(--settings-transition-fast, 150ms),
       box-shadow var(--settings-transition-fast, 150ms),
       transform var(--settings-transition-fast, 150ms);
@@ -213,5 +207,3 @@
     background: hsl(var(--settings-error, 0 84% 60%) / 0.1) !important;
   }
 </style>
-
-

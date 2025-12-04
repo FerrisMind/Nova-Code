@@ -15,6 +15,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Common Issues and Solutions](#common-issues-and-solutions)
    - [Installation and Startup Issues](#installation-and-startup-issues)
@@ -31,11 +32,13 @@
 10. [Troubleshooting Checklist](#troubleshooting-checklist)
 
 ## Introduction
+
 This troubleshooting guide provides comprehensive solutions for common issues encountered with the NC code editor. The document covers installation problems, performance issues, file system errors, and rendering glitches. It explains the diagnostic tools available, including the built-in diagnostics store that captures runtime information. Step-by-step debugging procedures are provided for different types of issues, along with performance optimization tips for handling large files or projects. The guide also documents known limitations, workarounds, and procedures for collecting and interpreting log information for issue reporting.
 
 ## Common Issues and Solutions
 
 ### Installation and Startup Issues
+
 If the NC code editor fails to start or install properly, check the following:
 
 1. **Missing Dependencies**: Ensure all required dependencies are installed. The application relies on Tauri for system integration and Svelte for the frontend framework.
@@ -45,10 +48,12 @@ If the NC code editor fails to start or install properly, check the following:
 3. **File Service Errors**: Check if the file service is properly initialized. The `fileService` provides the interface for file operations and must be correctly configured.
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 ### Performance Problems
+
 Performance issues can occur when working with large files or complex projects. The editor implements several optimizations to handle these scenarios:
 
 1. **Large File Handling**: Files larger than 10MB trigger performance optimizations including disabling minimap, code folding, code lens, and links. Files larger than 50MB cannot be opened in the editor.
@@ -76,14 +81,17 @@ RejectBinary --> Complete
 ```
 
 **Diagram sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L357-L891)
 
 **Section sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L357-L891)
 
 ### File System Errors
+
 File system errors can occur during file operations such as reading, writing, or navigating the workspace:
 
 1. **File Access Issues**: Ensure the application has proper permissions to access the workspace directory. The `fileService` handles all file operations through Tauri commands.
@@ -93,10 +101,12 @@ File system errors can occur during file operations such as reading, writing, or
 3. **Path Resolution Errors**: Verify that file paths are correctly resolved. The `workspaceStore` provides path resolution utilities.
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 ### Rendering and Display Glitches
+
 Rendering issues may include incorrect syntax highlighting, missing UI elements, or display artifacts:
 
 1. **Theme Application Issues**: Check if the theme is properly applied. The editor uses CSS variables defined in `app.html` for theming.
@@ -106,10 +116,12 @@ Rendering issues may include incorrect syntax highlighting, missing UI elements,
 3. **Layout Rendering Errors**: If the layout appears broken, check the browser console for JavaScript errors that might prevent proper rendering.
 
 **Section sources**
+
 - [app.html](file://src/app.html#L1-L49)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts)
 
 ## Diagnostic Tools and Runtime Information
+
 The NC code editor includes several diagnostic tools to help identify and resolve issues:
 
 1. **Diagnostics Store**: The `diagnosticsStore` aggregates error and warning counts for the active file, providing real-time feedback in the status bar.
@@ -142,18 +154,22 @@ DiagnosticsStore --> Statusbar : "provides counts"
 ```
 
 **Diagram sources**
+
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 **Section sources**
+
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 
 ## Debugging Procedures
+
 Follow these step-by-step procedures to debug common issues:
 
 ### General Debugging Steps
+
 1. **Check Console Logs**: Open the browser developer tools and check for any JavaScript errors or warnings.
 
 2. **Verify Workspace State**: Use the workspace store to verify the current workspace state and file tree.
@@ -161,6 +177,7 @@ Follow these step-by-step procedures to debug common issues:
 3. **Test File Operations**: Attempt basic file operations to isolate whether the issue is file-system related.
 
 ### Editor-Specific Debugging
+
 1. **Model State Verification**: Check the editor model state through the `editorStore` to ensure files are properly registered.
 
 2. **Configuration Validation**: Verify editor configuration settings are correctly applied through the `settingsStore`.
@@ -168,10 +185,12 @@ Follow these step-by-step procedures to debug common issues:
 3. **Diagnostic Information**: Examine diagnostic information for the active file to identify syntax or semantic errors.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 
 ## Performance Optimization for Large Files
+
 The editor implements specific optimizations for handling large files:
 
 1. **Automatic Optimization**: Files larger than 10MB automatically have performance optimizations applied, including:
@@ -201,12 +220,15 @@ H --> M["Disable Links"]
 ```
 
 **Diagram sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 
 **Section sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 
 ## Known Limitations and Workarounds
+
 The NC code editor has several known limitations:
 
 1. **File Size Limit**: Maximum file size is 50MB. Workaround: Use external tools for larger files.
@@ -218,10 +240,12 @@ The NC code editor has several known limitations:
 4. **Memory Usage**: Large projects may consume significant memory. Workaround: Close unused files to free memory.
 
 **Section sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L130)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ## Log Collection and Interpretation
+
 To collect and interpret logs for issue reporting:
 
 1. **Browser Console Logs**: Check the browser developer tools console for JavaScript errors and warnings.
@@ -233,10 +257,12 @@ To collect and interpret logs for issue reporting:
 4. **File Operation Logs**: Monitor file service operations for any failures in reading, writing, or navigating files.
 
 **Section sources**
+
 - [monacoUnhandledRejection.ts](file://src/lib/editor/monacoUnhandledRejection.ts#L1-L30)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 ## Application Restart and Configuration Reset
+
 When experiencing persistent issues:
 
 1. **Restart the Application**: Close and reopen the editor to reset the runtime state.
@@ -248,10 +274,12 @@ When experiencing persistent issues:
 4. **Reset Settings**: Use the settings store's reset functionality to restore default settings.
 
 **Section sources**
+
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 ## Platform-Specific Issues
+
 Platform-specific considerations:
 
 1. **File Path Separators**: The application normalizes file path separators to forward slashes internally.
@@ -261,10 +289,12 @@ Platform-specific considerations:
 3. **Permissions**: File access permissions differ between platforms, particularly on Unix-like systems.
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 ## Troubleshooting Checklist
+
 Follow this checklist when experiencing problems:
 
 1. **Verify Application Launch**: Ensure the editor starts without immediate errors.
@@ -288,6 +318,7 @@ Follow this checklist when experiencing problems:
 10. **Report Issues**: Collect logs and diagnostic information when reporting problems.
 
 **Section sources**
+
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { sidebarViews } from './sidebarRegistry';
-  import { layoutState, setRightSidebarWidth, setRightSidebarVisible } from '../stores/layout/layoutStore';
+  import { layoutState, setRightSidebarWidth } from '../stores/layout/layoutStore';
 
   /**
    * RightSideBar:
@@ -18,9 +18,6 @@
 
   const MIN_WIDTH = 220;
   let windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-
-  // Reactive max width: 70% of window width
-  const MAX_WIDTH = $derived(Math.floor(windowWidth * 0.7));
 
   // Функция обновления размеров окна
   const updateWindowWidth = () => {
@@ -43,33 +40,6 @@
   // Пока активным считается первый зарегистрированный right-view (если он есть).
   const activeRightView = $derived(rightViews[0]);
 
-  let isResizing = false;
-
-  const onHandleMouseDown = (event: MouseEvent) => {
-    event.preventDefault();
-    isResizing = true;
-
-    const startX = event.clientX;
-    const startWidth = $layoutState.rightSidebarWidth;
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      const delta = e.clientX - startX;
-      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + delta));
-      setRightSidebarWidth(next);
-    };
-
-    const onMouseUp = () => {
-      if (!isResizing) return;
-      isResizing = false;
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  };
-
   onMount(() => {
     // Инициализируем ширину окна
     updateWindowWidth();
@@ -84,10 +54,7 @@
 </script>
 
 {#if $layoutState.rightSidebarVisible}
-  <div
-    class="right-sidebar"
-    style={`width: ${$layoutState.rightSidebarWidth}px`}
-  >
+  <div class="right-sidebar" style={`width: ${$layoutState.rightSidebarWidth}px`}>
     {#if activeRightView}
       {@const Component = activeRightView.component}
       <Component />

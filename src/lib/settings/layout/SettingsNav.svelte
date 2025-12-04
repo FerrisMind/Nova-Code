@@ -2,7 +2,7 @@
   // src/lib/settings/layout/SettingsNav.svelte
   // ----------------------------------------------------------------------------
   // Упрощённая навигация для страницы настроек.
-  // 
+  //
   // Две главные секции:
   // - Appearance (тема, палитра, профили, импорт/экспорт)
   // - Editor (все настройки редактора в аккордеонах)
@@ -32,11 +32,7 @@
     onselect: (sectionId: 'appearance' | 'editor') => void;
   }
 
-  let {
-    sections,
-    activeSectionId,
-    onselect
-  }: SettingsNavProps = $props();
+  let { sections, activeSectionId, onselect }: SettingsNavProps = $props();
 
   // ---------------------------------------------------------------------------
   // Обработчики
@@ -96,7 +92,7 @@
     {#each sections as section, index (section.id)}
       {@const isActive = section.id === activeSectionId}
       {@const IconComponent = getIcon(section.icon)}
-      
+
       <li class="nav-item" role="presentation">
         <button
           type="button"
@@ -113,7 +109,7 @@
             <IconComponent size={18} />
           </span>
           <span class="nav-label">{section.label}</span>
-          
+
           {#if isActive}
             <span class="nav-indicator" aria-hidden="true"></span>
           {/if}
@@ -157,7 +153,7 @@
     text-align: left;
     cursor: pointer;
     position: relative;
-    transition: 
+    transition:
       background-color var(--settings-transition-fast, 150ms),
       color var(--settings-transition-fast, 150ms);
   }

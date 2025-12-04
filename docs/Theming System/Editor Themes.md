@@ -11,6 +11,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Theme Architecture Overview](#theme-architecture-overview)
 3. [Theme Manager Implementation](#theme-manager-implementation)
@@ -27,6 +28,7 @@
 The editor themes sub-feature provides a comprehensive system for managing syntax highlighting and code appearance within the Monaco Editor. This documentation details the architecture and implementation of the theme management system, focusing on how custom themes are registered, applied, and synchronized with the application's UI themes. The system enables users to customize their coding experience through various theme options while maintaining performance and consistency across the application.
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L273)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
@@ -47,6 +49,7 @@ H[Custom Themes] --> B
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L34-L257)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L36-L119)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L75-L155)
@@ -56,6 +59,7 @@ H[Custom Themes] --> B
 The ThemeManager class serves as the central component for managing Monaco Editor themes. It handles the registration and application of both built-in and custom themes, providing a clean API for theme operations. The manager maintains a collection of custom themes and tracks the currently applied theme.
 
 The implementation includes methods for:
+
 - Initializing the theme manager with a Monaco Editor instance
 - Registering built-in themes (vs, vs-dark, hc-black, hc-light)
 - Registering custom themes from JSON definitions
@@ -97,9 +101,11 @@ ThemeManager --> CustomTheme : "manages"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L34-L257)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L34-L257)
 
 ## Theme Palette System
@@ -107,6 +113,7 @@ ThemeManager --> CustomTheme : "manages"
 The theme palette system provides the foundation for both UI and editor theming. It defines a set of approved color palettes that ensure visual consistency across the application. The system includes eight distinct palettes: four for light mode and four for dark mode, each with a default and three alternative variations.
 
 Each palette contains:
+
 - A unique identifier following the pattern `{mode}-{variant}` (e.g., 'light-default', 'dark-alt-1')
 - A human-readable label
 - A mode designation (light or dark)
@@ -148,10 +155,12 @@ ThemePalette --> ThemeMode
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L24-L32)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L35-L54)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L24-L314)
 
 ## Monaco Theme Specification Conversion
@@ -159,6 +168,7 @@ ThemePalette --> ThemeMode
 The system converts theme palette definitions into Monaco theme specifications through the createThemeFromPalette method. This process involves mapping application palette colors to Monaco editor color tokens and defining syntax highlighting rules.
 
 The conversion process includes:
+
 1. Determining the base theme (vs for light mode, vs-dark for dark mode)
 2. Mapping palette colors to editor color tokens:
    - editor.background: Uses backgroundLevels[1] for working area
@@ -190,9 +200,11 @@ H --> I[Theme Ready for Application]
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L187-L213)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L187-L213)
 
 ## UI and Editor Theme Synchronization
@@ -200,6 +212,7 @@ H --> I[Theme Ready for Application]
 The theme system synchronizes editor themes with UI themes through a state management approach using Svelte stores. The themeStore provides a reactive state management system that serves as the single source of truth for theme-related state.
 
 The synchronization process works as follows:
+
 1. The themeStore maintains the current theme mode (light/dark) and selected palette
 2. The editorSettingsStore contains the editor theme setting, which can be set to 'auto' or a specific theme ID
 3. The getMonacoThemeId function determines the appropriate Monaco theme ID based on these states:
@@ -227,11 +240,13 @@ Monaco->>Monaco : Update editor appearance
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L36-L119)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L32-L179)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L264-L273)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L36-L119)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L32-L179)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L264-L273)
@@ -241,6 +256,7 @@ Monaco->>Monaco : Update editor appearance
 Users can create custom editor themes by extending existing ones and registering them with the theme manager. The system supports custom themes through a JSON-based definition format that follows the CustomTheme interface.
 
 To create a custom theme:
+
 1. Define a theme object with the required properties:
    - name: Human-readable theme name
    - base: Base theme to inherit from (vs, vs-dark, hc-black, hc-light)
@@ -268,9 +284,11 @@ H --> J[Theme Ready for Use]
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L110)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L8-L19)
 
 ## Theme Contributions and Language Rules
@@ -278,6 +296,7 @@ H --> J[Theme Ready for Use]
 The theme system supports theme contributions for different programming languages and file types through Monaco's theming capabilities. While the core theme manager handles the registration and application of themes, Monaco Editor itself manages language-specific tokenization and syntax highlighting.
 
 Theme contributions are defined through:
+
 1. Token rules that match specific language constructs
 2. Editor color overrides for UI elements
 3. Semantic highlighting rules for advanced language features
@@ -319,10 +338,12 @@ class UIElement {
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L12-L18)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L115-L127)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L12-L18)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L115-L127)
 
@@ -331,6 +352,7 @@ class UIElement {
 The theme system incorporates several performance optimizations to ensure smooth operation, especially when loading multiple themes or switching between them frequently.
 
 Key performance considerations include:
+
 1. **Lazy Loading of Popular Themes**: Popular themes are loaded asynchronously using dynamic imports, preventing them from blocking editor initialization. The loadPopularThemes method runs in the background, allowing the editor to become usable immediately.
 
 2. **Theme Caching**: Custom themes are cached in memory within the ThemeManager's customThemes Map. This allows for instant switching between custom themes without re-parsing or re-registering them with Monaco.
@@ -358,10 +380,12 @@ H --> K[Update Editor Appearance]
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L225-L253)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L115-L125)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L225-L253)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L115-L125)
 
@@ -370,6 +394,7 @@ H --> K[Update Editor Appearance]
 The editor themes system provides a robust and flexible solution for managing syntax highlighting and code appearance in the Monaco Editor. By separating concerns between UI themes and editor themes while maintaining synchronization through state management, the system offers users extensive customization options without compromising performance or consistency.
 
 Key strengths of the implementation include:
+
 - A clear separation of theme management responsibilities
 - Efficient conversion of palette definitions to Monaco themes
 - Seamless synchronization between UI and editor themes

@@ -28,7 +28,7 @@ import {
   setActiveGroup,
   setActiveTab as setActiveGroupTab,
   reconcileGroupsWithOpenTabs,
-  type EditorGroupId
+  type EditorGroupId,
 } from './layout/editorGroupsStore';
 import { getWorkspaceFiles } from './workspaceStore';
 
@@ -36,15 +36,7 @@ import { getWorkspaceFiles } from './workspaceStore';
 // Типы
 // -----------------------------------------------------------------------------
 
-export type LanguageId =
-  | 'svelte'
-  | 'ts'
-  | 'js'
-  | 'json'
-  | 'md'
-  | 'toml'
-  | 'rs'
-  | 'txt';
+export type LanguageId = 'svelte' | 'ts' | 'js' | 'json' | 'md' | 'toml' | 'rs' | 'txt';
 
 export interface EditorTab {
   id: string; // fileId
@@ -92,7 +84,7 @@ const detectLanguage = (name: string): LanguageId | string => {
 const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
   const { subscribe, update } = writable<EditorState>({
     openTabs: [],
-    activeEditorId: null
+    activeEditorId: null,
   });
 
   /**
@@ -152,8 +144,9 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
 
         const allNodes = collectAll(tree);
         fileNode =
-          (allNodes.find((n) => n.type === 'file' && n.path === pathOrId) as FileNode | undefined) ??
-          null;
+          (allNodes.find((n) => n.type === 'file' && n.path === pathOrId) as
+            | FileNode
+            | undefined) ?? null;
       }
 
       if (!fileNode || fileNode.type !== 'file') {
@@ -167,7 +160,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
         title: fileNode.name,
         path: fileNode.path,
         language,
-        isDirty: false
+        isDirty: false,
       };
 
       result = newTab;
@@ -175,7 +168,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
 
       return {
         openTabs: [...state.openTabs, newTab],
-        activeEditorId: activate ? newTab.id : state.activeEditorId
+        activeEditorId: activate ? newTab.id : state.activeEditorId,
       };
     });
 
@@ -189,15 +182,13 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
         setActiveGroup(resolvedGroupId);
         setActiveGroupTab(resolvedGroupId, tabId);
       }
-      reconcileGroupsWithOpenTabs(
-        latestOpenTabIds ?? get(editorStore).openTabs.map((t) => t.id)
-      );
+      reconcileGroupsWithOpenTabs(latestOpenTabIds ?? get(editorStore).openTabs.map((t) => t.id));
     }
 
     return result;
   };
 
-    /**
+  /**
    * Open a file by fileId (legacy-friendly UI API).
    * - Ensures the tab becomes active in editorStore.
    * - Syncs with editorGroupsStore for the target (active) group.
@@ -207,7 +198,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     ensureTabForFile(fileId, { activate: true, groupId });
   };
 
-    /**
+  /**
    * Set active editor by tab id and propagate selection to editorGroupsStore.
    */
 
@@ -236,7 +227,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     });
   };
 
-    /**
+  /**
    * Close a tab by id.
    * - Updates openTabs and activeEditorId.
    * - Syncs group state via editorGroupsStore.removeTab.
@@ -251,10 +242,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
       if (idx === -1) return state;
       removed = true;
 
-      const newTabs = [
-        ...state.openTabs.slice(0, idx),
-        ...state.openTabs.slice(idx + 1)
-      ];
+      const newTabs = [...state.openTabs.slice(0, idx), ...state.openTabs.slice(idx + 1)];
 
       let nextActive = state.activeEditorId;
       if (state.activeEditorId === fileId) {
@@ -269,7 +257,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
 
       latestState = {
         openTabs: newTabs,
-        activeEditorId: nextActive
+        activeEditorId: nextActive,
       };
 
       return latestState;
@@ -306,9 +294,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
   const markDirty = (id: string, isDirty: boolean): void => {
     update((state) => ({
       ...state,
-      openTabs: state.openTabs.map((tab) =>
-        tab.id === id ? { ...tab, isDirty } : tab
-      )
+      openTabs: state.openTabs.map((tab) => (tab.id === id ? { ...tab, isDirty } : tab)),
     }));
   };
 
@@ -342,12 +328,12 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
         title: 'Settings',
         path: '/settings',
         language: 'txt', // ��� ����������� ��� ��� settings
-        isDirty: false
+        isDirty: false,
       };
 
       return {
         openTabs: [...state.openTabs, newTab],
-        activeEditorId: settingsId
+        activeEditorId: settingsId,
       };
     });
 
@@ -355,7 +341,6 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     setActiveGroup(targetGroupId);
     setActiveGroupTab(targetGroupId, settingsId);
   };
-
 
   return {
     subscribe,
@@ -365,7 +350,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
     closeEditor,
     markDirty,
     updateContent,
-    ensureTabForFile
+    ensureTabForFile,
   };
 };
 
@@ -381,8 +366,7 @@ export const editorStore = createEditorStore(getWorkspaceFiles);
  */
 export const activeEditor: Readable<EditorTab | null> = derived(
   editorStore,
-  ($state) =>
-    $state.openTabs.find((t) => t.id === $state.activeEditorId) ?? null
+  ($state) => $state.openTabs.find((t) => t.id === $state.activeEditorId) ?? null
 );
 
 /**

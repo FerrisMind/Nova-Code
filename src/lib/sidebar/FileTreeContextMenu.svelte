@@ -1,18 +1,17 @@
-<svelte:options runes={true} />
 <script lang="ts">
-// src/lib/sidebar/FileTreeContextMenu.svelte
-// -----------------------------------------------------------------------------
-// Минимальный, но рабочий контекстное меню для узлов файлового дерева.
-// Ответственность:
-// - отрисовать список действий для выбранного узла;
-// - пробросить выбранное действие наружу через событие "action";
-// - не выполнять побочных эффектов напрямую.
-//
-// Архитектура:
-// - контекстное меню используется FileTree.svelte;
-// - действия реализуются в fileTreeActions.ts;
-// - дизайн и API повторяют идеи VS Code Explorer, без зависимостей от Tauri.
-// -----------------------------------------------------------------------------
+  // src/lib/sidebar/FileTreeContextMenu.svelte
+  // -----------------------------------------------------------------------------
+  // Минимальный, но рабочий контекстное меню для узлов файлового дерева.
+  // Ответственность:
+  // - отрисовать список действий для выбранного узла;
+  // - пробросить выбранное действие наружу через событие "action";
+  // - не выполнять побочных эффектов напрямую.
+  //
+  // Архитектура:
+  // - контекстное меню используется FileTree.svelte;
+  // - действия реализуются в fileTreeActions.ts;
+  // - дизайн и API повторяют идеи VS Code Explorer, без зависимостей от Tauri.
+  // -----------------------------------------------------------------------------
   import type { FileNode } from '../types/fileNode';
   import type { FileTreeActionId } from './fileTreeActions';
 
@@ -22,7 +21,7 @@
     y = 0,
     node = null,
     onaction,
-    onclose
+    onclose,
   }: {
     visible?: boolean;
     x?: number;
@@ -63,9 +62,7 @@
       }
     }}
   >
-    <button class="ctx-item" type="button" onclick={() => trigger('open')}>
-      Open
-    </button>
+    <button class="ctx-item" type="button" onclick={() => trigger('open')}> Open </button>
     <button class="ctx-item" type="button" onclick={() => trigger('openToSide')}>
       Open to Side
     </button>
@@ -73,18 +70,12 @@
       Reveal in Explorer
     </button>
     <div class="ctx-separator"></div>
-    <button class="ctx-item" type="button" onclick={() => trigger('newFile')}>
-      New File
-    </button>
+    <button class="ctx-item" type="button" onclick={() => trigger('newFile')}> New File </button>
     <button class="ctx-item" type="button" onclick={() => trigger('newFolder')}>
       New Folder
     </button>
-    <button class="ctx-item" type="button" onclick={() => trigger('rename')}>
-      Rename
-    </button>
-    <button class="ctx-item" type="button" onclick={() => trigger('delete')}>
-      Delete
-    </button>
+    <button class="ctx-item" type="button" onclick={() => trigger('rename')}> Rename </button>
+    <button class="ctx-item" type="button" onclick={() => trigger('delete')}> Delete </button>
   </div>
 {/if}
 
@@ -135,3 +126,5 @@
     border-top: 1px solid var(--nc-border-subtle);
   }
 </style>
+
+<svelte:options runes={true} />

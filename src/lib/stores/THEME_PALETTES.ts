@@ -1,7 +1,7 @@
 // src/lib/stores/THEME_PALETTES.ts
 // -----------------------------------------------------------------------------
 // Единый источник правды для цветовых палитр Nova Code.
-// 
+//
 // Цели модуля:
 // - Жестко зафиксировать утвержденные палитры для светлой и темной тем.
 // - Не изобретать новые цвета: используются только значения из спецификации.
@@ -83,7 +83,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#F5F7FA',
     backgroundLevels: calculateBackgroundLevels('#F5F7FA', 'light'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#F5F7FA', 'light'),
-    textColor: '#2e2e2e'
+    textColor: '#2e2e2e',
   },
   'light-alt-1': {
     id: 'light-alt-1',
@@ -92,7 +92,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#FAF8F5',
     backgroundLevels: calculateBackgroundLevels('#FAF8F5', 'light'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#FAF8F5', 'light'),
-    textColor: '#2e2e2e'
+    textColor: '#2e2e2e',
   },
   'light-alt-2': {
     id: 'light-alt-2',
@@ -101,7 +101,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#FFF9E6',
     backgroundLevels: calculateBackgroundLevels('#FFF9E6', 'light'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#FFF9E6', 'light'),
-    textColor: '#2e2e2e'
+    textColor: '#2e2e2e',
   },
   'light-alt-3': {
     id: 'light-alt-3',
@@ -110,7 +110,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#F0F4F1',
     backgroundLevels: calculateBackgroundLevels('#F0F4F1', 'light'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#F0F4F1', 'light'),
-    textColor: '#2e2e2e'
+    textColor: '#2e2e2e',
   },
 
   // ---------------------------------------------------------------------------
@@ -123,7 +123,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#1A1D2E',
     backgroundLevels: calculateBackgroundLevels('#1A1D2E', 'dark'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#1A1D2E', 'dark'),
-    textColor: '#E8E8E8'
+    textColor: '#E8E8E8',
   },
   'dark-alt-1': {
     id: 'dark-alt-1',
@@ -132,7 +132,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#1E1E1E',
     backgroundLevels: calculateBackgroundLevels('#1E1E1E', 'dark'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#1E1E1E', 'dark'),
-    textColor: '#E8E8E8'
+    textColor: '#E8E8E8',
   },
   'dark-alt-2': {
     id: 'dark-alt-2',
@@ -141,7 +141,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#2B2D30',
     backgroundLevels: calculateBackgroundLevels('#2B2D30', 'dark'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#2B2D30', 'dark'),
-    textColor: '#E8E8E8'
+    textColor: '#E8E8E8',
   },
   'dark-alt-3': {
     id: 'dark-alt-3',
@@ -150,8 +150,8 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
     backgroundPrimary: '#1C2321',
     backgroundLevels: calculateBackgroundLevels('#1C2321', 'dark'),
     backgroundLevelMinus1: calculateBackgroundLevelMinus1('#1C2321', 'dark'),
-    textColor: '#E8E8E8'
-  }
+    textColor: '#E8E8E8',
+  },
 };
 
 // -----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
  * Рассчитывает уровни фона на основе базового цвета.
  * Для темной темы: светлее с каждым уровнем (+яркость).
  * Для светлой темы: темнее с каждым уровнем (-яркость).
- * 
+ *
  * Иерархия уровней:
  * Level 0: Базовый фон (сайдбар)
  * Level 1-2: +8-10 пунктов (рабочая область/карточки)
@@ -170,7 +170,10 @@ export const PALETTES: Record<ThemePaletteId, ThemePalette> = {
  * Level 4: +14-16 пунктов (промежуточный)
  * Level 5: +14-16 пунктов (hover-состояния)
  */
-function calculateBackgroundLevels(baseColor: string, mode: ThemeMode): Record<0 | 1 | 2 | 3 | 4 | 5, string> {
+function calculateBackgroundLevels(
+  baseColor: string,
+  mode: ThemeMode
+): Record<0 | 1 | 2 | 3 | 4 | 5, string> {
   // Преобразуем hex в HSL
   const hexToHsl = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -178,14 +181,22 @@ function calculateBackgroundLevels(baseColor: string, mode: ThemeMode): Record<0
     const b = parseInt(hex.slice(5, 7), 16) / 255;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
     if (max !== min) {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
       }
       h /= 6;
     }
@@ -194,11 +205,13 @@ function calculateBackgroundLevels(baseColor: string, mode: ThemeMode): Record<0
 
   const hslToHex = (h: number, s: number, l: number) => {
     l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
+    const a = (s * Math.min(l, 1 - l)) / 100;
     const f = (n: number) => {
       const k = (n + h / 30) % 12;
       const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * color).toString(16).padStart(2, '0');
+      return Math.round(255 * color)
+        .toString(16)
+        .padStart(2, '0');
     };
     return `#${f(0)}${f(8)}${f(4)}`;
   };
@@ -210,7 +223,7 @@ function calculateBackgroundLevels(baseColor: string, mode: ThemeMode): Record<0
     2: baseColor,
     3: baseColor,
     4: baseColor,
-    5: baseColor
+    5: baseColor,
   };
 
   // Уровни согласно спецификации:
@@ -249,14 +262,22 @@ function calculateBackgroundLevelMinus1(baseColor: string, mode: ThemeMode): str
     const b = parseInt(hex.slice(5, 7), 16) / 255;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
     if (max !== min) {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
       }
       h /= 6;
     }
@@ -265,11 +286,13 @@ function calculateBackgroundLevelMinus1(baseColor: string, mode: ThemeMode): str
 
   const hslToHex = (h: number, s: number, l: number) => {
     l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
+    const a = (s * Math.min(l, 1 - l)) / 100;
     const f = (n: number) => {
       const k = (n + h / 30) % 12;
       const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * color).toString(16).padStart(2, '0');
+      return Math.round(255 * color)
+        .toString(16)
+        .padStart(2, '0');
     };
     return `#${f(0)}${f(8)}${f(4)}`;
   };
@@ -308,7 +331,5 @@ export function getDefaultPaletteForMode(mode: ThemeMode): ThemePalette {
  * Возвращает строго зафиксированный набор без псевдо-вариантов.
  */
 export function listPalettesByMode(mode: ThemeMode): ThemePalette[] {
-  return (Object.values(PALETTES) as ThemePalette[]).filter(
-    (palette) => palette.mode === mode
-  );
+  return (Object.values(PALETTES) as ThemePalette[]).filter((palette) => palette.mode === mode);
 }

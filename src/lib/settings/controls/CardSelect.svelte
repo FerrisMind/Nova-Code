@@ -1,17 +1,12 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/CardSelect.svelte
   // ----------------------------------------------------------------------------
   // Адаптированный компонент на основе shadcn-svelte Radio Group с карточным дизайном.
   // ----------------------------------------------------------------------------
-  import type {
-    SettingDefinition,
-    SettingId,
-    SettingValue,
-  } from "$lib/settings/types";
-  import Icon from "$lib/common/Icon.svelte";
+  import type { SettingDefinition, SettingId, SettingValue } from '$lib/settings/types';
+  import Icon from '$lib/common/Icon.svelte';
 
-  type SettingChangeSource = "user" | "profile" | "quickAction" | "command";
+  type SettingChangeSource = 'user' | 'profile' | 'quickAction' | 'command';
 
   type SettingChangeMeta = {
     settingId: SettingId;
@@ -48,9 +43,9 @@
     onChange = undefined,
     disabled = false,
     columns = 0,
-    idPrefix = "setting-card",
+    idPrefix = 'setting-card',
     onchange,
-    onselect
+    onselect,
   }: CardSelectProps & {
     onchange?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void;
     onselect?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void;
@@ -70,8 +65,8 @@
   };
 
   const resolveCardId = (opt: CardSelectOption): string => {
-    const base = `${idPrefix}-${definition.id}`.replace(/[^a-zA-Z0-9_-]/g, "_");
-    const val = String(opt.value).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const base = `${idPrefix}-${definition.id}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const val = String(opt.value).replace(/[^a-zA-Z0-9_-]/g, '_');
     return `${base}-${val}`;
   };
 
@@ -80,7 +75,7 @@
     const next = opt.value;
     const meta: SettingChangeMeta = {
       settingId: definition.id,
-      source: "user",
+      source: 'user',
     };
 
     if (onChange) {
@@ -95,7 +90,7 @@
 
   const handleKeydown = (event: KeyboardEvent, opt: CardSelectOption) => {
     if (disabled) return;
-    if (event.key === " " || event.key === "Enter") {
+    if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
       selectOption(opt);
     }
@@ -105,7 +100,7 @@
     if (columns && columns > 0) {
       return `grid-template-columns: repeat(${columns}, minmax(0, 1fr));`;
     }
-    return "grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));";
+    return 'grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));';
   };
 </script>
 
@@ -116,7 +111,9 @@
       {@const hasPreview = option.levels !== undefined}
       <button
         type="button"
-        class="nc-card {active ? 'active' : ''} {disabled ? 'is-disabled' : ''} {hasPreview ? 'has-preview' : ''}"
+        class="nc-card {active ? 'active' : ''} {disabled ? 'is-disabled' : ''} {hasPreview
+          ? 'has-preview'
+          : ''}"
         id={resolveCardId(option)}
         aria-pressed={active}
         aria-label={option.label}
@@ -129,19 +126,40 @@
           <div class="nc-palette-preview" style={`background-color: ${option.levels[0]};`}>
             <div class="preview-ui">
               <!-- Мини-sidebar -->
-              <div class="preview-sidebar" style={`background-color: ${option.levelMinus1 ?? option.levels[0]};`}>
-                <div class="preview-sidebar-item" style={`background-color: ${option.levels[2]};`}></div>
-                <div class="preview-sidebar-item" style={`background-color: ${option.levels[3]};`}></div>
-                <div class="preview-sidebar-item active" style={`background-color: ${option.levels[4]};`}></div>
+              <div
+                class="preview-sidebar"
+                style={`background-color: ${option.levelMinus1 ?? option.levels[0]};`}
+              >
+                <div
+                  class="preview-sidebar-item"
+                  style={`background-color: ${option.levels[2]};`}
+                ></div>
+                <div
+                  class="preview-sidebar-item"
+                  style={`background-color: ${option.levels[3]};`}
+                ></div>
+                <div
+                  class="preview-sidebar-item active"
+                  style={`background-color: ${option.levels[4]};`}
+                ></div>
               </div>
               <!-- Мини-контент -->
               <div class="preview-content" style={`background-color: ${option.levels[1]};`}>
                 <!-- Мини-заголовок -->
-                <div class="preview-title" style={`background-color: ${option.textColor}; opacity: 0.9;`}></div>
+                <div
+                  class="preview-title"
+                  style={`background-color: ${option.textColor}; opacity: 0.9;`}
+                ></div>
                 <!-- Мини-текст строки -->
                 <div class="preview-text-row">
-                  <div class="preview-text" style={`background-color: ${option.textColor}; opacity: 0.5;`}></div>
-                  <div class="preview-text short" style={`background-color: ${option.textColor}; opacity: 0.3;`}></div>
+                  <div
+                    class="preview-text"
+                    style={`background-color: ${option.textColor}; opacity: 0.5;`}
+                  ></div>
+                  <div
+                    class="preview-text short"
+                    style={`background-color: ${option.textColor}; opacity: 0.3;`}
+                  ></div>
                 </div>
                 <!-- Мини-кнопки -->
                 <div class="preview-buttons">
@@ -175,7 +193,16 @@
 
         {#if active}
           <div class="nc-card-check">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
@@ -426,3 +453,5 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 </style>
+
+<svelte:options runes={true} />

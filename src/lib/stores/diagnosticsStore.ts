@@ -33,7 +33,7 @@ const diagnosticsByFileId = new Map<string, EditorDiagnostic[]>();
 const baseDiagnostics = writable<DiagnosticsCount>({
   fileId: null,
   errors: 0,
-  warnings: 0
+  warnings: 0,
 });
 
 let initialized = false;
@@ -46,27 +46,24 @@ let initialized = false;
  */
 export const diagnosticsCount: Readable<DiagnosticsCount> = derived(
   [activeEditor, baseDiagnostics],
-  ([$activeEditor, $baseDiagnostics]) => {
+  ([$activeEditor, _baseDiagnostics]) => {
+    void _baseDiagnostics;
     const activeId = $activeEditor?.id ?? null;
 
     if (!activeId) {
       return {
         fileId: null,
         errors: 0,
-        warnings: 0
+        warnings: 0,
       };
     }
 
     const markers = diagnosticsByFileId.get(activeId) ?? [];
     const errors = markers.filter(
-      (m) =>
-        m.severity === 'error' ||
-        m.severity === 8 // monaco.MarkerSeverity.Error
+      (m) => m.severity === 'error' || m.severity === 8 // monaco.MarkerSeverity.Error
     ).length;
     const warnings = markers.filter(
-      (m) =>
-        m.severity === 'warning' ||
-        m.severity === 4 // monaco.MarkerSeverity.Warning
+      (m) => m.severity === 'warning' || m.severity === 4 // monaco.MarkerSeverity.Warning
     ).length;
 
     // Если активный файл совпадает с базовым snapshot, возвращаем пересчитанное.
@@ -74,13 +71,13 @@ export const diagnosticsCount: Readable<DiagnosticsCount> = derived(
     return {
       fileId: activeId,
       errors,
-      warnings
+      warnings,
     };
   },
   {
     fileId: null,
     errors: 0,
-    warnings: 0
+    warnings: 0,
   }
 );
 
@@ -110,10 +107,7 @@ export function initDiagnosticsTracking(): void {
  *
  * Status Bar и UI не вызывают эту функцию напрямую.
  */
-export function updateDiagnosticsForFile(
-  fileId: string,
-  diagnostics: EditorDiagnostic[]
-): void {
+export function updateDiagnosticsForFile(fileId: string, diagnostics: EditorDiagnostic[]): void {
   if (!initialized) {
     // Обеспечиваем предсказуемость: ленивое включение трекинга.
     initialized = true;
@@ -127,15 +121,11 @@ export function updateDiagnosticsForFile(
       ? {
           fileId,
           errors: diagnostics.filter(
-            (m) =>
-              m.severity === 'error' ||
-              m.severity === 8 // MarkerSeverity.Error
+            (m) => m.severity === 'error' || m.severity === 8 // MarkerSeverity.Error
           ).length,
           warnings: diagnostics.filter(
-            (m) =>
-              m.severity === 'warning' ||
-              m.severity === 4 // MarkerSeverity.Warning
-          ).length
+            (m) => m.severity === 'warning' || m.severity === 4 // MarkerSeverity.Warning
+          ).length,
         }
       : current
   );

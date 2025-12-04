@@ -3,22 +3,22 @@
    * OutlineView компонент для правой панели
    * Показывает структуру текущего файла
    */
-  import { activeEditor } from "../stores/editorStore";
-  import Icon from "../common/Icon.svelte";
-  import { getLanguageIcon } from "../mocks/languageIcons";
-  import { onDestroy } from "svelte";
+  import { activeEditor } from '../stores/editorStore';
+  import Icon from '../common/Icon.svelte';
+  import { getLanguageIcon } from '../mocks/languageIcons';
+  import { onDestroy } from 'svelte';
 
-  let fileName = "";
-  let filePath = "";
+  let fileName = '';
+  let filePath = '';
 
   const unsubscribe = activeEditor.subscribe(($active) => {
     if ($active) {
       filePath = $active.path || $active.id;
-      const parts = filePath.replace(/\\/g, "/").split("/");
-      fileName = parts.pop() || "";
+      const parts = filePath.replace(/\\/g, '/').split('/');
+      fileName = parts.pop() || '';
     } else {
-      fileName = "";
-      filePath = "";
+      fileName = '';
+      filePath = '';
     }
   });
 

@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/layout/SettingsShell.svelte
   // ----------------------------------------------------------------------------
@@ -23,16 +22,10 @@
   import { Separator } from '$lib/components/ui/separator';
   import { searchSettings } from '$lib/settings/registry';
 
-  import type {
-    SettingId,
-    SettingDefinition,
-    SettingsSectionDefinition
-  } from '$lib/settings/types';
-
   // ---------------------------------------------------------------------------
   // Типы событий
   // ---------------------------------------------------------------------------
-  
+
   type SettingsShellSectionChangeDetail = {
     sectionId: string;
   };
@@ -54,10 +47,8 @@
     id = undefined,
     initialSectionId = 'appearance',
     compactMode = false,
-    onchange,
-    onsectionchange
+    onsectionchange,
   }: SettingsShellProps & {
-    onchange?: never;
     onsectionchange?: (detail: SettingsShellSectionChangeDetail) => void;
   } = $props();
 
@@ -67,16 +58,16 @@
 
   // Активная секция: 'appearance' или 'editor'
   let activeSectionId = $state<'appearance' | 'editor'>(initialSectionId);
-  
+
   // Мобильное меню открыто/закрыто
   let mobileMenuOpen = $state(false);
-  
+
   // Ширина viewport для адаптивности
   let windowWidth = $state(1024);
-  
+
   // Контейнер для скролла
   let contentContainer: HTMLElement;
-  
+
   // Поиск по настройкам
   let searchQuery = $state('');
   let searchResults = $state<ReturnType<typeof searchSettings>>([]);
@@ -84,27 +75,27 @@
 
   // Проверка мобильного режима
   const isMobile = () => windowWidth < 768;
-  
+
   // Debounce для поиска
   let searchTimeout: ReturnType<typeof setTimeout>;
-  
+
   function handleSearch(query: string) {
     searchQuery = query;
-    
+
     if (searchTimeout) clearTimeout(searchTimeout);
-    
+
     if (!query.trim()) {
       isSearching = false;
       searchResults = [];
       return;
     }
-    
+
     searchTimeout = setTimeout(() => {
       isSearching = true;
       searchResults = searchSettings(query, { limit: 10 });
     }, 150);
   }
-  
+
   function clearSearch() {
     searchQuery = '';
     isSearching = false;
@@ -117,9 +108,9 @@
 
   function handleSectionSelect(sectionId: 'appearance' | 'editor') {
     if (sectionId === activeSectionId) return;
-    
+
     activeSectionId = sectionId;
-    
+
     // Закрываем мобильное меню при выборе
     if (isMobile()) {
       mobileMenuOpen = false;
@@ -140,7 +131,7 @@
   // Слушаем resize для адаптивности
   onMount(() => {
     windowWidth = window.innerWidth;
-    
+
     const handleResize = () => {
       windowWidth = window.innerWidth;
       // Закрываем мобильное меню при переходе на desktop
@@ -148,7 +139,7 @@
         mobileMenuOpen = false;
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   });
@@ -156,10 +147,10 @@
   // ---------------------------------------------------------------------------
   // Секции навигации
   // ---------------------------------------------------------------------------
-  
+
   const navSections = [
     { id: 'appearance' as const, label: 'Appearance', icon: 'palette' },
-    { id: 'editor' as const, label: 'Editor', icon: 'code' }
+    { id: 'editor' as const, label: 'Editor', icon: 'code' },
   ];
 </script>
 
@@ -172,7 +163,7 @@
   <!-- Mobile Header with Hamburger -->
   {#if isMobile()}
     <header class="mobile-header">
-      <button 
+      <button
         class="hamburger-btn"
         onclick={toggleMobileMenu}
         aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -184,7 +175,7 @@
           <Menu size={24} />
         {/if}
       </button>
-      
+
       <nav class="breadcrumbs" aria-label="Breadcrumb">
         <span class="breadcrumb-item">Settings</span>
         <span class="breadcrumb-separator">/</span>
@@ -197,18 +188,14 @@
 
   <div class="settings-layout">
     <!-- Левая панель: Навигация -->
-    <aside 
-      class="nav-panel"
-      class:open={mobileMenuOpen}
-      aria-label="Settings navigation"
-    >
+    <aside class="nav-panel" class:open={mobileMenuOpen} aria-label="Settings navigation">
       <div class="nav-content">
         <!-- Заголовок (только desktop) -->
         {#if !isMobile()}
           <div class="nav-header">
             <h2 class="nav-title">Settings</h2>
           </div>
-          
+
           <!-- Inline Search -->
           <div class="search-container">
             <div class="search-input-wrapper">
@@ -227,11 +214,11 @@
                 </button>
               {/if}
             </div>
-            
+
             {#if isSearching && searchResults.length > 0}
               <div class="search-results">
                 {#each searchResults as result (result.settingId)}
-                  <button 
+                  <button
                     class="search-result-item"
                     onclick={() => {
                       // Переключиться на нужную секцию
@@ -249,39 +236,33 @@
                 {/each}
               </div>
             {/if}
-            
+
             {#if isSearching && searchQuery && searchResults.length === 0}
-              <div class="search-empty">
-                No settings found
-              </div>
+              <div class="search-empty">No settings found</div>
             {/if}
           </div>
-          
+
           <Separator class="nav-separator" />
         {/if}
-        
+
         <!-- Навигация по секциям -->
-        <SettingsNav
-          sections={navSections}
-          {activeSectionId}
-          onselect={handleSectionSelect}
-        />
+        <SettingsNav sections={navSections} {activeSectionId} onselect={handleSectionSelect} />
       </div>
     </aside>
 
     <!-- Overlay для мобильного меню -->
     {#if isMobile() && mobileMenuOpen}
-      <button 
+      <button
         class="mobile-overlay"
-        onclick={() => mobileMenuOpen = false}
+        onclick={() => (mobileMenuOpen = false)}
         aria-label="Close menu"
         tabindex="-1"
       ></button>
     {/if}
 
     <!-- Правая панель: Контент -->
-    <main 
-      class="content-panel" 
+    <main
+      class="content-panel"
       bind:this={contentContainer}
       id={`section-${activeSectionId}`}
       aria-labelledby={`tab-${activeSectionId}`}
@@ -293,7 +274,7 @@
           <EditorSection />
         {/if}
       </div>
-      
+
       <!-- Sticky Footer -->
       <SettingsFooter />
     </main>
@@ -304,7 +285,7 @@
   /* =========================================================================
    * Settings Shell — Root Container
    * ========================================================================= */
-  
+
   .settings-shell-root {
     display: flex;
     flex-direction: column;
@@ -400,7 +381,7 @@
     color: var(--nc-palette-text, hsl(var(--foreground)));
     font-size: var(--settings-font-size-sm, 13px);
     outline: none;
-    transition: 
+    transition:
       border-color var(--settings-transition-fast, 150ms),
       box-shadow var(--settings-transition-fast, 150ms);
   }
@@ -638,3 +619,5 @@
     background: transparent;
   }
 </style>
+
+<svelte:options runes={true} />

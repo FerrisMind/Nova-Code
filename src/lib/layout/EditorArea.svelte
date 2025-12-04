@@ -17,42 +17,40 @@
   // - подписка на change-события MonacoHost для isDirty / синхронизации с Tauri.
   // - подключение diff-режима и IntelliSense-провайдеров на базе EditorCore.
 
-  import { onDestroy } from "svelte";
+  import { onDestroy } from 'svelte';
   import {
     editorStore,
     activeTabForGroup,
-    tabEdgeVisibleForGroup,
     activeTabVisibleForGroup,
-    tabsForGroup,
-    type EditorTab
-  } from "../stores/editorStore";
-  import { fileService } from "../services/fileService";
-  import MonacoHost from "../editor/MonacoHost.svelte";
-  import type { EditorCoreOptions } from "../editor/EditorCore";
-  import { editorSettings } from "../stores/editorSettingsStore";
-  import SettingsShell from "$lib/settings/layout/SettingsShell.svelte";
-  import WelcomeScreen from "./WelcomeScreen.svelte";
-  import { editorBehaviorStore } from "../stores/editorBehaviorStore";
-  import Breadcrumbs from "./Breadcrumbs.svelte";
-  import ImagePreview from "./ImagePreview.svelte";
-  import { validateFile } from "../utils/fileValidator";
-  import type { EditorGroupId } from "../stores/layout/editorGroupsStore";
+    type EditorTab,
+  } from '../stores/editorStore';
+  import { fileService } from '../services/fileService';
+  import MonacoHost from '../editor/MonacoHost.svelte';
+  import type { EditorCoreOptions } from '../editor/EditorCore';
+  import { editorSettings } from '../stores/editorSettingsStore';
+  import SettingsShell from '$lib/settings/layout/SettingsShell.svelte';
+  import WelcomeScreen from './WelcomeScreen.svelte';
+  import { editorBehaviorStore } from '../stores/editorBehaviorStore';
+  import Breadcrumbs from './Breadcrumbs.svelte';
+  import ImagePreview from './ImagePreview.svelte';
+  import { validateFile } from '../utils/fileValidator';
+  import type { EditorGroupId } from '../stores/layout/editorGroupsStore';
 
   // Расширения файлов изображений
   const IMAGE_EXTENSIONS = new Set([
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".webp",
-    ".bmp",
-    ".ico",
-    ".svg",
-    ".tiff",
-    ".tif",
-    ".avif",
-    ".heic",
-    ".heif",
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.gif',
+    '.webp',
+    '.bmp',
+    '.ico',
+    '.svg',
+    '.tiff',
+    '.tif',
+    '.avif',
+    '.heic',
+    '.heif',
   ]);
 
   /**
@@ -67,10 +65,8 @@
   const { groupId } = $props<{ groupId: EditorGroupId }>();
   let current = $state<EditorTab | null>(null);
   let editorOptions = $state(editorSettings.getSettings());
-  let backgroundColor = $state("var(--nc-level-1)");
+  let backgroundColor = $state('var(--nc-level-1)');
   let warningMessage = $state<string | null>(null);
-  let firstTabId = $state<string | null>(null);
-  let isActiveTabAtRight = $state(false);
   let isActiveTabVisible = $state(false);
 
   let autoSaveMode = editorBehaviorStore.getAutoSaveMode();
@@ -79,8 +75,7 @@
   let pendingAutoSaveTimer: ReturnType<typeof setTimeout> | null = null;
   let previousEditorId: string | null = null;
   let focusOutListener: ((ev: FocusEvent) => void) | null = null;
-  let windowBlurListener: ((ev: FocusEvent | FocusEventInit) => void) | null =
-    null;
+  let windowBlurListener: ((ev: FocusEvent | Event) => void) | null = null;
 
   const clearAutoSaveTimer = () => {
     if (pendingAutoSaveTimer) {
@@ -90,29 +85,29 @@
   };
 
   const flushAutoSave = async () => {
-    if (autoSaveMode === "off" || !pendingSave) return;
+    if (autoSaveMode === 'off' || !pendingSave) return;
 
     try {
       await editorStore.updateContent(pendingSave.fileId, pendingSave.value);
       pendingSave = null;
       clearAutoSaveTimer();
     } catch (error) {
-      console.error("[auto-save] failed to persist", error);
+      console.error('[auto-save] failed to persist', error);
 
       // Check if this is a recoverable error.
       // VS Code auto-save does not keep retrying on invalid arguments (e.g. missing Tauri payload).
       const errorMessage = error instanceof Error ? error.message : String(error);
       const lowerMessage = errorMessage.toLowerCase();
       const isRecoverable =
-        !lowerMessage.includes("permission denied") &&
-        !lowerMessage.includes("disk full") &&
-        !lowerMessage.includes("missing required key request") &&
-        !lowerMessage.includes("invalid args") &&
-        !lowerMessage.includes("not found");
+        !lowerMessage.includes('permission denied') &&
+        !lowerMessage.includes('disk full') &&
+        !lowerMessage.includes('missing required key request') &&
+        !lowerMessage.includes('invalid args') &&
+        !lowerMessage.includes('not found');
 
       if (isRecoverable) {
         // Retry after a short delay for transient errors.
-        console.warn("[auto-save] retrying save in 2 seconds");
+        console.warn('[auto-save] retrying save in 2 seconds');
         window.setTimeout(() => {
           if (pendingSave) {
             void flushAutoSave();
@@ -120,7 +115,7 @@
         }, 2000);
       } else {
         // Permanent error: keep the tab dirty but stop retrying to avoid spammy saves.
-        console.error("[auto-save] permanent error, leaving file dirty");
+        console.error('[auto-save] permanent error, leaving file dirty');
         pendingSave = null;
         clearAutoSaveTimer();
       }
@@ -128,7 +123,7 @@
   };
 
   const scheduleAutoSave = () => {
-    if (autoSaveMode !== "afterDelay" || !pendingSave) return;
+    if (autoSaveMode !== 'afterDelay' || !pendingSave) return;
     clearAutoSaveTimer();
     pendingAutoSaveTimer = window.setTimeout(() => {
       void flushAutoSave();
@@ -137,24 +132,24 @@
 
   const mergeEditorOptions = (
     base: EditorCoreOptions,
-    optimizations?: Partial<EditorCoreOptions>,
+    optimizations?: Partial<EditorCoreOptions>
   ): EditorCoreOptions => {
     if (!optimizations) return base;
 
     const merged: EditorCoreOptions = { ...base, ...optimizations };
 
     const baseMinimap =
-      typeof base.minimap === "object"
+      typeof base.minimap === 'object'
         ? base.minimap
         : base.minimap !== undefined
           ? { enabled: Boolean(base.minimap) }
           : undefined;
 
     const optimizationMinimap =
-      optimizations.minimap && typeof optimizations.minimap === "object"
+      optimizations.minimap && typeof optimizations.minimap === 'object'
         ? optimizations.minimap
         : optimizations.minimap !== undefined
-          ? { enabled: Boolean((optimizations as any).minimap) }
+          ? { enabled: Boolean(optimizations.minimap) }
           : undefined;
 
     if (baseMinimap || optimizationMinimap) {
@@ -170,11 +165,7 @@
 
   const activeTabUnsub = activeTabForGroup(groupId).subscribe(($active) => {
     current = $active;
-    backgroundColor = $active ? "var(--nc-tab-bg-active)" : "var(--nc-level-1)";
-  });
-
-  const tabsUnsub = tabsForGroup(groupId).subscribe(($tabs) => {
-    firstTabId = $tabs[0]?.id ?? null;
+    backgroundColor = $active ? 'var(--nc-tab-bg-active)' : 'var(--nc-level-1)';
   });
 
   // Подписка на изменения настроек редактора
@@ -185,16 +176,11 @@
   const behaviorUnsub = editorBehaviorStore.subscribe((state) => {
     autoSaveMode = state.autoSaveMode;
     autoSaveDelay = state.autoSaveDelay;
-    if (state.autoSaveMode !== "afterDelay") {
+    if (state.autoSaveMode !== 'afterDelay') {
       clearAutoSaveTimer();
     } else if (pendingSave) {
       scheduleAutoSave();
     }
-  });
-
-  // Подписка на видимость активного таба у правого края
-  const rightEdgeUnsub = tabEdgeVisibleForGroup(groupId).subscribe((visible) => {
-    isActiveTabAtRight = visible;
   });
 
   // Подписка на видимость активного таба в области просмотра
@@ -204,23 +190,17 @@
 
   onDestroy(() => {
     activeTabUnsub();
-    tabsUnsub();
     settingsUnsub();
     behaviorUnsub();
-    rightEdgeUnsub();
     activeTabVisibleUnsub();
     flushAutoSave();
     clearAutoSaveTimer();
   });
 
-  const isFirstTabActive = $derived(
-    current !== null && firstTabId !== null && current.id === firstTabId,
-  );
-
   /** Получение строк и значения для активного файла. */
   const getContent = async (fileId: string, filePath?: string) => {
     if (!filePath) {
-      throw new Error("missing file path for editor");
+      throw new Error('missing file path for editor');
     }
 
     try {
@@ -230,8 +210,8 @@
       if (!validation.canOpen) {
         return {
           lines: [],
-          value: "",
-          error: validation.warning ?? "Cannot open file",
+          value: '',
+          error: validation.warning ?? 'Cannot open file',
         };
       }
       const value = await fileService.readFile(filePath);
@@ -243,14 +223,12 @@
         optimizations: validation.optimizations,
       };
     } catch (err) {
-      console.warn("[editor] failed to load file", filePath, err);
+      console.warn('[editor] failed to load file', filePath, err);
       warningMessage = null;
       return {
         lines: [],
-        value: "",
-        error:
-          (err instanceof Error ? err.message : String(err)) ||
-          "Failed to load file",
+        value: '',
+        error: (err instanceof Error ? err.message : String(err)) || 'Failed to load file',
       };
     }
   };
@@ -271,12 +249,14 @@
         optimizations?: Partial<EditorCoreOptions>;
       };
 
-  let contentPromise = $state<Promise<ContentResult>>(Promise.resolve({
-    lines: [],
-    value: "",
-    error: null,
-    warning: null
-  }));
+  let contentPromise = $state<Promise<ContentResult>>(
+    Promise.resolve({
+      lines: [],
+      value: '',
+      error: null,
+      warning: null,
+    })
+  );
 
   // Ключ последнего загруженного файла (id + path), чтобы не перезагружать
   // контент и не пересоздавать Monaco при каждом обновлении таба/isDirty.
@@ -312,7 +292,7 @@
   function handleEditorContentChange(fileId: string, value: string) {
     editorStore.markDirty(fileId, true);
     pendingSave = { fileId, value };
-    if (autoSaveMode === "afterDelay") {
+    if (autoSaveMode === 'afterDelay') {
       scheduleAutoSave();
     } else {
       clearAutoSaveTimer();
@@ -328,38 +308,38 @@
 
   $effect(() => {
     // VS Code parity: save on focus change or window change depending on mode.
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
     if (focusOutListener) {
-      window.removeEventListener("focusout", focusOutListener);
+      window.removeEventListener('focusout', focusOutListener);
       focusOutListener = null;
     }
     if (windowBlurListener) {
-      window.removeEventListener("blur", windowBlurListener as any);
+      window.removeEventListener('blur', windowBlurListener);
       windowBlurListener = null;
     }
 
-    if (autoSaveMode === "onFocusChange") {
+    if (autoSaveMode === 'onFocusChange') {
       focusOutListener = () => {
         void flushAutoSave();
       };
-      window.addEventListener("focusout", focusOutListener);
-    } else if (autoSaveMode === "onWindowChange") {
+      window.addEventListener('focusout', focusOutListener);
+    } else if (autoSaveMode === 'onWindowChange') {
       windowBlurListener = () => {
         void flushAutoSave();
       };
-      window.addEventListener("blur", windowBlurListener as any);
+      window.addEventListener('blur', windowBlurListener);
     }
   });
 </script>
 
 <div
-  class={`editor-area ${isActiveTabVisible ? "no-left-radius" : ""}`}
+  class={`editor-area ${isActiveTabVisible ? 'no-left-radius' : ''}`}
   style:background-color={backgroundColor}
 >
   {#if !current}
     <WelcomeScreen />
-  {:else if current.id === "settings"}
+  {:else if current.id === 'settings'}
     <div class="settings-wrapper">
       <SettingsShell id="editor-settings-shell" compactMode={false} />
     </div>
@@ -377,15 +357,18 @@
           <p class="path">{current.path || current.id}</p>
           <p class="message">{content.error}</p>
           <p class="hint">
-            The file may have been removed or renamed. Close this tab or re-open
-            from Explorer.
+            The file may have been removed or renamed. Close this tab or re-open from Explorer.
           </p>
         </div>
       {:else}
         {#if warningMessage}
           <div class="editor-warning">
             <span>{warningMessage}</span>
-            <button class="warning-close" onclick={() => (warningMessage = null)} aria-label="Dismiss warning">
+            <button
+              class="warning-close"
+              onclick={() => (warningMessage = null)}
+              aria-label="Dismiss warning"
+            >
               ×
             </button>
           </div>
@@ -393,7 +376,7 @@
         <MonacoHost
           fileId={current.id}
           uri={`file://${current.path || current.id}`}
-          value={content?.value ?? ""}
+          value={content?.value ?? ''}
           language={current.language}
           options={mergeEditorOptions(
             {
@@ -414,11 +397,11 @@
               fontLigatures: editorOptions.fontLigatures,
               renderWhitespace: editorOptions.renderWhitespace,
               lineNumbers: editorOptions.lineNumbers,
-              autoClosingBrackets: "always",
-              autoClosingQuotes: "always",
-              autoClosingOvertype: "always",
+              autoClosingBrackets: 'always',
+              autoClosingQuotes: 'always',
+              autoClosingOvertype: 'always',
             },
-            content?.optimizations,
+            content?.optimizations
           )}
           onchange={({ fileId, value }: { fileId: string; value: string }) =>
             handleEditorContentChange(fileId, value)}

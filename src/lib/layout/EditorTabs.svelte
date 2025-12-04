@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import {
@@ -7,7 +6,7 @@
     activeTabForGroup,
     setTabEdgeVisibility,
     setActiveTabVisibility,
-    type EditorTab
+    type EditorTab,
   } from '../stores/editorStore';
   import {
     editorGroups,
@@ -16,15 +15,12 @@
     setActiveTab as setActiveGroupTab,
     splitRightFromActive,
     MAX_GROUPS,
-    type EditorGroupId
+    type EditorGroupId,
   } from '../stores/layout/editorGroupsStore';
   import Icon from '../common/Icon.svelte';
   import { getLanguageIcon } from '../mocks/languageIcons';
 
-  let {
-    groupId,
-    isActive = false
-  }: { groupId: EditorGroupId; isActive?: boolean } = $props();
+  let { groupId, isActive = false }: { groupId: EditorGroupId; isActive?: boolean } = $props();
 
   let stateTabs: EditorTab[] = $state([]);
   let currentActive: EditorTab | null = $state(null);
@@ -53,7 +49,6 @@
   let contextTabId: string | null = $state(null);
   let actionsMenuOpen = $state(false);
   let activeTabAtRightEdge = $state(false);
-
 
   const tabsUnsub = tabsForGroup(groupId).subscribe((tabs) => {
     stateTabs = tabs;
@@ -109,7 +104,10 @@
 
     const trackWidth = scrollbarTrack.clientWidth;
     const trackAvailableWidth = Math.max(trackWidth, 0);
-    const calculatedThumbWidth = Math.max((containerWidth / contentWidth) * trackAvailableWidth, 32);
+    const calculatedThumbWidth = Math.max(
+      (containerWidth / contentWidth) * trackAvailableWidth,
+      32
+    );
     currentThumbWidth = Math.min(calculatedThumbWidth, trackAvailableWidth);
     scrollbarThumb.style.width = `${currentThumbWidth}px`;
 
@@ -139,7 +137,9 @@
       return;
     }
 
-    const activeTabElement = tabContainer.querySelector(`[data-tab-id="${currentActive.id}"]`) as HTMLElement;
+    const activeTabElement = tabContainer.querySelector(
+      `[data-tab-id="${currentActive.id}"]`
+    ) as HTMLElement;
     if (!activeTabElement) {
       setTabEdgeVisibility(groupId, false);
       setActiveTabVisibility(groupId, false);
@@ -153,13 +153,14 @@
     const isAtRightEdge = tabRect.right >= containerRect.right - 20;
     const isAtLeftEdge = tabRect.left <= containerRect.left + 20;
     const isVisible = tabRect.left < containerRect.right && tabRect.right > containerRect.left;
-    
+
     // Проверяем, пересекается ли активный таб с левым краем actions-tab-bg
     // Левый край фонового элемента находится на ~88px от правого края контейнера
     const actionsTabBgLeft = containerRect.right - 88;
     // Таб пересекает левый край фонового элемента, если его левая сторона левее левого края фона,
     // а правая сторона правее левого края фона
-    const isOverlappingActionsBgLeft = tabRect.left < actionsTabBgLeft && tabRect.right >= actionsTabBgLeft && isVisible;
+    const isOverlappingActionsBgLeft =
+      tabRect.left < actionsTabBgLeft && tabRect.right >= actionsTabBgLeft && isVisible;
 
     setTabEdgeVisibility(groupId, isAtRightEdge && isVisible);
     setActiveTabVisibility(groupId, isAtLeftEdge && isVisible);
@@ -296,9 +297,9 @@
   });
 
   $effect(() => {
-    stateTabs;
-    currentActive;
-    scrollVisible;
+    void stateTabs;
+    void currentActive;
+    void scrollVisible;
     scheduleScrollbarUpdate();
   });
 
@@ -392,7 +393,9 @@
           <div
             class="tab"
             class:active={currentActive && currentActive.id === tab.id}
-            class:with-indicator={showActiveIndicator && currentActive && currentActive.id === tab.id}
+            class:with-indicator={showActiveIndicator &&
+              currentActive &&
+              currentActive.id === tab.id}
             data-tab-id={tab.id}
             role="tab"
             tabindex="0"
@@ -453,10 +456,7 @@
       bind:this={scrollbarTrack}
       onpointerdown={handleTrackPointerDown}
     >
-      <span
-        class="tabs-scrollbar-thumb"
-        bind:this={scrollbarThumb}
-        onpointerdown={startThumbDrag}
+      <span class="tabs-scrollbar-thumb" bind:this={scrollbarThumb} onpointerdown={startThumbDrag}
       ></span>
     </div>
   </div>
@@ -469,7 +469,8 @@
       aria-label="Close tab context menu"
       onclick={closeContextMenu}
       onkeydown={(event) =>
-        (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') && closeContextMenu()}
+        (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') &&
+        closeContextMenu()}
     ></div>
     <div
       class="tab-menu"
@@ -481,14 +482,13 @@
       {#if moveTargets.length === 0}
         <div class="tab-menu-empty">No other groups</div>
       {:else}
-        {#each moveTargets as targetId}
+        {#each moveTargets as targetId (targetId)}
           <button class="tab-menu-item" type="button" onclick={() => moveToGroup(targetId)}>
             Move to Group {targetId}
           </button>
         {/each}
       {/if}
     </div>
-
   {/if}
 
   {#if actionsMenuOpen}
@@ -499,7 +499,8 @@
       aria-label="Close actions menu"
       onclick={closeActionsMenu}
       onkeydown={(event) =>
-        (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') && closeActionsMenu()}
+        (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') &&
+        closeActionsMenu()}
     ></div>
     <div
       class="tab-menu actions-menu"
@@ -507,9 +508,7 @@
       tabindex="-1"
       onkeydown={(event) => event.key === 'Escape' && closeActionsMenu()}
     >
-      <button class="tab-menu-item" type="button" onclick={closeAllTabs}>
-        Close all tabs
-      </button>
+      <button class="tab-menu-item" type="button" onclick={closeAllTabs}> Close all tabs </button>
     </div>
   {/if}
 </div>
@@ -564,8 +563,8 @@
   }
 
   .tabs-empty {
-    padding: 0 12px;                      /* 3 * 4px */
-    font-size: 12px;                      /* 3 * 4px */
+    padding: 0 12px; /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
     color: var(--nc-fg-muted);
     display: flex;
     align-items: center;
@@ -650,7 +649,11 @@
     justify-content: center;
     cursor: pointer;
     border-radius: 4px;
-    transition: background-color 0.12s ease, color 0.12s ease, opacity 0.12s ease, border-color 0.12s ease;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease,
+      opacity 0.12s ease,
+      border-color 0.12s ease;
   }
 
   .actions-tab .icon-button:hover:not(:disabled) {
@@ -667,14 +670,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 8px;                             /* 2 * 4px */
-    width: 192px;                         /* 48 * 4px - фиксированная ширина */
-    padding: 0 12px;                      /* 3 * 4px */
-    font-size: 12px;                      /* 3 * 4px */
+    gap: 8px; /* 2 * 4px */
+    width: 192px; /* 48 * 4px - фиксированная ширина */
+    padding: 0 12px; /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
     color: var(--nc-fg-muted);
     cursor: pointer;
     background-color: var(--nc-level-0);
-    transition: background-color 0.12s ease, color 0.12s ease;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
     border-radius: 8px 8px 8px 8px;
     flex-shrink: 0;
     border: 1px solid var(--nc-level-5);
@@ -743,13 +748,13 @@
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    font-size: 12px;                      /* match FileTree font */
+    font-size: 12px; /* match FileTree font */
     pointer-events: none;
   }
 
   .tab-dirty {
     color: var(--nc-accent);
-    font-size: 12px;                      /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
     pointer-events: none;
   }
 
@@ -758,13 +763,15 @@
     border: 1px solid transparent;
     background: transparent;
     color: inherit;
-    font-size: 12px;                      /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
     width: 20px;
     height: 20px;
     padding: 0;
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.12s ease, background-color 0.12s ease;
+    transition:
+      opacity 0.12s ease,
+      background-color 0.12s ease;
     flex-shrink: 0;
     border-radius: 4px;
     display: inline-flex;
@@ -833,7 +840,9 @@
     border-radius: 999px;
     background: var(--nc-accent);
     opacity: 0;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
     cursor: pointer;
     pointer-events: none;
   }
@@ -902,3 +911,5 @@
     top: 40px;
   }
 </style>
+
+<svelte:options runes={true} />

@@ -1,9 +1,12 @@
-<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { activityStore, type ActivityId } from '../stores/activityStore';
   import { sidebarViews } from './sidebarRegistry';
-  import { layoutState, setLeftSidebarWidth, setLeftSidebarVisible } from '../stores/layout/layoutStore';
+  import {
+    layoutState,
+    setLeftSidebarWidth,
+    setLeftSidebarVisible,
+  } from '../stores/layout/layoutStore';
 
   /**
    * Left SideBar:
@@ -118,10 +121,7 @@
 </script>
 
 {#if $layoutState.leftSidebarVisible}
-  <div
-    class="sidebar"
-    style={`width: ${$layoutState.leftSidebarWidth}px`}
-  >
+  <div class="sidebar" style={`width: ${$layoutState.leftSidebarWidth}px`}>
     {#if activeView}
       {@const ActiveView = activeView.component}
       <ActiveView />
@@ -149,7 +149,7 @@
     flex-direction: column;
     overflow: visible;
     box-sizing: border-box;
-    border-radius: 12px;  /* Rounded corners on all sides */
+    border-radius: 12px; /* Rounded corners on all sides */
   }
 
   /* Ресайз-хендл слева:
@@ -160,7 +160,7 @@
     position: absolute;
     top: 0;
     right: -4px;
-    width: 4px;                /* Handle sits in gap between panels */
+    width: 4px; /* Handle sits in gap between panels */
     height: 100%;
     cursor: col-resize;
     background-color: transparent;
@@ -173,3 +173,5 @@
     background-color: rgba(128, 128, 128, 0.6);
   }
 </style>
+
+<svelte:options runes={true} />

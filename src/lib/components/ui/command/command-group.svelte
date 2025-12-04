@@ -1,30 +1,30 @@
 <script lang="ts">
-	import { Command as CommandPrimitive, useId } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+  import { Command as CommandPrimitive, useId } from 'bits-ui';
+  import { cn } from '$lib/utils.js';
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		heading,
-		value,
-		...restProps
-	}: CommandPrimitive.GroupProps & {
-		heading?: string;
-	} = $props();
+  let {
+    ref = $bindable(null),
+    class: className,
+    children,
+    heading,
+    value,
+    ...restProps
+  }: CommandPrimitive.GroupProps & {
+    heading?: string;
+  } = $props();
 </script>
 
 <CommandPrimitive.Group
-	bind:ref
-	data-slot="command-group"
-	class={cn("", className)}
-	value={value ?? heading ?? `----${useId()}`}
-	{...restProps}
+  bind:ref
+  data-slot="command-group"
+  class={cn('', className)}
+  value={value ?? heading ?? `----${useId()}`}
+  {...restProps}
 >
-	{#if heading}
-		<CommandPrimitive.GroupHeading data-command-group-heading>
-			{heading}
-		</CommandPrimitive.GroupHeading>
-	{/if}
-	<CommandPrimitive.GroupItems {children} />
+  {#if heading}
+    <CommandPrimitive.GroupHeading data-command-group-heading>
+      {heading}
+    </CommandPrimitive.GroupHeading>
+  {/if}
+  <CommandPrimitive.GroupItems {children} />
 </CommandPrimitive.Group>

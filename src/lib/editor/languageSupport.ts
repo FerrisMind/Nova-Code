@@ -20,7 +20,7 @@ export function mapLanguageIdToMonaco(languageId: string): string {
     css: 'css',
     toml: 'toml',
     yaml: 'yaml',
-    yml: 'yaml'
+    yml: 'yaml',
   };
 
   return mapping[normalized] ?? languageId;
@@ -42,19 +42,22 @@ export async function ensureLanguageRegistered(
 
   switch (monacoLanguageId) {
     case 'rust': {
-      const { language } = await import('monaco-editor/esm/vs/basic-languages/rust/rust');
+      // @ts-expect-error Monaco basic language modules ship without TS types
+      const { language } = await import('monaco-editor/esm/vs/basic-languages/rust/rust.js');
       monaco.languages.register({ id: 'rust' });
       monaco.languages.setMonarchTokensProvider('rust', language);
       break;
     }
     case 'toml': {
-      const { language } = await import('monaco-editor/esm/vs/basic-languages/ini/ini');
+      // @ts-expect-error Monaco basic language modules ship without TS types
+      const { language } = await import('monaco-editor/esm/vs/basic-languages/ini/ini.js');
       monaco.languages.register({ id: 'toml' });
       monaco.languages.setMonarchTokensProvider('toml', language);
       break;
     }
     case 'python': {
-      const { language } = await import('monaco-editor/esm/vs/basic-languages/python/python');
+      // @ts-expect-error Monaco basic language modules ship without TS types
+      const { language } = await import('monaco-editor/esm/vs/basic-languages/python/python.js');
       monaco.languages.register({ id: 'python' });
       monaco.languages.setMonarchTokensProvider('python', language);
       break;

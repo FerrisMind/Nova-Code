@@ -6,7 +6,7 @@
   import {
     layoutState,
     toggleBottomPanel,
-    setBottomPanelHeight
+    setBottomPanelHeight,
   } from '../stores/layout/layoutStore';
 
   /**
@@ -16,8 +16,6 @@
    * - высота управляется layoutState.bottomPanelHeight с drag-resize сверху;
    * - не меняет внешний контракт bottomPanelStore.toggle().
    */
-
-  let localVisible = false;
 
   // Синхронизация с legacy bottomPanelStore:
   const unsubscribeLegacy = bottomPanelStore.subscribe(($s) => {
@@ -29,7 +27,6 @@
     if ($s.visible && !$layoutState.bottomPanelVisible) {
       toggleBottomPanel();
     }
-    localVisible = $s.visible;
   });
 
   const toggle = () => {
@@ -76,10 +73,7 @@
 </script>
 
 {#if $layoutState.bottomPanelVisible}
-  <div
-    class="bottom-panel"
-    style={`flex: 0 0 ${$layoutState.bottomPanelHeight}px`}
-  >
+  <div class="bottom-panel" style={`flex: 0 0 ${$layoutState.bottomPanelHeight}px`}>
     <!-- Хендл для изменения высоты:
          визуально и концептуально совпадает с ресайз-полосой сайдбара:
          тонкая прозрачная зона по границе, проявляется только по hover. -->
@@ -103,7 +97,7 @@
       </div>
     </div>
     <div class="bottom-body">
-      {#each mockLogs as line, i}
+      {#each mockLogs as line, i (i)}
         <div class="log-line">
           <span class="log-prefix">{i + 1}</span>
           <span class="log-text">{line}</span>
@@ -128,7 +122,7 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    font-size: 12px;                      /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
     color: var(--nc-fg-muted);
   }
 
@@ -136,13 +130,12 @@
      - тот же визуальный паттерн, что и у .resize-handle в SideBar.svelte:
        узкая прозрачная полоса по границе, подсветка только по hover. */
   .resize-handle-top {
-
     position: absolute;
 
-    top: -4px;           /* ровно по верхней границе панели */
+    top: -4px; /* ровно по верхней границе панели */
     left: 0;
     right: 0;
-    height: 4px;         /* тонкая зона захвата */
+    height: 4px; /* тонкая зона захвата */
     cursor: row-resize;
     background-color: transparent;
     border-radius: 5px;
@@ -157,24 +150,24 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;                    /* 2 * 4px, 3 * 4px */
+    padding: 8px 12px; /* 2 * 4px, 3 * 4px */
     border-bottom: 1px solid var(--nc-border-subtle);
-    height: 36px;                         /* 9 * 4px */
+    height: 36px; /* 9 * 4px */
     box-sizing: border-box;
   }
 
   .tabs {
     display: flex;
-    gap: 8px;                             /* 2 * 4px */
+    gap: 8px; /* 2 * 4px */
   }
 
   .tab {
-    padding: 4px 12px;                    /* 1 * 4px, 3 * 4px */
-    border-radius: 4px 4px 0 0;           /* 1 * 4px */
+    padding: 4px 12px; /* 1 * 4px, 3 * 4px */
+    border-radius: 4px 4px 0 0; /* 1 * 4px */
     background: transparent;
     color: var(--nc-fg-muted);
     cursor: default;
-    font-size: 12px;                      /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
   }
 
   .tab.active {
@@ -187,13 +180,13 @@
   .actions {
     display: flex;
     align-items: center;
-    gap: 4px;                             /* 1 * 4px */
+    gap: 4px; /* 1 * 4px */
   }
 
   .icon-btn {
-    width: 24px;                          /* 6 * 4px */
-    height: 24px;                         /* 6 * 4px */
-    border-radius: 4px;                   /* 1 * 4px */
+    width: 24px; /* 6 * 4px */
+    height: 24px; /* 6 * 4px */
+    border-radius: 4px; /* 1 * 4px */
     border: none;
     background: transparent;
     color: var(--nc-fg-muted);
@@ -210,22 +203,22 @@
 
   .bottom-body {
     flex: 1;
-    padding: 8px 12px;                    /* 2 * 4px, 3 * 4px */
+    padding: 8px 12px; /* 2 * 4px, 3 * 4px */
     overflow-y: auto;
     font-family: Menlo, Monaco, 'SF Mono', 'Fira Code', ui-monospace, monospace;
   }
 
   .log-line {
     display: flex;
-    gap: 8px;                             /* 2 * 4px */
+    gap: 8px; /* 2 * 4px */
     align-items: baseline;
     line-height: 1.5;
   }
 
   .log-prefix {
-    width: 24px;                          /* 6 * 4px */
+    width: 24px; /* 6 * 4px */
     text-align: right;
-    font-size: 10px;                      /* 2.5 * 4px ~ округлено */
+    font-size: 10px; /* 2.5 * 4px ~ округлено */
     color: var(--nc-highlight);
     user-select: none;
   }
@@ -235,12 +228,12 @@
   }
 
   .bottom-body::-webkit-scrollbar {
-    height: 4px;                          /* 1 * 4px */
-    width: 8px;                           /* 2 * 4px */
+    height: 4px; /* 1 * 4px */
+    width: 8px; /* 2 * 4px */
   }
 
   .bottom-body::-webkit-scrollbar-thumb {
     background-color: var(--nc-highlight);
-    border-radius: 4px;                   /* 1 * 4px */
+    border-radius: 4px; /* 1 * 4px */
   }
 </style>

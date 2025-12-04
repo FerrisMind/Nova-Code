@@ -1,17 +1,12 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/RangeInput.svelte
   // ----------------------------------------------------------------------------
   // Обёртка для shadcn-svelte Slider с number input, сохраняет оригинальный API.
   // ----------------------------------------------------------------------------
-  import { Slider } from "$lib/components/ui/slider";
-  import type {
-    SettingDefinition,
-    SettingId,
-    SettingValue,
-  } from "$lib/settings/types";
+  import { Slider } from '$lib/components/ui/slider';
+  import type { SettingDefinition, SettingId, SettingValue } from '$lib/settings/types';
 
-  type SettingChangeSource = "user" | "profile" | "quickAction" | "command";
+  type SettingChangeSource = 'user' | 'profile' | 'quickAction' | 'command';
 
   interface SettingChangeMeta {
     settingId: SettingId;
@@ -42,22 +37,17 @@
     disabled = false,
     showScale = false,
     compact = false,
-    id = "",
-    idPrefix = "setting-range",
-    onchange
-  }: RangeInputProps & { onchange?: (detail: { value: number; meta: SettingChangeMeta }) => void } = $props();
+    onchange,
+  }: RangeInputProps & {
+    onchange?: (detail: { value: number; meta: SettingChangeMeta }) => void;
+  } = $props();
 
   if (min === undefined || max === undefined) {
-    throw new Error("RangeInput requires explicit min and max props.");
+    throw new Error('RangeInput requires explicit min and max props.');
   }
 
-  const resolveId = () => {
-    if (id) return id;
-    return `${idPrefix}-${definition.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
-  };
-
   const normalizeNumber = (raw: unknown): number => {
-    if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
     const parsed = Number(String(raw).trim());
     return Number.isFinite(parsed) ? parsed : NaN;
   };
@@ -102,10 +92,7 @@
     syncFromCurrent();
   });
 
-  const commitValue = (
-    nextRaw: unknown,
-    source: SettingChangeSource = "user",
-  ) => {
+  const commitValue = (nextRaw: unknown, source: SettingChangeSource = 'user') => {
     const parsed = normalizeNumber(nextRaw);
     const clamped = clamp(applyStep(parsed));
     const meta: SettingChangeMeta = {
@@ -127,7 +114,7 @@
   const handleSliderChange = (val: number | number[]) => {
     if (disabled) return;
     const next = Array.isArray(val) ? val[0] : val;
-    commitValue(next, "user");
+    commitValue(next, 'user');
   };
 
   const handleNumberInput = (event: Event) => {
@@ -141,25 +128,23 @@
       syncFromCurrent();
       return;
     }
-    commitValue(inputBuffer, "user");
+    commitValue(inputBuffer, 'user');
   };
 
   const handleNumberKeydown = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       if (!disabled) {
-        commitValue(inputBuffer, "user");
+        commitValue(inputBuffer, 'user');
       }
-    } else if (event.key === "Escape") {
+    } else if (event.key === 'Escape') {
       event.preventDefault();
       syncFromCurrent();
     }
   };
 </script>
 
-<div
-  class="nc-range-root {compact ? 'compact' : ''} {disabled ? 'disabled' : ''}"
->
+<div class="nc-range-root {compact ? 'compact' : ''} {disabled ? 'disabled' : ''}">
   <div class="nc-range-slider-wrap">
     <Slider
       type="single"
@@ -277,3 +262,5 @@
     border-color: var(--nc-level-4);
   }
 </style>
+
+<svelte:options runes={true} />

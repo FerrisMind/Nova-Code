@@ -86,14 +86,7 @@ export interface SettingDefinition {
   order?: number;
 
   // Тип контрола — помогает SettingsShell подобрать UI без жёстких if.
-  control:
-    | 'boolean'
-    | 'select'
-    | 'text'
-    | 'number'
-    | 'radio'
-    | 'slider'
-    | 'toggle';
+  control: 'boolean' | 'select' | 'text' | 'number' | 'radio' | 'slider' | 'toggle';
 
   // Флаг для "advanced" настроек — используется для progressive disclosure.
   // Расширенные настройки скрыты по умолчанию в аккордеонах.
@@ -101,7 +94,14 @@ export interface SettingDefinition {
 
   // Доступные варианты для select/radio (если применимо).
   // Может быть статическим массивом или функцией, возвращающей массив на основе текущего состояния.
-  options?: { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[] | (() => { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[]);
+  options?:
+    | { value: SettingValue; label: string; backgroundColor?: string; textColor?: string }[]
+    | (() => {
+        value: SettingValue;
+        label: string;
+        backgroundColor?: string;
+        textColor?: string;
+      }[]);
 
   // Функция чтения текущего значения из реального источника.
   // Должна быть чистой относительно глобального состояния.

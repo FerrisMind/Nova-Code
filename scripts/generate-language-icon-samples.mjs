@@ -22,7 +22,10 @@ function extractObjectKeys(constName) {
 }
 
 function extractSetKeys(constName) {
-  const regex = new RegExp(`const\\s+${constName}[\\s\\S]*?=\\s*new Set\\(\\[([\\s\\S]*?)\\]\\);`, 'm');
+  const regex = new RegExp(
+    `const\\s+${constName}[\\s\\S]*?=\\s*new Set\\(\\[([\\s\\S]*?)\\]\\);`,
+    'm'
+  );
   const match = fileContent.match(regex);
   if (!match) return [];
   const body = match[1];
@@ -82,9 +85,8 @@ const readmeContent = [
   '',
   '- `by-extension` — файлы-образцы для каждого расширения',
   '- `special-names` — отдельные файлы для специальных имён (Dockerfile, .gitignore и т.д.)',
-  ''
+  '',
 ].join('\\n');
 await writeFile(readmePath, readmeContent);
 
 console.log(`Sample files created in ${outputDir}`);
-

@@ -1,26 +1,23 @@
 <script lang="ts">
-import { Switch as SwitchPrimitive } from "bits-ui";
-import { cn } from "$lib/utils.js";
+  import { Switch as SwitchPrimitive } from 'bits-ui';
+  import { cn } from '$lib/utils.js';
 
-let {
-  ref = $bindable(null),
-  checked = $bindable(false),
-  class: className,
-  ...props
-}: SwitchPrimitive.RootProps = $props();
+  let {
+    ref = $bindable(null),
+    checked = $bindable(false),
+    class: className,
+    ...props
+  }: SwitchPrimitive.RootProps = $props();
 </script>
 
 <SwitchPrimitive.Root
   bind:ref
   bind:checked
   data-slot="switch"
-  class={cn("nc-switch", className)}
+  class={cn('nc-switch', className)}
   {...props}
 >
-  <SwitchPrimitive.Thumb
-    data-slot="switch-thumb"
-    class="nc-switch-thumb"
-  />
+  <SwitchPrimitive.Thumb data-slot="switch-thumb" class="nc-switch-thumb" />
 </SwitchPrimitive.Root>
 
 <style>
@@ -48,8 +45,8 @@ let {
     opacity: 0.5;
   }
 
-  :global(.nc-switch[data-state="checked"]) {
-    background-color: var(--nc-accent, #6F9DFF);
+  :global(.nc-switch[data-state='checked']) {
+    background-color: var(--nc-accent, #6f9dff);
   }
 
   :global(.nc-switch-thumb) {
@@ -63,11 +60,11 @@ let {
     pointer-events: none;
   }
 
-  :global(.nc-switch[data-state="checked"] .nc-switch-thumb) {
+  :global(.nc-switch[data-state='checked'] .nc-switch-thumb) {
     transform: translateX(18px);
   }
 
-  :global(.nc-switch[data-state="unchecked"] .nc-switch-thumb) {
+  :global(.nc-switch[data-state='unchecked'] .nc-switch-thumb) {
     transform: translateX(0);
   }
 </style>

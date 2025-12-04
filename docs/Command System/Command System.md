@@ -11,6 +11,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Command System Overview](#command-system-overview)
 2. [Command Registry Architecture](#command-registry-architecture)
 3. [Default Commands Implementation](#default-commands-implementation)
@@ -28,6 +29,7 @@ The NC code editor's command system provides a centralized framework for managin
 The architecture follows a modular design with clear separation between command registration, storage, and user interface components. This design allows for extensibility while maintaining a consistent user experience. The system supports both synchronous and asynchronous command execution, enabling integration with various application components and external services.
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L17)
 
@@ -56,9 +58,11 @@ CommandRegistry --> CommandDefinition : contains
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L18-L28)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L30-L64)
 
 ## Default Commands Implementation
@@ -94,9 +98,11 @@ N --> O[Command Registry]
 ```
 
 **Diagram sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L35-L268)
 
 **Section sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L269)
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L53-L95)
 
@@ -133,10 +139,12 @@ CommandPalette->>commandPaletteStore : closeCommandPalette()
 ```
 
 **Diagram sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L19-L28)
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 
@@ -149,6 +157,7 @@ For commands invoked through the Command Palette, additional steps are included 
 The execution flow is designed to be resilient, with no-op behavior when commands are not found rather than throwing exceptions. This prevents application crashes due to missing commands while still allowing for command overrides and dynamic registration. The system supports both immediate execution of simple actions and complex workflows that may involve multiple application components.
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L60-L64)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L217-L222)
 
@@ -161,6 +170,7 @@ The implementation supports standard modifier keys including Ctrl, Shift, Alt, a
 Keybindings are registered alongside commands in the defaultCommands module, with common shortcuts assigned to frequently used actions. For example, "Ctrl+B" is assigned to toggle the primary sidebar visibility, "Ctrl+`" toggles the terminal panel, and "Ctrl+Shift+F" opens the search functionality. This consistent mapping enhances discoverability and muscle memory for users.
 
 **Section sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L50-L51)
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L210-L211)
 
@@ -170,9 +180,10 @@ Commands are organized into logical categories to improve discoverability and pr
 
 The category information is displayed in the Command Palette alongside each command, providing context about the command's purpose. When commands are listed without a search query, they are grouped by category with visual separators, creating a clean organizational structure. This categorization also supports filtering, as users can include category names in their search queries to narrow down results.
 
-The system allows for hierarchical categorization through the command ID structure, with namespaces like "workbench.action.*", "workbench.view.*", and "editor.action.*" indicating the command's domain. This naming convention enables both human readability and programmatic filtering, supporting advanced discovery features in future implementations.
+The system allows for hierarchical categorization through the command ID structure, with namespaces like "workbench.action._", "workbench.view._", and "editor.action.\*" indicating the command's domain. This naming convention enables both human readability and programmatic filtering, supporting advanced discovery features in future implementations.
 
 **Section sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L49-L50)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L327-L328)
 
@@ -185,6 +196,7 @@ Keyboard shortcuts provide a faster alternative for frequently used commands, al
 The executeCommand function serves as the central entry point for all command invocations, ensuring consistent behavior regardless of the calling context. This unified execution model simplifies error handling and logging, as all commands pass through the same execution pipeline. The system's design also supports future expansion of invocation methods, such as voice commands or gesture-based interfaces.
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L60-L64)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L197-L203)
 
@@ -194,8 +206,9 @@ The command system is designed with extensibility in mind, allowing for the addi
 
 The settings module demonstrates this extensibility pattern through its `registerSettingsCommands` and `registerPerSettingCommands` functions, which register commands for opening specific settings sections and individual settings. These functions accept a context object that provides the necessary integration points, such as the `openSettingsShell` function, allowing for dependency injection and loose coupling.
 
-The system supports parameterized commands through command ID patterns like "settings.open.section.*" and "settings.open.setting.*", enabling dynamic command generation based on application state. This pattern can be extended to other domains, allowing for scalable command registration without requiring predefined command IDs for every possible variation.
+The system supports parameterized commands through command ID patterns like "settings.open.section._" and "settings.open.setting._", enabling dynamic command generation based on application state. This pattern can be extended to other domains, allowing for scalable command registration without requiring predefined command IDs for every possible variation.
 
 **Section sources**
+
 - [settings/commands.ts](file://src/lib/settings/commands.ts#L50-L174)
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L38-L45)

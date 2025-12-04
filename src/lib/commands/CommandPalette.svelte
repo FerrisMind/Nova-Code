@@ -11,6 +11,7 @@
   // ---------------------------------------------------------------------------
 
   import { onDestroy, onMount } from 'svelte';
+  import { SvelteMap } from 'svelte/reactivity';
   import * as Command from '$lib/components/ui/command/index.js';
   import { getAllCommands, executeCommand, type CommandDefinition } from './commandRegistry';
   import { commandPaletteOpen, closeCommandPalette } from '../stores/commandPaletteStore';
@@ -42,7 +43,15 @@
   // Группировка команд по категориям (VS Code style)
   // ---------------------------------------------------------------------------
 
-  const CATEGORY_ORDER = ['View', 'File', 'Editor', 'Preferences', 'Terminal', 'Search', 'Other'] as const;
+  const CATEGORY_ORDER = [
+    'View',
+    'File',
+    'Editor',
+    'Preferences',
+    'Terminal',
+    'Search',
+    'Other',
+  ] as const;
 
   interface CommandGroup {
     id: string;
@@ -52,7 +61,7 @@
 
   const groupedCommands = $derived.by(() => {
     const groups: CommandGroup[] = [];
-    const commandsByCategory = new Map<string, CommandDefinition[]>();
+    const commandsByCategory = new SvelteMap<string, CommandDefinition[]>();
 
     for (const cmd of allCommands) {
       const category = cmd.category || 'Other';
@@ -68,17 +77,20 @@
         groups.push({
           id: category.toLowerCase(),
           heading: category,
-          commands: commands.sort((a, b) => a.label.localeCompare(b.label))
+          commands: commands.sort((a, b) => a.label.localeCompare(b.label)),
         });
       }
     }
 
     for (const [category, commands] of commandsByCategory) {
-      if (!CATEGORY_ORDER.includes(category as typeof CATEGORY_ORDER[number]) && commands.length > 0) {
+      if (
+        !CATEGORY_ORDER.includes(category as (typeof CATEGORY_ORDER)[number]) &&
+        commands.length > 0
+      ) {
         groups.push({
           id: category.toLowerCase(),
           heading: category,
-          commands: commands.sort((a, b) => a.label.localeCompare(b.label))
+          commands: commands.sort((a, b) => a.label.localeCompare(b.label)),
         });
       }
     }
@@ -133,30 +145,30 @@
 
   function onDrag(event: MouseEvent): void {
     if (!isDragging) return;
-    
+
     let newX = event.clientX - dragStartX;
     let newY = event.clientY - dragStartY;
-    
+
     // Ограничение по границам окна
     const minX = 0;
     const maxX = window.innerWidth - PALETTE_WIDTH;
     const minY = TITLEBAR_HEIGHT;
     const maxY = window.innerHeight - PALETTE_MAX_HEIGHT;
-    
+
     newX = Math.max(minX, Math.min(maxX, newX));
     newY = Math.max(minY, Math.min(maxY, newY));
-    
+
     // Примагничивание к позиции под титлбаром
     if (newY < TITLEBAR_HEIGHT + SNAP_THRESHOLD) {
       newY = TITLEBAR_HEIGHT;
     }
-    
+
     // Примагничивание к центру по горизонтали
     const centerX = (window.innerWidth - PALETTE_WIDTH) / 2;
     if (Math.abs(newX - centerX) < SNAP_THRESHOLD) {
       newX = centerX;
     }
-    
+
     containerX = newX;
     containerY = newY;
   }
@@ -165,12 +177,12 @@
     isDragging = false;
     document.removeEventListener('mousemove', onDrag);
     document.removeEventListener('mouseup', stopDrag);
-    
+
     // Финальное примагничивание при отпускании
     if (containerY < TITLEBAR_HEIGHT + SNAP_THRESHOLD && containerY > 0) {
       containerY = TITLEBAR_HEIGHT;
     }
-    
+
     const centerX = (window.innerWidth - PALETTE_WIDTH) / 2;
     if (Math.abs(containerX - centerX) < SNAP_THRESHOLD) {
       containerX = centerX;
@@ -206,14 +218,7 @@
 </script>
 
 {#if isOpen}
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="command-palette-overlay"
-    role="presentation"
-    onclick={close}
-    onkeydown={onKeyDown}
-  >
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="command-palette-overlay" role="presentation" onclick={close} onkeydown={onKeyDown}>
     <div
       class="command-palette-container"
       role="dialog"
@@ -274,7 +279,7 @@
   }
 
   /* Command Root */
-  :global(.command-palette-container [data-slot="command"]) {
+  :global(.command-palette-container [data-slot='command']) {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -283,7 +288,7 @@
   }
 
   /* Input Wrapper */
-  :global(.command-palette-container [data-slot="command-input-wrapper"]) {
+  :global(.command-palette-container [data-slot='command-input-wrapper']) {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -295,7 +300,7 @@
   }
 
   /* Search Icon */
-  :global(.command-palette-container [data-slot="command-input-wrapper"] svg) {
+  :global(.command-palette-container [data-slot='command-input-wrapper'] svg) {
     width: 16px;
     height: 16px;
     color: var(--nc-fg-muted, #6c7086);
@@ -303,7 +308,7 @@
   }
 
   /* Input field */
-  :global(.command-palette-container [data-slot="command-input"]) {
+  :global(.command-palette-container [data-slot='command-input']) {
     flex: 1;
     background: transparent !important;
     border: none !important;
@@ -313,12 +318,12 @@
     cursor: text;
   }
 
-  :global(.command-palette-container [data-slot="command-input"]::placeholder) {
+  :global(.command-palette-container [data-slot='command-input']::placeholder) {
     color: var(--nc-fg-muted, #6c7086);
   }
 
   /* Command List */
-  :global(.command-palette-container [data-slot="command-list"]) {
+  :global(.command-palette-container [data-slot='command-list']) {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
@@ -327,12 +332,12 @@
   }
 
   /* Command Group */
-  :global(.command-palette-container [data-slot="command-group"]) {
+  :global(.command-palette-container [data-slot='command-group']) {
     margin-bottom: 4px;
   }
 
   /* Group Heading */
-  :global(.command-palette-container [data-slot="command-group"] [data-command-group-heading]) {
+  :global(.command-palette-container [data-slot='command-group'] [data-command-group-heading]) {
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -343,7 +348,7 @@
   }
 
   /* Command Item */
-  :global(.command-palette-container [data-slot="command-item"]) {
+  :global(.command-palette-container [data-slot='command-item']) {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -355,13 +360,13 @@
     font-size: 13px;
   }
 
-  :global(.command-palette-container [data-slot="command-item"][aria-selected="true"]),
-  :global(.command-palette-container [data-slot="command-item"]:hover) {
+  :global(.command-palette-container [data-slot='command-item'][aria-selected='true']),
+  :global(.command-palette-container [data-slot='command-item']:hover) {
     background-color: var(--nc-accent-soft, rgba(137, 180, 250, 0.15));
   }
 
   /* Shortcut badge */
-  :global(.command-palette-container [data-slot="command-shortcut"]) {
+  :global(.command-palette-container [data-slot='command-shortcut']) {
     margin-left: auto;
     font-size: 10px;
     padding: 2px 5px;
@@ -372,7 +377,7 @@
   }
 
   /* Empty state */
-  :global(.command-palette-container [data-slot="command-empty"]) {
+  :global(.command-palette-container [data-slot='command-empty']) {
     padding: 24px;
     text-align: center;
     color: var(--nc-fg-muted, #6c7086);

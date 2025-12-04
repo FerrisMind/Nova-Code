@@ -14,6 +14,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -26,10 +27,13 @@
 10. [Appendices](#appendices)
 
 ## Introduction
+
 This document describes the fileTreeStore, which manages the UI state of the file explorer in NC. It tracks expanded/collapsed directories, the currently selected file, and synchronizes selection with the active editor tab. It also coordinates with workspaceStore to reflect the current workspace and with editorStore to open files in editor tabs. The store uses the FileNode type to represent file system entities and integrates with fileService for backend-driven file operations. The documentation covers creation, renaming, deletion, expansion/collapse, drag-and-drop handling, event synchronization, and performance considerations for large trees.
 
 ## Project Structure
+
 The file tree subsystem is composed of:
+
 - UI state store: fileTreeStore
 - Data model: FileNode
 - Backend coordination: fileService
@@ -53,6 +57,7 @@ EditorStore --> EditorGroups["editorGroupsStore.ts"]
 ```
 
 **Diagram sources**
+
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L132)
 - [FileTree.svelte](file://src/lib/sidebar/FileTree.svelte#L1-L184)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
@@ -63,6 +68,7 @@ EditorStore --> EditorGroups["editorGroupsStore.ts"]
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
@@ -74,6 +80,7 @@ EditorStore --> EditorGroups["editorGroupsStore.ts"]
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 ## Core Components
+
 - fileTreeStore: Maintains expanded directories and selected file id; exposes helpers to expand/collapse, select, and synchronize with the active editor tab.
 - FileNode: Defines the shape of file system entries used across stores and UI.
 - fileService: Provides asynchronous operations for reading/writing files, listing workspace files, watching file changes, and revealing items in the OS explorer.
@@ -84,6 +91,7 @@ EditorStore --> EditorGroups["editorGroupsStore.ts"]
 - FileTree.svelte: Renders the recursive tree UI, toggles expansion, selects files, and dispatches open events; integrates with fileTreeActions.
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
@@ -94,7 +102,9 @@ EditorStore --> EditorGroups["editorGroupsStore.ts"]
 - [FileTree.svelte](file://src/lib/sidebar/FileTree.svelte#L1-L184)
 
 ## Architecture Overview
+
 The file tree subsystem follows a layered architecture:
+
 - Data layer: FileNode and workspaceStore provide the workspace tree snapshot.
 - UI state layer: fileTreeStore manages UI-only state (expanded/collapsed, selection).
 - Action layer: fileTreeActions orchestrates operations via fileService and workspaceStore.
@@ -120,6 +130,7 @@ UI->>UI : "syncWithActiveTab" updates expanded/selected
 ```
 
 **Diagram sources**
+
 - [FileTree.svelte](file://src/lib/sidebar/FileTree.svelte#L1-L184)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
@@ -130,7 +141,9 @@ UI->>UI : "syncWithActiveTab" updates expanded/selected
 ## Detailed Component Analysis
 
 ### fileTreeStore
+
 Responsibilities:
+
 - Track expanded directories via a Set of ids.
 - Track selected file id.
 - Provide helpers to expand/collapse/toggle directories.
@@ -139,6 +152,7 @@ Responsibilities:
 - Reveal a given node by expanding its ancestors and selecting it.
 
 Key APIs:
+
 - isExpanded(id): Check if a directory id is expanded.
 - expand(id), collapse(id), toggleDir(id): Control directory expansion.
 - selectFile(id): Select a file by id.
@@ -146,11 +160,13 @@ Key APIs:
 - revealNode(node): Expand ancestors and select a node.
 
 Internals:
+
 - Uses workspaceStore snapshot to locate nodes by id or path.
 - Uses a recursive search to find nodes and collect parent directories.
 - Normalizes paths to support cross-platform comparisons.
 
 Integration points:
+
 - Depends on workspaceStore for the current files snapshot.
 - Depends on editorStore/activeEditor for active tab synchronization.
 
@@ -173,13 +189,17 @@ UpdateState --> End
 ```
 
 **Diagram sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 
 ### FileNode type
+
 Defines the structure of file system entries:
+
 - id: Unique identifier for the node.
 - name: Display name.
 - path: Full path string.
@@ -189,13 +209,17 @@ Defines the structure of file system entries:
 - children?: Optional child nodes for directories.
 
 Complexity:
+
 - Recursive traversal is linear in the number of nodes visited.
 
 **Section sources**
+
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 
 ### fileService
+
 Provides asynchronous operations:
+
 - readFile(fileId), writeFile(fileId, content)
 - listWorkspaceFiles(rootOverride?)
 - onFileChange(cb): Subscribe to file change events.
@@ -205,44 +229,57 @@ Provides asynchronous operations:
 - setWorkspaceRoot(root), getWorkspaceRoot()
 
 Integration:
+
 - Emits file-changed events consumed by workspaceStore to refresh the tree.
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 ### workspaceStore
+
 Maintains workspace state:
+
 - name, files, loading, error, root
 - Loads files via fileService.listWorkspaceFiles
 - Starts file watcher and subscribes to file-change events to refresh
 - Exposes refresh(), openFolder(root), closeFolder(), getWorkspaceRoot(), resolvePath(relativePath)
 
 Synchronization:
+
 - ExplorerView subscribes to workspaceStore and triggers syncWithActiveTab when files are loaded and an active editor exists.
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L132)
 
 ### editorStore and editorGroupsStore
+
 editorStore:
+
 - Manages EditorTab list and activeEditorId.
 - ensureTabForFile(pathOrId, opts?): Creates or activates a tab for a file; integrates with editorGroupsStore.
 - openFile(fileId), openSettings(), setActiveEditor(fileId), closeEditor(fileId), markDirty(id, isDirty), updateContent(id, value)
 
 editorGroupsStore:
+
 - Manages editor groups and tab ordering; addTabToGroup, removeTab, setActiveTab, moveTabToGroup, splitRightFromActive, etc.
 
 Integration with fileTreeStore:
+
 - FileTree.svelte calls editorStore.ensureTabForFile to open files in tabs.
 - fileTreeActions.open/openToSide coordinate with editorStore and editorGroupsStore.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 ### fileTreeActions
+
 Implements UI actions:
+
 - open(node): Opens a file in the editor.
 - openToSide(node): Opens a file to the right (split).
 - revealInExplorer(node): Reveals a file in the OS explorer and expands/reveals it in the tree.
@@ -252,31 +289,39 @@ Implements UI actions:
 - deleteNode(node): Confirms trash vs delete and removes the node.
 
 Error handling:
+
 - Catches and alerts errors for each action.
 
 **Section sources**
+
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 
 ### ExplorerView.svelte
+
 - Subscribes to activeEditor and workspaceStore to keep the tree in sync.
 - Handles drag-and-drop of files from the OS into the workspace:
   - Reads dropped files, writes them to the workspace root, refreshes workspace, and opens tabs for newly imported files.
 - Provides Open Folder button to set the workspace root.
 
 **Section sources**
+
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L132)
 
 ### FileTree.svelte
+
 - Recursively renders FileNode tree.
 - Expands/collapses directories on click; selects files and opens them in the editor.
 - Dispatches an "open" event when a file is opened.
 - Integrates with fileTreeActions for context menu actions.
 
 **Section sources**
+
 - [FileTree.svelte](file://src/lib/sidebar/FileTree.svelte#L1-L184)
 
 ## Dependency Analysis
+
 The file tree store depends on:
+
 - workspaceStore for the current files snapshot.
 - editorStore/activeEditor for active tab synchronization.
 - fileService for backend operations and file watchers.
@@ -342,6 +387,7 @@ FileTreeActions --> FileTreeStore : "revealNode()"
 ```
 
 **Diagram sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -349,6 +395,7 @@ FileTreeActions --> FileTreeStore : "revealNode()"
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -356,6 +403,7 @@ FileTreeActions --> FileTreeStore : "revealNode()"
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 
 ## Performance Considerations
+
 - Large directory structures:
   - The current implementation does not implement lazy loading in fileTreeStore. Rendering the entire tree at once is acceptable for moderate sizes but may degrade with very large trees.
   - Recommendation: Introduce virtualization or lazy-loading of subtrees to render only visible nodes and load children on demand.
@@ -371,7 +419,9 @@ FileTreeActions --> FileTreeStore : "revealNode()"
 [No sources needed since this section provides general guidance]
 
 ## Troubleshooting Guide
+
 Common issues and resolutions:
+
 - Selection not updating:
   - Ensure ExplorerView.svelte subscribes to activeEditor and calls syncWithActiveTab when the active tab changes or when workspace files are loaded.
 - Node not found when syncing:
@@ -382,11 +432,13 @@ Common issues and resolutions:
   - fileTreeActions catches and alerts errors; check backend permissions and paths.
 
 **Section sources**
+
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L132)
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 
 ## Conclusion
+
 The fileTreeStore provides a focused UI state layer for the file explorer, cleanly separated from data and backend concerns. It integrates tightly with workspaceStore, editorStore, and fileService to keep the tree synchronized with the active editor, reflect backend changes, and enable user actions. For large-scale usage, consider adding virtualization and lazy-loading to improve performance and responsiveness.
 
 [No sources needed since this section summarizes without analyzing specific files]
@@ -394,6 +446,7 @@ The fileTreeStore provides a focused UI state layer for the file explorer, clean
 ## Appendices
 
 ### API Reference: fileTreeStore
+
 - isExpanded(id): boolean
 - expand(id): void
 - collapse(id): void
@@ -403,11 +456,13 @@ The fileTreeStore provides a focused UI state layer for the file explorer, clean
 - revealNode(node): void
 
 **Section sources**
+
 - [fileTreeStore.ts](file://src/lib/stores/fileTreeStore.ts#L1-L290)
 
 ### Example Workflows
 
 #### Opening a file in the editor
+
 ```mermaid
 sequenceDiagram
 participant UI as "FileTree.svelte"
@@ -420,11 +475,13 @@ ES-->>UI : "activeEditorId updated"
 ```
 
 **Diagram sources**
+
 - [FileTree.svelte](file://src/lib/sidebar/FileTree.svelte#L1-L184)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 #### Creating a new file
+
 ```mermaid
 sequenceDiagram
 participant UI as "FileTree.svelte"
@@ -438,12 +495,14 @@ WS-->>UI : "files updated"
 ```
 
 **Diagram sources**
+
 - [FileTree.svelte](file://src/lib/sidebar/FileTree.svelte#L1-L184)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 #### Drag-and-drop import
+
 ```mermaid
 sequenceDiagram
 participant EV as "ExplorerView.svelte"
@@ -458,6 +517,7 @@ EV->>ES : "ensureTabForFile(path)"
 ```
 
 **Diagram sources**
+
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L132)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)

@@ -167,7 +167,7 @@ function registerBuiltInLanguages(monaco: typeof monacoNamespace): void {
     { id: 'yaml', extensions: ['.yml', '.yaml'] },
   ];
 
-  builtInLanguages.forEach(lang => {
+  builtInLanguages.forEach((lang) => {
     monaco.languages.register(lang);
   });
 }
@@ -207,7 +207,7 @@ function registerSnippetProviders(monaco: typeof monacoNamespace): void {
   const snippets = createCommonSnippets(monaco);
 
   // Регистрируем для TypeScript и JavaScript
-  ['typescript', 'javascript'].forEach(languageId => {
+  ['typescript', 'javascript'].forEach((languageId) => {
     monaco.languages.registerCompletionItemProvider(languageId, {
       triggerCharacters: ['.', '$'],
       provideCompletionItems(model, position, _context, token) {
@@ -225,7 +225,7 @@ function registerSnippetProviders(monaco: typeof monacoNamespace): void {
         };
 
         // Добавляем range к каждому сниппету
-        const suggestions = snippets.map(snippet => ({
+        const suggestions = snippets.map((snippet) => ({
           ...snippet,
           range,
         }));

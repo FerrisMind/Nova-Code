@@ -1,9 +1,5 @@
 import { writable, type Writable } from 'svelte/store';
-import {
-  type ThemeMode,
-  type ThemePaletteId,
-  getDefaultPaletteForMode
-} from './THEME_PALETTES';
+import { type ThemeMode, type ThemePaletteId, getDefaultPaletteForMode } from './THEME_PALETTES';
 
 /**
  * Режим темы UI.
@@ -39,7 +35,7 @@ const createThemeStore = () => {
 
   const initialState: ThemeState = {
     mode: initialMode,
-    palette: initialPalette.id
+    palette: initialPalette.id,
   };
 
   const store: Writable<ThemeState> = writable(initialState);
@@ -54,13 +50,13 @@ const createThemeStore = () => {
     store.update((state) => {
       // Извлекаем "слот" палитры из текущего ID
       const currentPaletteSlot = state.palette.replace(/^(light|dark)-/, '');
-      
+
       // Формируем новый ID палитры для нового режима
       const newPaletteId = `${mode}-${currentPaletteSlot}` as ThemePaletteId;
-      
+
       return {
         mode,
-        palette: newPaletteId
+        palette: newPaletteId,
       };
     });
   };
@@ -72,16 +68,16 @@ const createThemeStore = () => {
   const toggleTheme = () => {
     store.update((state) => {
       const nextMode: Theme = state.mode === 'dark' ? 'light' : 'dark';
-      
+
       // Извлекаем "слот" палитры из текущего ID
       const currentPaletteSlot = state.palette.replace(/^(light|dark)-/, '');
-      
+
       // Формируем новый ID палитры для нового режима
       const newPaletteId = `${nextMode}-${currentPaletteSlot}` as ThemePaletteId;
 
       return {
         mode: nextMode,
-        palette: newPaletteId
+        palette: newPaletteId,
       };
     });
   };
@@ -95,7 +91,7 @@ const createThemeStore = () => {
   const setPalette = (palette: ThemePaletteId) => {
     store.update((state) => ({
       ...state,
-      palette
+      palette,
     }));
   };
 
@@ -113,7 +109,7 @@ const createThemeStore = () => {
     setTheme,
     toggleTheme,
     setPalette,
-    getState: () => currentState
+    getState: () => currentState,
   };
 };
 

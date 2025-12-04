@@ -19,15 +19,8 @@
 import { readable, type Readable } from 'svelte/store';
 import { editorSettings } from '$lib/stores/editorSettingsStore';
 import { theme } from '$lib/stores/themeStore';
-import {
-  getSetting,
-  listAllSettings
-} from '$lib/settings/registry';
-import type {
-  SettingId,
-  SettingValue,
-  SettingsSnapshot
-} from '$lib/settings/types';
+import { getSetting, listAllSettings } from '$lib/settings/registry';
+import type { SettingId, SettingValue, SettingsSnapshot } from '$lib/settings/types';
 
 // -----------------------------------------------------------------------------
 // Локальные типы (по контракту api.md)
@@ -95,7 +88,7 @@ export interface SettingsStore {
 function buildSnapshot(): SettingsSnapshot {
   return {
     editor: editorSettings.getSettings(),
-    theme: theme.getState()
+    theme: theme.getState(),
     // Дополнительные домены (layout, интеграции и т.д.) добавляются здесь,
     // синхронно с расширением SettingsSnapshot.
   };
@@ -105,7 +98,11 @@ function buildSnapshot(): SettingsSnapshot {
  * Создать patch из baselineSnapshot в актуальное состояние.
  * Используется resetAll.
  */
-function buildPatchFromBaseline(baseline: SettingsSnapshot, current: SettingsSnapshot): SettingPatch[] {
+function buildPatchFromBaseline(
+  baseline: SettingsSnapshot,
+  current: SettingsSnapshot
+): SettingPatch[] {
+  void current;
   const patch: SettingPatch[] = [];
 
   // editor.* — значения берутся из registry (listAllSettings), а baseline
@@ -172,7 +169,7 @@ function computeDirtyState(baseline: SettingsSnapshot): SettingsDirtyState {
 
   return {
     hasChanges: entries.length > 0,
-    entries
+    entries,
   };
 }
 
@@ -246,6 +243,7 @@ const impl: SettingsStore = {
   },
 
   applyChanges(patch: SettingPatch[], _meta?: ApplyChangesMeta): AppliedChange[] {
+    void _meta;
     const applied: AppliedChange[] = [];
 
     if (!patch || patch.length === 0) {
@@ -269,9 +267,9 @@ const impl: SettingsStore = {
         applied.push({
           id,
           oldValue,
-          newValue
+          newValue,
         });
-      } catch (error) {
+      } catch {
         // По контракту не бросаем наружу, но не добавляем в applied.
         // Можно логировать через console.error при необходимости.
         // console.error('Failed to apply setting change', id, error);
@@ -285,6 +283,7 @@ const impl: SettingsStore = {
   },
 
   resetAll(_meta?: ResetMeta): AppliedChange[] {
+    void _meta;
     // Формируем patch из baseline -> текущие.
     const current = buildSnapshot();
     const patch = buildPatchFromBaseline(baselineSnapshot, current);
@@ -306,7 +305,7 @@ const impl: SettingsStore = {
 
   setBaselineFromCurrent(): void {
     baselineSnapshot = buildSnapshot();
-  }
+  },
 };
 
 // Экспорт по контракту.

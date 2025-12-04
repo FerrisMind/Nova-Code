@@ -3,6 +3,7 @@
   import * as Lucide from 'lucide-svelte';
   import { theme } from '../stores/themeStore';
   import { getIconColorFromDevicon, type ThemeMode } from '../stores/ICON_COLORS_PALETTE';
+  import type { ComponentType } from 'svelte';
 
   /**
    * Строгий протокол без выдумок:
@@ -19,7 +20,7 @@
    *
    * Никаких devicon-json-plain / devicon-markdown-plain и т.п.
    * Всё остальное → fallback SVG из mocks/icons.ts.
-   * 
+   *
    * Цвета иконок автоматически адаптируются к текущей теме (light/dark)
    * через ICON_COLORS_PALETTE.
    */
@@ -39,7 +40,7 @@
     size = 22,
     className = '',
     useAdaptiveColor = false,
-    color = undefined
+    color = undefined,
   }: IconProps = $props();
 
   const [set, key] = name.split(':');
@@ -53,7 +54,9 @@
   }
 
   const lucideKey = set === 'lucide' ? kebabToPascal(key) : key;
-  const isLucide = set === 'lucide' && lucideKey in (Lucide as any);
+  const lucideEntry = (Lucide as Record<string, unknown>)[lucideKey];
+  const LucideIcon = typeof lucideEntry === 'function' ? (lucideEntry as ComponentType) : null;
+  const isLucide = set === 'lucide' && Boolean(LucideIcon);
   const isDevicon = set === 'devicon';
 
   /**
@@ -61,7 +64,11 @@
    * name передаём строго в формате "devicon:{tech}-{variant}" или "devicon:{tech}-{variant} colored"
    * Поддерживаемые иконки из официального devicon репозитория
    */
-  function resolveDeviconClass(iconKey: string): { baseClass: string; hasColored: boolean; techName: string } {
+  function resolveDeviconClass(iconKey: string): {
+    baseClass: string;
+    hasColored: boolean;
+    techName: string;
+  } {
     if (iconKey && iconKey.length > 0) {
       const parts = iconKey.split(' ');
       const baseClass = `devicon-${parts[0]}`;
@@ -73,7 +80,9 @@
     return { baseClass: '', hasColored: false, techName: '' };
   }
 
-  const deviconData = isDevicon ? resolveDeviconClass(key) : { baseClass: '', hasColored: false, techName: '' };
+  const deviconData = isDevicon
+    ? resolveDeviconClass(key)
+    : { baseClass: '', hasColored: false, techName: '' };
 
   // ВАЖНО: поддерживаем исходные codicon-* через mocks/getIcon:
   // ActivityBar и sidebarRegistry используют:
@@ -100,25 +109,13 @@
   const useDeviconColored = $derived(deviconData.hasColored && !useAdaptiveColor && !color);
 </script>
 
-{#if isLucide}
-  {@const LucideIcon = (Lucide as any)[lucideKey]}
-  {#if LucideIcon}
-    <LucideIcon 
-      class={`nc-icon ${className}`} 
-      size={size} 
-      aria-hidden="true"
-      style={finalColor ? `color: ${finalColor};` : ''}
-    />
-  {:else if svg}
-    <!-- fallback, если lucide-иконка не найдена, но есть svg в mocks -->
-    <span
-      class={`nc-icon ${className}`}
-      style={`width:${size}px;height:${size}px;${finalColor ? `color:${finalColor};` : ''}`}
-      aria-hidden="true"
-    >
-      {@html svg}
-    </span>
-  {/if}
+{#if isLucide && LucideIcon}
+  <LucideIcon
+    class={`nc-icon ${className}`}
+    {size}
+    aria-hidden="true"
+    style={finalColor ? `color: ${finalColor};` : ''}
+  />
 {:else if deviconData.baseClass}
   <i
     class={`nc-icon ${deviconData.baseClass}${useDeviconColored ? ' colored' : ''} ${className}`}
@@ -126,13 +123,14 @@
     aria-hidden="true"
   ></i>
 {:else if svg}
-  <span
+  <img
     class={`nc-icon ${className}`}
-    style={`width:${size}px;height:${size}px;${finalColor ? `color:${finalColor};` : ''}`}
+    src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
+    alt=""
     aria-hidden="true"
-  >
-    {@html svg}
-  </span>
+    style={`width:${size}px;height:${size}px;${finalColor ? `color:${finalColor};` : ''}`}
+    loading="lazy"
+  />
 {:else}
   <!-- Жёсткий фикс: если ни lucide, ни devicon, ни svg — ничего не рендерим.
        Это убирает "пропажу" в случае битых имён и не ломает layout. -->

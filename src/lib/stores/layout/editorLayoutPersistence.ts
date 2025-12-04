@@ -3,8 +3,11 @@ import type { EditorGroupsState } from './editorGroupsStore';
 const STORAGE_KEY = 'nc:editor-layout';
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
-let storeInstance: { set: (key: string, value: unknown) => Promise<void>; get: <T>(key: string) => Promise<T | null>; save: () => Promise<void> } | null =
-  null;
+let storeInstance: {
+  set: (key: string, value: unknown) => Promise<void>;
+  get: <T>(key: string) => Promise<T | null>;
+  save: () => Promise<void>;
+} | null = null;
 
 async function getStore() {
   if (!isTauri) return null;
@@ -12,15 +15,13 @@ async function getStore() {
 
   try {
     const moduleId = '@tauri-apps/plugin-store';
-    const mod = (await import(/* @vite-ignore */ moduleId).catch(() => null)) as
-      | {
-          Store: new (path: string) => {
-            set: (key: string, value: unknown) => Promise<void>;
-            get: <T>(key: string) => Promise<T | null>;
-            save: () => Promise<void>;
-          };
-        }
-      | null;
+    const mod = (await import(/* @vite-ignore */ moduleId).catch(() => null)) as {
+      Store: new (path: string) => {
+        set: (key: string, value: unknown) => Promise<void>;
+        get: <T>(key: string) => Promise<T | null>;
+        save: () => Promise<void>;
+      };
+    } | null;
     if (mod?.Store) {
       storeInstance = new mod.Store('editor-layout.bin');
       return storeInstance;

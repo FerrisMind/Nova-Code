@@ -14,6 +14,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Monaco Editor Tokenization System](#monaco-editor-tokenization-system)
 3. [Language Configuration Process](#language-configuration-process)
@@ -28,6 +29,7 @@
 The NC code editor implements sophisticated syntax highlighting through the Monaco Editor's tokenization system, providing accurate and performant code visualization for multiple programming languages. This documentation details the architecture and implementation of syntax highlighting in the NC editor, covering language registration, theme integration, custom language support, and configuration mechanisms. The system is designed to enhance code readability, reduce errors, and provide a consistent development experience across different programming languages and user preferences.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
@@ -49,11 +51,13 @@ G --> H[Apply Syntax Highlighting]
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L33-L69)
 
 The tokenization system supports both built-in languages (such as TypeScript, JavaScript, JSON, HTML, CSS, and Markdown) and additional languages loaded on demand. Built-in languages are automatically registered by Monaco, while languages like Rust, TOML, and Python are registered dynamically when first encountered. This approach optimizes startup performance by loading language support only when needed.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L800)
 
@@ -77,6 +81,7 @@ LanguageMapper --> LanguageRegistration : "used by"
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L9-L27)
 
 Language registration is handled by the `ensureLanguageRegistered` function, which implements a switch-case pattern to load the appropriate language module based on the mapped language ID. The function uses dynamic imports to load language-specific modules from Monaco's ESM distribution, ensuring that only the required language support is loaded. This lazy loading approach significantly reduces the initial bundle size and improves editor startup time.
@@ -84,6 +89,7 @@ Language registration is handled by the `ensureLanguageRegistered` function, whi
 The system maintains a `registeredLanguages` set to track already registered languages, preventing redundant registration and improving performance when switching between files of the same language type. For built-in languages, the function simply returns the mapped language ID without additional registration, as these are automatically handled by Monaco.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L70-L79)
 
@@ -115,10 +121,12 @@ Monaco-->>Editor : Language registered
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L652-L666)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L173-L204)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L115-L142)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 
@@ -156,6 +164,7 @@ ThemeManager --> TokenRule : "uses"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L8-L19)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L35)
 
@@ -166,6 +175,7 @@ The system supports both built-in Monaco themes and popular third-party themes l
 Theme synchronization between the editor and the application UI is handled through the `getMonacoThemeId` function, which determines the appropriate theme based on the current UI theme state and editor settings. When the editor theme is set to 'auto', it follows the application's palette, ensuring visual consistency across the entire interface.
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
@@ -206,10 +216,12 @@ Q --> R[Register on activation]
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L652-L666)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L33-L69)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L115-L142)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 
@@ -246,11 +258,13 @@ G --> M[Resource Cleanup]
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L3-L69)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L517-L541)
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L800)
@@ -268,6 +282,7 @@ The implementation demonstrates careful attention to user experience, with featu
 Overall, the syntax highlighting implementation in the NC editor represents a sophisticated balance of performance, flexibility, and user experience, providing developers with a powerful tool for code visualization and editing.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L800)

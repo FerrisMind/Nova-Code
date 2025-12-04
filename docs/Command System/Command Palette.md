@@ -12,6 +12,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Architecture Overview](#architecture-overview)
 3. [Core Components](#core-components)
@@ -33,6 +34,7 @@ The Command Palette is a modal interface in the NC code editor that enables user
 The Command Palette serves as a central hub for application functionality, allowing users to search for commands by title, category, or keywords. It supports keyboard navigation, drag-to-reposition functionality, and maintains a history of recently used commands for faster access. The component is designed to be lightweight, accessible, and highly performant even with large command sets.
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 
@@ -67,6 +69,7 @@ style T fill:#f0f0f0,stroke:#333
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
@@ -74,6 +77,7 @@ style T fill:#f0f0f0,stroke:#333
 - [Titlebar.svelte](file://src/lib/layout/Titlebar.svelte#L1-L273)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
@@ -125,11 +129,13 @@ CommandRegistry --> CommandPalette
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
@@ -167,12 +173,14 @@ Store->>Store : open.set(false)
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L269)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 
@@ -203,6 +211,7 @@ The scoring algorithm uses a weighted approach where matches in the command labe
 For empty queries, the algorithm displays commands from the history list first (in LRU order), followed by all other commands sorted alphabetically by label. This ensures that frequently used commands are easily accessible without typing, while still providing a comprehensive list of all available commands.
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L85-L144)
 
 ## Keyboard Navigation System
@@ -232,9 +241,11 @@ When navigating with arrow keys, the activeIndex is updated to reflect the curre
 The individual command items also handle keyboard events, with Enter or Space executing the command when focused. This provides multiple pathways for keyboard interaction, accommodating different user preferences and workflows.
 
 **Diagram sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L172-L205)
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L172-L205)
 
 ## Visual Design and UI Components
@@ -274,9 +285,11 @@ Each command item in the results list displays the command label in the primary 
 The input field includes a placeholder that guides users on its purpose: "Type a command or search (inspired by VS Code Command Palette)". The entire container is draggable, allowing users to reposition the palette by clicking and dragging the container itself. This feature enhances usability by letting users place the palette in a location that doesn't obstruct their current work.
 
 **Diagram sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L266-L441)
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L266-L441)
 
 ## Command Filtering and Grouping
@@ -292,6 +305,7 @@ The system maintains a history list of up to 20 recently executed commands (HIST
 Although categories are not visually grouped in the current implementation, they are displayed as metadata beneath each command item, helping users understand the context and purpose of each command. This information could be leveraged in future enhancements to provide collapsible category sections or category-based filtering.
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L116-L159)
 
 ## Performance Considerations
@@ -309,6 +323,7 @@ Memory usage is controlled through the HISTORY_LIMIT constant, which caps the nu
 The implementation avoids expensive operations like deep cloning of command objects, instead using references to the original command definitions from the registry. This reduces memory overhead and ensures that any updates to commands are immediately reflected in the palette.
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L20-L21)
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L32-L33)
 
@@ -325,6 +340,7 @@ The component includes proper ARIA attributes and keyboard event handling to ens
 Color contrast meets accessibility standards, with sufficient contrast between text and background colors in both light and dark themes. The visual design uses multiple cues (color, position, and typography) to convey information, ensuring that users with color vision deficiencies can still distinguish between different elements.
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L270-L335)
 
 ## Customization Options
@@ -340,6 +356,7 @@ The palette's triggering mechanism can be customized through the openCommandPale
 The search algorithm itself could be extended to support additional matching strategies or weighting factors. While the current implementation focuses on label and ID matching, the architecture allows for incorporating additional command metadata or user preferences into the scoring system.
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L38-L45)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L19-L28)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L338-L441)
@@ -371,6 +388,7 @@ style M fill:#f0fff0,stroke:#333
 ```
 
 **Diagram sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L105-L127)
 - [Titlebar.svelte](file://src/lib/layout/Titlebar.svelte#L100-L104)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L19-L21)
@@ -381,6 +399,7 @@ The integration follows a clean separation of concerns, with the commandPaletteS
 The default commands are registered in the +layout.svelte component during initialization, ensuring they are available when the palette opens. These include commands for toggling UI elements (sidebars, panels), navigating between editor groups, and accessing various views and settings.
 
 **Section sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L13-L101)
 - [Titlebar.svelte](file://src/lib/layout/Titlebar.svelte#L7-L8)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L15-L17)

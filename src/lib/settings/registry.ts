@@ -20,14 +20,11 @@ import type {
   SettingValue,
   SettingDefinition,
   SettingsSectionDefinition,
-  SettingsSearchResult
+  SettingsSearchResult,
 } from '$lib/settings/types';
 import { editorSettings } from '$lib/stores/editorSettingsStore';
 import { theme } from '$lib/stores/themeStore';
-import {
-  type ThemePaletteId,
-  listPalettesByMode
-} from '$lib/stores/THEME_PALETTES';
+import { type ThemePaletteId, listPalettesByMode } from '$lib/stores/THEME_PALETTES';
 import { editorBehaviorStore } from '$lib/stores/editorBehaviorStore';
 
 // -----------------------------------------------------------------------------
@@ -72,14 +69,14 @@ const sections: SettingsSectionDefinition[] = [
     label: 'Theme & Palette',
     category: 'appearance',
     order: 10,
-    settings: ['theme.mode', 'theme.palette']
+    settings: ['theme.mode', 'theme.palette'],
   },
   {
     id: 'editor.core',
     label: 'Editor Basics',
     category: 'editor',
     order: 20,
-    settings: ['editor.theme', 'editor.fontSize', 'editor.fontFamily', 'editor.fontLigatures']
+    settings: ['editor.theme', 'editor.fontSize', 'editor.fontFamily', 'editor.fontLigatures'],
   },
   {
     id: 'editor.layout',
@@ -91,8 +88,8 @@ const sections: SettingsSectionDefinition[] = [
       'editor.insertSpaces',
       'editor.renderWhitespace',
       'editor.wordWrap',
-      'editor.wordWrapColumn'
-    ]
+      'editor.wordWrapColumn',
+    ],
   },
   {
     id: 'editor.ui',
@@ -103,16 +100,16 @@ const sections: SettingsSectionDefinition[] = [
       'editor.minimap',
       'editor.folding',
       'editor.lineNumbers',
-      'editor.bracketPairColorization'
-    ]
+      'editor.bracketPairColorization',
+    ],
   },
   {
     id: 'editor.behavior',
     label: 'Editor Behavior',
     category: 'editor',
     order: 50,
-    settings: ['editor.autoSave', 'editor.autoSaveDelay']
-  }
+    settings: ['editor.autoSave', 'editor.autoSaveDelay'],
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -141,7 +138,7 @@ const settings: SettingDefinition[] = [
     set: (value: SettingValue) => {
       const mode = value ? 'dark' : 'light';
       theme.setTheme(mode);
-    }
+    },
   },
   {
     id: 'theme.palette',
@@ -168,9 +165,9 @@ const settings: SettingDefinition[] = [
         label: p.label,
         // Мини-превью для палитры
         backgroundColor: p.backgroundPrimary,
-        textColor: p.textColor
+        textColor: p.textColor,
       }));
-    }
+    },
   },
 
   // ---------------------------------------------------------------------------
@@ -187,7 +184,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().theme,
     set: (value: SettingValue) => {
       editorSettings.setTheme(String(value));
-    }
+    },
   },
   {
     id: 'editor.fontSize',
@@ -201,7 +198,7 @@ const settings: SettingDefinition[] = [
     set: (value: SettingValue) => {
       const n = typeof value === 'number' ? value : parseInt(String(value), 10);
       editorSettings.setFontSize(Number.isFinite(n) ? n : editorSettings.getSettings().fontSize);
-    }
+    },
   },
   {
     id: 'editor.fontFamily',
@@ -214,7 +211,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().fontFamily,
     set: (value: SettingValue) => {
       editorSettings.setFontFamily(String(value));
-    }
+    },
   },
   {
     id: 'editor.fontLigatures',
@@ -227,7 +224,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().fontLigatures,
     set: (value: SettingValue) => {
       editorSettings.setFontLigatures(Boolean(value));
-    }
+    },
   },
 
   // ---------------------------------------------------------------------------
@@ -245,7 +242,7 @@ const settings: SettingDefinition[] = [
     set: (value: SettingValue) => {
       const n = typeof value === 'number' ? value : parseInt(String(value), 10);
       editorSettings.setTabSize(Number.isFinite(n) ? n : editorSettings.getSettings().tabSize);
-    }
+    },
   },
   {
     id: 'editor.insertSpaces',
@@ -258,7 +255,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().insertSpaces,
     set: (value: SettingValue) => {
       editorSettings.setInsertSpaces(Boolean(value));
-    }
+    },
   },
   {
     id: 'editor.renderWhitespace',
@@ -274,16 +271,18 @@ const settings: SettingDefinition[] = [
       { value: 'selection', label: 'Selection' },
       { value: 'boundary', label: 'Boundary' },
       { value: 'trailing', label: 'Trailing' },
-      { value: 'all', label: 'All' }
+      { value: 'all', label: 'All' },
     ],
     get: () => editorSettings.getSettings().renderWhitespace,
     set: (value: SettingValue) => {
       const allowed = ['selection', 'boundary', 'trailing', 'all', 'none'] as const;
       const v = String(value);
-      editorSettings.setRenderWhitespace(
-        (allowed.includes(v as (typeof allowed)[number]) ? v : 'selection') as any
-      );
-    }
+      type RenderWhitespaceOption = (typeof allowed)[number];
+      const normalized = allowed.includes(v as RenderWhitespaceOption)
+        ? (v as RenderWhitespaceOption)
+        : 'selection';
+      editorSettings.setRenderWhitespace(normalized);
+    },
   },
   {
     id: 'editor.wordWrap',
@@ -297,16 +296,16 @@ const settings: SettingDefinition[] = [
       { value: 'off', label: 'Off' },
       { value: 'on', label: 'On' },
       { value: 'wordWrapColumn', label: 'At Column' },
-      { value: 'bounded', label: 'Bounded' }
+      { value: 'bounded', label: 'Bounded' },
     ],
     get: () => editorSettings.getSettings().wordWrap,
     set: (value: SettingValue) => {
       const allowed = ['off', 'on', 'wordWrapColumn', 'bounded'] as const;
       const v = String(value);
-      editorSettings.setWordWrap(
-        (allowed.includes(v as (typeof allowed)[number]) ? v : 'on') as any
-      );
-    }
+      type WordWrapOption = (typeof allowed)[number];
+      const normalized = allowed.includes(v as WordWrapOption) ? (v as WordWrapOption) : 'on';
+      editorSettings.setWordWrap(normalized);
+    },
   },
   {
     id: 'editor.wordWrapColumn',
@@ -323,7 +322,7 @@ const settings: SettingDefinition[] = [
       editorSettings.setWordWrapColumn(
         Number.isFinite(n) && n > 0 ? n : editorSettings.getSettings().wordWrapColumn
       );
-    }
+    },
   },
 
   // ---------------------------------------------------------------------------
@@ -340,7 +339,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().minimap,
     set: (value: SettingValue) => {
       editorSettings.setMinimap(Boolean(value));
-    }
+    },
   },
   {
     id: 'editor.folding',
@@ -353,7 +352,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().folding,
     set: (value: SettingValue) => {
       editorSettings.setFolding(Boolean(value));
-    }
+    },
   },
   {
     id: 'editor.lineNumbers',
@@ -367,16 +366,16 @@ const settings: SettingDefinition[] = [
       { value: 'on', label: 'On' },
       { value: 'off', label: 'Off' },
       { value: 'relative', label: 'Relative' },
-      { value: 'interval', label: 'Interval' }
+      { value: 'interval', label: 'Interval' },
     ],
     get: () => editorSettings.getSettings().lineNumbers,
     set: (value: SettingValue) => {
       const allowed = ['on', 'off', 'relative', 'interval'] as const;
       const v = String(value);
-      editorSettings.setLineNumbers(
-        (allowed.includes(v as (typeof allowed)[number]) ? v : 'on') as any
-      );
-    }
+      type LineNumbersOption = (typeof allowed)[number];
+      const normalized = allowed.includes(v as LineNumbersOption) ? (v as LineNumbersOption) : 'on';
+      editorSettings.setLineNumbers(normalized);
+    },
   },
   {
     id: 'editor.bracketPairColorization',
@@ -390,7 +389,7 @@ const settings: SettingDefinition[] = [
     get: () => editorSettings.getSettings().bracketPairColorization,
     set: (value: SettingValue) => {
       editorSettings.setBracketPairColorization(Boolean(value));
-    }
+    },
   },
   {
     id: 'editor.autoSave',
@@ -404,16 +403,18 @@ const settings: SettingDefinition[] = [
       { value: 'off', label: 'Off' },
       { value: 'afterDelay', label: 'After Delay' },
       { value: 'onFocusChange', label: 'On Focus Change' },
-      { value: 'onWindowChange', label: 'On Window Change' }
+      { value: 'onWindowChange', label: 'On Window Change' },
     ],
     get: () => editorBehaviorStore.getAutoSaveMode(),
     set: (value: SettingValue) => {
       const allowed = ['off', 'afterDelay', 'onFocusChange', 'onWindowChange'] as const;
       const mode = String(value);
-      editorBehaviorStore.setAutoSaveMode(
-        allowed.includes(mode as (typeof allowed)[number]) ? (mode as any) : 'off'
-      );
-    }
+      type AutoSaveOption = (typeof allowed)[number];
+      const normalized = allowed.includes(mode as AutoSaveOption)
+        ? (mode as AutoSaveOption)
+        : 'off';
+      editorBehaviorStore.setAutoSaveMode(normalized);
+    },
   },
   {
     id: 'editor.autoSaveDelay',
@@ -427,8 +428,8 @@ const settings: SettingDefinition[] = [
     set: (value: SettingValue) => {
       const n = typeof value === 'number' ? value : parseInt(String(value), 10);
       editorBehaviorStore.setAutoSaveDelay(Number.isFinite(n) && n > 0 ? n : 1000);
-    }
-  }
+    },
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -498,12 +499,10 @@ const registryImpl: SettingsRegistry = {
       if (options?.sectionId && def.section !== options.sectionId) continue;
       if (options?.categoryId && def.category !== options.categoryId) continue;
 
-      const haystack =
-        (def.id + ' ' + def.label + ' ' + (def.description ?? '')).toLowerCase();
+      const haystack = (def.id + ' ' + def.label + ' ' + (def.description ?? '')).toLowerCase();
 
       if (!haystack.includes(q)) continue;
 
-      const section = sectionById.get(def.section);
       const baseScore =
         (def.id.toLowerCase() === q ? 100 : 0) +
         (def.label.toLowerCase().includes(q) ? 50 : 0) +
@@ -515,7 +514,7 @@ const registryImpl: SettingsRegistry = {
         description: def.description,
         sectionId: def.section,
         category: def.category,
-        score: baseScore || 10
+        score: baseScore || 10,
       });
     }
 
@@ -526,7 +525,7 @@ const registryImpl: SettingsRegistry = {
     }
 
     return results;
-  }
+  },
 };
 
 // -----------------------------------------------------------------------------
@@ -536,17 +535,14 @@ const registryImpl: SettingsRegistry = {
 export const settingsRegistry: SettingsRegistry = registryImpl;
 
 export const getSections = (): SettingsSectionDefinition[] => settingsRegistry.getSections();
-export const getSectionById = (
-  id: SectionId
-): SettingsSectionDefinition | undefined => settingsRegistry.getSectionById(id);
+export const getSectionById = (id: SectionId): SettingsSectionDefinition | undefined =>
+  settingsRegistry.getSectionById(id);
 export const getSetting = (id: SettingId): SettingDefinition | undefined =>
   settingsRegistry.getSetting(id);
 export const getSettingsBySection = (sectionId: SectionId): SettingDefinition[] =>
   settingsRegistry.getSettingsBySection(sectionId);
-export const listAllSettings = (): SettingDefinition[] =>
-  settingsRegistry.listAllSettings();
-export const isKnownSetting = (id: SettingId): boolean =>
-  settingsRegistry.isKnownSetting(id);
+export const listAllSettings = (): SettingDefinition[] => settingsRegistry.listAllSettings();
+export const isKnownSetting = (id: SettingId): boolean => settingsRegistry.isKnownSetting(id);
 export const searchSettings = (
   query: string,
   options?: SettingsSearchOptions

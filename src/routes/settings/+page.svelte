@@ -11,10 +11,7 @@
 </script>
 
 <div class="settings-page-root">
-  <SettingsShell
-    id={SHELL_ID}
-    initialSectionId="appearance"
-  />
+  <SettingsShell id={SHELL_ID} initialSectionId="appearance" />
 </div>
 
 <style>

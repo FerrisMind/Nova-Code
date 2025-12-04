@@ -16,7 +16,7 @@
 // -----------------------------------------------------------------------------
 
 import { invoke } from '@tauri-apps/api/core';
-import type { SettingsSnapshot } from '$lib/settings/types';
+import type { SettingValue, SettingsSnapshot } from '$lib/settings/types';
 import { settingsStore } from '$lib/stores/settingsStore';
 import { settingsProfilesStore } from '$lib/stores/settingsProfilesStore';
 import { settingsHistoryStore } from '$lib/stores/settingsHistoryStore';
@@ -50,7 +50,7 @@ async function exportSettingsAsJson(): Promise<void> {
   const payload: SettingsExportPayload = {
     version: 1,
     createdAt: new Date().toISOString(),
-    snapshot
+    snapshot,
   };
 
   try {
@@ -59,7 +59,7 @@ async function exportSettingsAsJson(): Promise<void> {
     // - принимает payload (SettingsExportPayload),
     // - либо сохраняет в файл, либо возвращает строку JSON.
     const result = (await invoke('settings_export', {
-      snapshot: payload
+      snapshot: payload,
     })) as string | void;
 
     if (typeof result === 'string') {
@@ -90,7 +90,7 @@ async function importSettingsFromJson(): Promise<void> {
 
     // Применяем изменения и фиксируем историю.
     const applied = settingsStore.applyChanges(
-      patch.map((p) => ({ id: p.id, value: p.value as any })),
+      patch.map((p) => ({ id: p.id, value: p.value as SettingValue })),
       { source: 'import' }
     );
 
@@ -99,7 +99,7 @@ async function importSettingsFromJson(): Promise<void> {
         applied.map((c) => ({
           settingId: c.id,
           oldValue: c.oldValue,
-          newValue: c.newValue
+          newValue: c.newValue,
         })),
         { source: 'import' }
       );
@@ -127,12 +127,12 @@ export function getDefaultQuickActions(): QuickAction[] {
             applied.map((c) => ({
               settingId: c.id,
               oldValue: c.oldValue,
-              newValue: c.newValue
+              newValue: c.newValue,
             })),
             { source: 'quickAction' }
           );
         }
-      }
+      },
     },
     {
       id: 'profiles-open',
@@ -143,7 +143,7 @@ export function getDefaultQuickActions(): QuickAction[] {
         // через eventBus / внешний стейт.
         // Здесь достаточно зафиксировать факт вызова.
         console.info('[QuickAction profiles-open] Triggered');
-      }
+      },
     },
     {
       id: 'profiles-create-from-current',
@@ -155,7 +155,7 @@ export function getDefaultQuickActions(): QuickAction[] {
         try {
           await settingsProfilesStore.createProfileFromCurrent({
             label,
-            isDefault: false
+            isDefault: false,
           });
 
           // Опционально: сохранить в историю как batch профиля.
@@ -163,26 +163,26 @@ export function getDefaultQuickActions(): QuickAction[] {
             Object.entries(snapshot.editor).map(([key, value]) => ({
               settingId: `editor.${key}`,
               oldValue: value,
-              newValue: value
+              newValue: value,
             })),
             { source: 'profile' }
           );
         } catch (error) {
           console.error('[QuickAction profiles-create-from-current] Failed', error);
         }
-      }
+      },
     },
     {
       id: 'export-json',
       label: 'Export Settings (JSON)',
       icon: 'export',
-      run: () => exportSettingsAsJson()
+      run: () => exportSettingsAsJson(),
     },
     {
       id: 'import-json',
       label: 'Import Settings (JSON)',
       icon: 'import',
-      run: () => importSettingsFromJson()
-    }
+      run: () => importSettingsFromJson(),
+    },
   ];
 }

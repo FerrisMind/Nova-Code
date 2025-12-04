@@ -3,8 +3,7 @@
   // Settings sidebar view component - placeholder
 </script>
 
-<div class="settings-sidebar-root">
-</div>
+<div class="settings-sidebar-root"></div>
 
 <style>
   .settings-sidebar-root {
@@ -17,4 +16,3 @@
     overflow: hidden;
   }
 </style>
-

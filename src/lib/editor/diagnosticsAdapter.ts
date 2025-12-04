@@ -24,6 +24,16 @@ export function attachDiagnosticsTracking(
 
       const markers = monaco.editor.getModelMarkers({ resource: uri });
       const diagnostics: EditorDiagnostic[] = markers.map((marker) => {
+        const rawCode = marker.code;
+        const code =
+          rawCode === undefined
+            ? undefined
+            : typeof rawCode === 'string' || typeof rawCode === 'number'
+              ? String(rawCode)
+              : typeof rawCode === 'object' && rawCode !== null && 'value' in rawCode
+                ? String((rawCode as { value: unknown }).value)
+                : undefined;
+
         const severity =
           marker.severity === monaco.MarkerSeverity.Error
             ? 'error'
@@ -40,7 +50,7 @@ export function attachDiagnosticsTracking(
           startColumn: marker.startColumn,
           endLineNumber: marker.endLineNumber,
           endColumn: marker.endColumn,
-          code: marker.code !== undefined ? String(marker.code as any) : undefined
+          code,
         };
       });
 

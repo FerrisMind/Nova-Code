@@ -44,7 +44,7 @@ export const icons: Record<string, string> = {
       <line x1="11" y1="14" x2="19" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       <rect x="3" y="4" width="18" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="1.2" opacity="0.8"/>
     </svg>
-  `
+  `,
 };
 
 /**

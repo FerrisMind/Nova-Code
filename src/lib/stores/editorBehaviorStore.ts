@@ -14,7 +14,7 @@ export interface EditorBehaviorState {
 
 const DEFAULT_STATE: EditorBehaviorState = {
   autoSaveMode: 'off',
-  autoSaveDelay: 1000 // VS Code default delay for afterDelay
+  autoSaveDelay: 1000, // VS Code default delay for afterDelay
 };
 
 const store: Writable<EditorBehaviorState> = writable(DEFAULT_STATE);
@@ -28,19 +28,19 @@ export const editorBehaviorStore = {
   setAutoSaveMode(mode: AutoSaveMode) {
     store.update((state) => ({
       ...state,
-      autoSaveMode: mode
+      autoSaveMode: mode,
     }));
   },
   toggleAutoSave() {
     store.update((state) => ({
       ...state,
-      autoSaveMode: state.autoSaveMode === 'off' ? 'afterDelay' : 'off'
+      autoSaveMode: state.autoSaveMode === 'off' ? 'afterDelay' : 'off',
     }));
   },
   setAutoSaveDelay(delay: number) {
     store.update((state) => ({
       ...state,
-      autoSaveDelay: delay
+      autoSaveDelay: delay,
     }));
   },
   getAutoSaveMode() {
@@ -51,5 +51,5 @@ export const editorBehaviorStore = {
   },
   isAutoSaveEnabled() {
     return currentState.autoSaveMode !== 'off';
-  }
+  },
 };

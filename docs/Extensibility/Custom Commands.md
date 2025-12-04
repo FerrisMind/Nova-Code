@@ -12,6 +12,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Command Registry Architecture](#command-registry-architecture)
 3. [Creating and Registering Custom Commands](#creating-and-registering-custom-commands)
@@ -24,6 +25,7 @@
 10. [Performance Considerations](#performance-considerations)
 
 ## Introduction
+
 The NC code editor features a comprehensive command system that serves as the central nervous system for user interactions, UI operations, and application workflows. Inspired by the VS Code command palette architecture, this system provides a unified interface for executing actions throughout the application. The command system is designed to be extensible, allowing developers to create custom commands that integrate seamlessly with the editor's core functionality. This document provides a detailed exploration of the command registry architecture, command creation and registration process, integration with UI components like the command palette, and best practices for implementing custom commands. The system is built with accessibility in mind, supporting keyboard navigation, fuzzy search, and command history to enhance user productivity.
 
 ## Command Registry Architecture
@@ -53,9 +55,11 @@ CommandRegistry ..> CommandId : "uses"
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L19-L64)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 
 ## Creating and Registering Custom Commands
@@ -83,10 +87,12 @@ CommandRegistry->>CommandRegistry : Execute run() function
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L38-L64)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L16-L25)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L19-L64)
 
 ## Default Command Implementation
@@ -127,10 +133,12 @@ D1 --> J[editorStore.closeEditor]
 ```
 
 **Diagram sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L35-L268)
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L53-L99)
 
 **Section sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L269)
 
 ## Command Palette Integration
@@ -161,10 +169,12 @@ CommandPalette->>commandPaletteStore : closeCommandPalette()
 ```
 
 **Diagram sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L19-L28)
 
 **Section sources**
+
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)
 
 ## Keybinding System Relationship
@@ -191,17 +201,19 @@ N --> K
 ```
 
 **Diagram sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L50-L51)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L320-L322)
 
 **Section sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L269)
 
 ## Settings Command System
 
 The settings command system provides a specialized layer for managing commands related to application preferences and configuration. Implemented in the settings/commands module, this system follows a parameterized approach that allows for dynamic command generation based on available settings sections and individual settings.
 
-The settings command system uses a namespace pattern with commands like "settings.open.section.*" and "settings.open.setting.*" to organize configuration-related actions. This approach enables the creation of specific commands for each settings section and individual setting without requiring manual registration of each command. The system leverages factory functions like createSectionOpenCommand and createSettingOpenCommand to generate command definitions dynamically.
+The settings command system uses a namespace pattern with commands like "settings.open.section._" and "settings.open.setting._" to organize configuration-related actions. This approach enables the creation of specific commands for each settings section and individual setting without requiring manual registration of each command. The system leverages factory functions like createSectionOpenCommand and createSettingOpenCommand to generate command definitions dynamically.
 
 ```mermaid
 classDiagram
@@ -225,10 +237,12 @@ SettingsCommands ..> commandRegistry : "uses"
 ```
 
 **Diagram sources**
+
 - [commands.ts](file://src/lib/settings/commands.ts#L50-L174)
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L22-L28)
 
 **Section sources**
+
 - [commands.ts](file://src/lib/settings/commands.ts#L1-L174)
 
 ## Common Issues and Best Practices
@@ -258,10 +272,12 @@ E --> Q[Provide keybinding overrides]
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L38-L44)
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L32-L37)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L269)
 
@@ -299,10 +315,12 @@ settings --- open --- setting
 ```
 
 **Diagram sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L47-L267)
 - [commands.ts](file://src/lib/settings/commands.ts#L59-L165)
 
 **Section sources**
+
 - [defaultCommands.ts](file://src/lib/commands/defaultCommands.ts#L1-L269)
 
 ## Performance Considerations
@@ -332,9 +350,11 @@ N --> R[Profile performance]
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L32-L33)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L116-L144)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [CommandPalette.svelte](file://src/lib/commands/CommandPalette.svelte#L1-L441)

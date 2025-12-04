@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/SearchCommand.svelte
   // ----------------------------------------------------------------------------
@@ -32,11 +31,9 @@
     autofocus = false,
     limit = 20,
     compact = false,
-    onchange,
     onselect,
-    onsearch
+    onsearch,
   }: SearchCommandProps & {
-    onchange?: never;
     onselect?: (detail: SettingsSearchResult) => void;
     onsearch?: (detail: { query: string; results: SettingsSearchResult[] }) => void;
   } = $props();
@@ -64,7 +61,7 @@
     }
 
     const next = searchSettings(trimmed, {
-      limit
+      limit,
     });
 
     results = next;
@@ -99,7 +96,7 @@
       type="text"
       bind:value={query}
       bind:this={inputElement}
-      placeholder={placeholder}
+      {placeholder}
       oninput={handleInput}
       onkeydown={handleKeydown}
       aria-label="Search settings"
@@ -109,11 +106,7 @@
   {#if results.length > 0}
     <div class="nc-search-results">
       {#each results as result (result.settingId)}
-        <button
-          type="button"
-          class="nc-search-item"
-          onclick={() => handleSelect(result)}
-        >
+        <button type="button" class="nc-search-item" onclick={() => handleSelect(result)}>
           <div class="nc-search-item-label">
             {result.label}
           </div>
@@ -144,11 +137,7 @@
     padding: 6px 6px 4px;
     border-radius: 8px;
     background:
-      radial-gradient(
-        circle at top left,
-        rgba(79, 70, 229, 0.06),
-        transparent
-      ),
+      radial-gradient(circle at top left, rgba(79, 70, 229, 0.06), transparent),
       rgba(5, 8, 16, 0.98);
     box-shadow:
       0 10px 26px rgba(15, 23, 42, 0.78),
@@ -286,3 +275,5 @@
     border-radius: 999px;
   }
 </style>
+
+<svelte:options runes={true} />

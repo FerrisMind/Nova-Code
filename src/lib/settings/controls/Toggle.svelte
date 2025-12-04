@@ -1,18 +1,13 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/Toggle.svelte
   // ----------------------------------------------------------------------------
   // Обёртка для shadcn-svelte Switch с сохранением оригинального API.
   // ----------------------------------------------------------------------------
-  import { Switch } from "$lib/components/ui/switch";
-  import Icon from "$lib/common/Icon.svelte";
-  import type {
-    SettingDefinition,
-    SettingId,
-    SettingValue,
-  } from "$lib/settings/types";
+  import { Switch } from '$lib/components/ui/switch';
+  import Icon from '$lib/common/Icon.svelte';
+  import type { SettingDefinition, SettingId, SettingValue } from '$lib/settings/types';
 
-  type SettingChangeSource = "user" | "profile" | "quickAction" | "command";
+  type SettingChangeSource = 'user' | 'profile' | 'quickAction' | 'command';
 
   interface SettingChangeMeta {
     settingId: SettingId;
@@ -35,23 +30,25 @@
     onChange = undefined,
     disabled = false,
     compact = false,
-    id = "",
-    idPrefix = "setting-toggle",
-    onchange
-  }: ToggleProps & { onchange?: (detail: { value: boolean; meta: SettingChangeMeta }) => void } = $props();
+    id = '',
+    idPrefix = 'setting-toggle',
+    onchange,
+  }: ToggleProps & {
+    onchange?: (detail: { value: boolean; meta: SettingChangeMeta }) => void;
+  } = $props();
 
   const resolveId = () => {
     if (id) return id;
-    return `${idPrefix}-${definition.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+    return `${idPrefix}-${definition.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
   };
 
   const normalizeToBoolean = (raw: unknown): boolean => {
-    if (typeof raw === "boolean") return raw;
-    if (typeof raw === "number") return raw !== 0;
-    if (typeof raw === "string") {
+    if (typeof raw === 'boolean') return raw;
+    if (typeof raw === 'number') return raw !== 0;
+    if (typeof raw === 'string') {
       const v = raw.toLowerCase().trim();
-      if (v === "true" || v === "1" || v === "yes" || v === "on") return true;
-      if (v === "false" || v === "0" || v === "no" || v === "off") return false;
+      if (v === 'true' || v === '1' || v === 'yes' || v === 'on') return true;
+      if (v === 'false' || v === '0' || v === 'no' || v === 'off') return false;
     }
     return false;
   };
@@ -80,7 +77,7 @@
 
     const meta: SettingChangeMeta = {
       settingId: definition.id,
-      source: "user",
+      source: 'user',
     };
 
     if (onChange) {
@@ -94,14 +91,10 @@
   };
 
   // Определяем нужны ли иконки (для theme.mode)
-  const showIcons = () => definition.id === "theme.mode";
+  const showIcons = () => definition.id === 'theme.mode';
 </script>
 
-<div
-  class="nc-toggle-wrapper {compact ? 'compact' : ''} {showIcons()
-    ? 'with-icons'
-    : ''}"
->
+<div class="nc-toggle-wrapper {compact ? 'compact' : ''} {showIcons() ? 'with-icons' : ''}">
   {#if showIcons()}
     <span class="nc-toggle-icon nc-toggle-icon-left" class:active={!checked}>
       <Icon name="sun" size={compact ? 12 : 14} />
@@ -148,3 +141,5 @@
     opacity: 1;
   }
 </style>
+
+<svelte:options runes={true} />

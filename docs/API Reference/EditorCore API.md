@@ -13,6 +13,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -24,9 +25,11 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 This document provides comprehensive API documentation for the EditorCore class, the central interface to the Monaco Editor within the NC code editor. It covers public methods, event subscriptions, configuration translation, theme synchronization, multi-editor layouts, diff editor usage, and error handling. The goal is to help developers integrate EditorCore effectively while understanding how it bridges UI state, Monaco’s native API, and editor groups.
 
 ## Project Structure
+
 EditorCore lives under the editor subsystem and integrates with Svelte stores for tabs, groups, theme, and diagnostics. The MonacoHost component orchestrates initialization, theme application, and event propagation.
 
 ```mermaid
@@ -53,6 +56,7 @@ SS --> MH
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L163-L891)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
@@ -63,16 +67,19 @@ SS --> MH
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L49)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L120)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L120)
 
 ## Core Components
+
 - EditorCore: Lightweight wrapper around Monaco’s standalone editor APIs. Exposes a minimal, typed API for model management, configuration, diagnostics, providers, diff sessions, and events.
 - MonacoHost: Mounts the editor, initializes EditorCore, applies theme, registers languages/providers, and forwards change events.
 - ThemeManager: Centralizes theme registration and application for Monaco, including built-in, custom, and popular themes.
 - Stores: editorStore manages tabs and dirty state; editorGroupsStore manages groups and active tabs; themeStore holds UI theme state; editorSettingsStore holds editor preferences.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L163-L891)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
@@ -82,6 +89,7 @@ SS --> MH
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L49)
 
 ## Architecture Overview
+
 EditorCore encapsulates Monaco’s editor and model APIs behind a clean interface. MonacoHost creates EditorCore, sets up language support, applies theme, and wires events. editorStore and editorGroupsStore manage logical tabs and groups. Theme synchronization is driven by themeStore and themeManager. Diagnostics are bridged from Monaco markers to diagnosticsStore.
 
 ```mermaid
@@ -106,6 +114,7 @@ Host-->>Store : "dispatch change events"
 ```
 
 **Diagram sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L68-L172)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L410-L601)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L120)
@@ -113,6 +122,7 @@ Host-->>Store : "dispatch change events"
 ## Detailed Component Analysis
 
 ### EditorCore Public API
+
 EditorCore exposes a focused API surface for editor lifecycle, model management, configuration, diagnostics, providers, diff sessions, and events.
 
 - attachTo(container, options?)
@@ -194,14 +204,17 @@ EditorCore exposes a focused API surface for editor lifecycle, model management,
   - Returns: string | null
 
 Implementation highlights:
+
 - Internal state tracks Monaco instance, editor, models map, active fileId, and options.
 - Event subscriptions are scoped to the active model and disposed on model switch.
 - Diff session mounts a standalone diff editor with shared base options from EditorCoreOptions.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L163-L891)
 
 #### Class Diagram: EditorCore API Surface
+
 ```mermaid
 classDiagram
 class EditorCoreApi {
@@ -233,10 +246,12 @@ EditorCoreApi --> DiffSession : "creates"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L241-L262)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L727-L838)
 
 ### Event System
+
 - onDidChangeContent
   - Fired when the active model’s content changes.
   - Payload: (fileId: string, value: string)
@@ -248,14 +263,17 @@ EditorCoreApi --> DiffSession : "creates"
   - Use case: Update status bar, cursor tracking stores.
 
 Integration example:
+
 - MonacoHost subscribes to onDidChangeContent and dispatches a Svelte event for the hosting component.
 - MonacoHost subscribes to themeStore and applies the appropriate Monaco theme via themeManager.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L845-L858)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L145-L159)
 
 ### Relationship to Monaco Native API
+
 - EditorCore wraps Monaco’s:
   - Standalone editor creation/updateOptions
   - Model creation/get/set
@@ -269,16 +287,18 @@ Integration example:
   - ThemeManager defines and applies themes; EditorCore delegates theme application to ThemeManager.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L543-L650)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L120)
 
 ### Theme Management Integration
+
 - Theme synchronization:
   - themeStore holds UI theme state (mode + palette).
   - getMonacoThemeId derives the Monaco theme ID from themeStore and optional editorSettings.theme override.
   - themeManager applies the theme to Monaco and maintains built-in/custom/popular themes.
 - Initialization:
-  - MonacoHost initializes themeManager, loads popular themes, and defines “nova-*” themes from palette-derived data.
+  - MonacoHost initializes themeManager, loads popular themes, and defines “nova-\*” themes from palette-derived data.
   - On mount and theme changes, MonacoHost applies the computed theme ID.
 
 ```mermaid
@@ -296,16 +316,19 @@ TM-->>Core : "setTheme(monacoThemeId)"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L260-L274)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L139-L159)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L139-L159)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L49)
 
 ### Multi-Editor Layouts and Editor Groups
+
 - editorStore:
   - Manages EditorTab entries and activeEditorId.
   - Provides openFile, ensureTabForFile, closeEditor, markDirty, updateContent.
@@ -327,14 +350,17 @@ SetModel --> Ready(["Editor ready"])
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L110-L190)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L177-L222)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 ### Diff Editors
+
 - createDiffSession:
   - Creates a diff editor with original and modified models.
   - Mounts a new IStandaloneDiffEditor instance and returns mount/update/dispose.
@@ -358,12 +384,15 @@ UI->>Core : "diffSession.dispose()"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L727-L838)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L727-L838)
 
 ### Diagnostics Integration
+
 - Monaco emits marker changes; diagnosticsAdapter listens and translates markers to EditorDiagnostic[].
 - Uses core.getFileIdByUri to map Monaco URIs to editorStore fileId.
 - Emits updates to diagnosticsStore.
@@ -381,14 +410,17 @@ Adapter->>Store : "updateDiagnosticsForFile(fileId, diagnostics)"
 ```
 
 **Diagram sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L879-L887)
 
 **Section sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L879-L887)
 
 ## Dependency Analysis
+
 - EditorCore depends on:
   - Monaco editor APIs (models, providers, diff editor, markers)
   - ThemeManager for theme registration/application
@@ -410,6 +442,7 @@ EC --> DA["diagnosticsAdapter"]
 ```
 
 **Diagram sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L163-L891)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
@@ -418,10 +451,12 @@ EC --> DA["diagnosticsAdapter"]
 - [editorGroupsStore.ts](file://src/lib/stores/layout/editorGroupsStore.ts#L1-L413)
 
 **Section sources**
+
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L163-L891)
 
 ## Performance Considerations
+
 - EditorCore applies performance-friendly defaults:
   - automaticLayout: true
   - smoothScrolling: false
@@ -433,15 +468,18 @@ EC --> DA["diagnosticsAdapter"]
 - Large file optimizations configurable via options.
 
 Recommendations:
+
 - Prefer updateContent for bulk updates to avoid unnecessary re-renders.
 - Use createDiffSession for large diffs to keep the main editor responsive.
 - Avoid frequent theme switches; batch UI theme changes.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L445-L512)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L517-L541)
 
 ## Troubleshooting Guide
+
 Common issues and resolutions:
 
 - Model not found or null
@@ -475,9 +513,11 @@ Common issues and resolutions:
   - Resolution: Disable minimap or reduce quick suggestions delay; consider largeFileOptimizations; disable expensive features temporarily.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L727-L730)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L139-L159)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L112-L126)
 
 ## Conclusion
+
 EditorCore provides a clean, performant abstraction over Monaco Editor tailored for NC’s UI architecture. It centralizes model management, configuration, diagnostics, and events while delegating theme management to ThemeManager. Combined with editorStore and editorGroupsStore, it enables robust multi-editor layouts and diff editing. By following the integration patterns and troubleshooting guidance here, teams can deliver reliable, responsive editing experiences.

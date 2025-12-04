@@ -16,7 +16,9 @@
 </cite>
 
 ## Update Summary
-**Changes Made**   
+
+**Changes Made**
+
 - Updated Tailwind CSS integration from v3 to v4 with new configuration approach
 - Migrated from tailwind.config.js to @theme inline in app.css
 - Added @tailwindcss/vite plugin in vite.config.js
@@ -25,6 +27,7 @@
 - Updated documentation to reflect new Tailwind v4 architecture
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Tailwind CSS Integration](#tailwind-css-integration)
 3. [Global CSS Architecture](#global-css-architecture)
@@ -37,13 +40,16 @@
 10. [Svelte Configuration](#svelte-configuration)
 
 ## Introduction
+
 The NC code editor implements a sophisticated styling architecture that combines Tailwind CSS v4 for utility-first styling with a custom CSS system for global styles and theme management. The styling system is designed to provide a consistent, accessible, and highly customizable user interface that adapts to user preferences and screen sizes. This document details the implementation of the styling architecture, focusing on the integration of Tailwind CSS with Svelte components, the custom CSS architecture, the theme system using CSS custom properties, and how themes are dynamically applied based on user preferences.
 
 **Section sources**
+
 - [app.css](file://src/app.css#L1-L111)
 - [svelte.config.js](file://svelte.config.js#L1-L19)
 
 ## Tailwind CSS Integration
+
 The NC code editor leverages Tailwind CSS v4 as its primary styling framework, implementing a utility-first approach that allows for rapid UI development and consistent design patterns across components. Tailwind is integrated through the `app.css` file, which imports the core Tailwind functionality and extends it with custom utilities and theme definitions.
 
 The integration is configured in the `vite.config.js` file, which sets up the Vite plugin for Tailwind CSS. This configuration enables the use of Tailwind's utility classes directly in Svelte component templates, allowing developers to style elements without writing custom CSS. The utility-first approach promotes consistency by using a predefined set of classes for spacing, typography, colors, and layout, reducing the need for custom CSS and minimizing style conflicts.
@@ -61,14 +67,17 @@ F --> G[Responsive Design]
 ```
 
 **Diagram sources**
+
 - [app.css](file://src/app.css#L1-L111)
 - [vite.config.js](file://vite.config.js#L1-L34)
 
 **Section sources**
+
 - [app.css](file://src/app.css#L1-L111)
 - [vite.config.js](file://vite.config.js#L1-L34)
 
 ## Global CSS Architecture
+
 The global CSS architecture in the NC code editor is centered around the `app.css` file, which serves as the foundation for all styling in the application. This file implements a layered approach to CSS, combining Tailwind's utility classes with custom CSS for global styles and component-specific overrides.
 
 The architecture begins with the import of Tailwind CSS and additional utility libraries like `tw-animate-css`, establishing the base styling system. Following these imports, the file defines CSS custom properties (variables) for the application's color palette, typography, and spacing. These variables are organized in a structured hierarchy, with root-level variables for the light theme and `.dark` class overrides for the dark theme.
@@ -95,12 +104,15 @@ app.css --> GlobalStyles : "defines"
 ```
 
 **Diagram sources**
+
 - [app.css](file://src/app.css#L1-L111)
 
 **Section sources**
+
 - [app.css](file://src/app.css#L1-L111)
 
 ## Theme System Implementation
+
 The theme system in the NC code editor is implemented using CSS custom properties and a structured approach to theme management that allows for dynamic switching between light and dark modes. The system is built around the `THEME_PALETTES.ts` file, which defines the complete set of color palettes available in the application.
 
 The theme system categorizes palettes by mode (light or dark) and provides a consistent interface for accessing theme data. Each palette includes a primary background color, text color, and a hierarchy of background levels that create visual depth in the UI. The system uses a calculated approach to generate these levels, adjusting brightness values based on the base color to ensure proper contrast and visual hierarchy.
@@ -137,12 +149,15 @@ ThemePalette --> ThemePaletteId : "uses"
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L314)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L314)
 
 ## Dynamic Theme Application
+
 The dynamic theme application system in the NC code editor synchronizes UI appearance with user preferences through a combination of Svelte stores, CSS custom properties, and reactive updates. The system is centered around the `themeStore.ts` file, which manages the current theme state and broadcasts changes to all components.
 
 When a user changes the theme or palette, the theme store updates its state and triggers a re-render of all subscribed components. The `+layout.svelte` file listens to these changes and applies the appropriate CSS custom properties to the document root, ensuring that the entire application updates consistently. This is achieved through the `applyThemeColors` function, which extracts color values from the selected palette and sets them as CSS variables.
@@ -166,16 +181,19 @@ Layout->>Layout : Re-render components
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Static CSS Files
+
 The NC code editor includes static CSS files for specialized styling needs, particularly for third-party libraries and icon systems. The `static` directory contains two key files: `devicon-base.css` and `devicon-dark-theme.css`, which handle styling for the Devicon icon library.
 
 The `devicon-base.css` file defines the core styles for Devicon icons, including font-face declarations, base icon styling, and individual icon rules. This file establishes the foundation for displaying technology icons throughout the application, with each icon defined by a CSS class that sets the appropriate Unicode character from the Devicon font.
@@ -201,14 +219,17 @@ H --> M[Problematic Icon Fixes]
 ```
 
 **Diagram sources**
+
 - [devicon-base.css](file://static/devicon-base.css#L1-L3631)
 - [devicon-dark-theme.css](file://static/devicon-dark-theme.css#L1-L69)
 
 **Section sources**
+
 - [devicon-base.css](file://static/devicon-base.css#L1-L3631)
 - [devicon-dark-theme.css](file://static/devicon-dark-theme.css#L1-L69)
 
 ## Theme Configuration Files
+
 The theme configuration in the NC code editor is managed through two key files: `THEME_PALETTES.ts` and `THEME_QUICK_START.ts`. These files work together to define the available color schemes and provide documentation for theme usage.
 
 The `THEME_PALETTES.ts` file serves as the single source of truth for all color palettes in the application. It exports a `PALETTES` object that contains all available themes, organized by mode (light or dark). Each palette includes detailed color definitions, background level calculations, and utility functions for retrieving palettes by ID or mode. The file uses a functional approach to calculate background levels, ensuring consistent color progression across all palettes.
@@ -235,14 +256,17 @@ THEME_PALETTES --> THEME_QUICK_START : "documented by"
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 
 ## Theme Store and UI Synchronization
+
 The theme store and UI synchronization system in the NC code editor ensures that all components respond consistently to theme changes. The `themeStore.ts` file implements a reactive store using Svelte's writable store, which maintains the current theme state and notifies subscribers of changes.
 
 The store exposes methods for setting the theme mode, toggling between light and dark modes, and changing the color palette. When any of these methods are called, the store updates its internal state and triggers updates in all subscribed components. The store also preserves the "slot" of the current palette when switching modes, so if a user is using a dark alternative palette, switching to light mode will select the corresponding light alternative.
@@ -269,16 +293,19 @@ K --> L[All Components Update]
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [registry.ts](file://src/lib/settings/registry.ts#L1-L558)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [registry.ts](file://src/lib/settings/registry.ts#L1-L558)
 
 ## Responsive Design
+
 The responsive design system in the NC code editor ensures that the user interface adapts gracefully to different screen sizes and layouts. The system is built on a combination of Tailwind CSS's responsive utilities and custom CSS for layout management.
 
 The layout is based on a flexible grid system that uses CSS flexbox and grid layouts to create a responsive workspace. The main application structure consists of a fixed-height titlebar, a flexible main area with sidebars, and a resizable editor region. The sidebars can be toggled and resized, with the right sidebar supporting drag-to-resize functionality.
@@ -310,14 +337,17 @@ K --> S[Accessibility]
 ```
 
 **Diagram sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [app.css](file://src/app.css#L1-L111)
 
 **Section sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L478)
 - [app.css](file://src/app.css#L1-L111)
 
 ## Svelte Configuration
+
 The Svelte configuration for CSS preprocessing and bundling is defined in the `svelte.config.js` file, which sets up the build process for the application's styles. The configuration uses Vite as the build tool, with the `vitePreprocess` function from `@sveltejs/vite-plugin-svelte` to handle CSS preprocessing.
 
 The configuration is optimized for a static site deployment with fallback to `index.html`, enabling single-page application (SPA) mode. This setup allows for efficient CSS bundling and minification, with Tailwind CSS classes being processed and optimized during the build process.
@@ -342,7 +372,9 @@ svelte.config.js --> BuildProcess : "configures"
 ```
 
 **Diagram sources**
+
 - [svelte.config.js](file://svelte.config.js#L1-L19)
 
 **Section sources**
+
 - [svelte.config.js](file://svelte.config.js#L1-L19)

@@ -4,7 +4,7 @@
   // Search view - integrated with ProjectSearchPanel for real search functionality.
   // ---------------------------------------------------------------------------
 
-  import ProjectSearchPanel from "$lib/components/search/ProjectSearchPanel.svelte";
+  import ProjectSearchPanel from '$lib/components/search/ProjectSearchPanel.svelte';
 </script>
 
 <ProjectSearchPanel />

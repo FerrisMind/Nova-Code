@@ -2,19 +2,19 @@
   // src/lib/settings/controls/SaveIndicator.svelte
   // ----------------------------------------------------------------------------
   // Компонент индикатора сохранения "✓ Сохранено".
-  // 
+  //
   // Поведение:
   // - Появляется с анимацией fade-in (200ms)
   // - Держится указанное время (по умолчанию 2000ms)
   // - Исчезает с анимацией fade-out (300ms)
-  // 
+  //
   // Использование:
   // - Передать `visible={true}` для показа индикатора
   // - Компонент автоматически скроется через `duration` мс
   // - Можно передать кастомный текст через `text`
   // ----------------------------------------------------------------------------
 
-  import { Check } from "@lucide/svelte";
+  import { Check } from '@lucide/svelte';
 
   interface SaveIndicatorProps {
     /** Показывать индикатор */
@@ -31,10 +31,10 @@
 
   let {
     visible = false,
-    text = "Сохранено",
+    text = 'Сохранено',
     duration = 2000,
     onHide = undefined,
-    compact = false
+    compact = false,
   }: SaveIndicatorProps = $props();
 
   // Состояние анимации: 'entering' | 'visible' | 'exiting' | 'hidden'
@@ -46,7 +46,7 @@
     if (visible) {
       // Начинаем показ
       animationState = 'entering';
-      
+
       // Через 200ms (время анимации входа) переходим в visible
       setTimeout(() => {
         animationState = 'visible';
@@ -56,7 +56,7 @@
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         animationState = 'exiting';
-        
+
         // Через 300ms (время анимации выхода) полностью скрываем
         setTimeout(() => {
           animationState = 'hidden';
@@ -88,7 +88,7 @@
 </script>
 
 {#if shouldRender()}
-  <span 
+  <span
     class="save-indicator {getAnimationClass()} {compact ? 'compact' : ''}"
     aria-live="polite"
     role="status"
@@ -137,5 +137,3 @@
 
   /* Анимации определены в app.css */
 </style>
-
-

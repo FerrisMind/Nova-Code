@@ -14,7 +14,7 @@
 
 import { writable, type Readable } from 'svelte/store';
 import type { SvelteComponent } from 'svelte';
-import type { SettingId } from '$lib/settings/types';
+import type { SettingDefinition, SettingId } from '$lib/settings/types';
 import { getSetting } from '$lib/settings/registry';
 
 // -----------------------------------------------------------------------------
@@ -89,43 +89,46 @@ function createSettingsPreviewStore(): SettingsPreviewStore {
     activeSectionId: null,
     currentPreview: null,
     relatedSettings: [],
-    helpText: null
+    helpText: null,
   });
 
   let provider: SettingsPreviewProvider | null = null;
 
-  function resolvePreview(
-    settingId: SettingId
-  ): SettingsPreviewState['currentPreview'] {
+  function resolvePreview(settingId: SettingId): SettingsPreviewState['currentPreview'] {
     const def = getSetting(settingId);
     if (!def) return null;
 
     const context: SettingPreviewContext = {
       settingId,
-      value: def.get()
+      value: def.get(),
     };
+
+    type SettingWithPreview = SettingDefinition & {
+      preview?: InlinePreviewConfig;
+      previewId?: PreviewId;
+    };
+    const extendedDef = def as SettingWithPreview;
 
     // Inline preview:
     // Ожидается, что если в SettingDefinition будет поле preview (InlinePreviewConfig),
     // SettingsShell или расширенный registry пробросит его сюда.
-    const anyDef: any = def;
-    if (anyDef.preview && anyDef.preview.type === 'inline') {
-      const cfg: InlinePreviewConfig = anyDef.preview;
+    if (extendedDef.preview && extendedDef.preview.type === 'inline') {
+      const cfg: InlinePreviewConfig = extendedDef.preview;
       return {
         mode: 'inline',
         config: cfg,
-        context
+        context,
       };
     }
 
     // Provider-based preview:
-    if (anyDef.previewId && provider) {
-      const defn = provider.getPreview(anyDef.previewId as PreviewId);
+    if (extendedDef.previewId && provider) {
+      const defn = provider.getPreview(extendedDef.previewId);
       if (defn) {
         return {
           mode: 'provider',
           definition: defn,
-          context
+          context,
         };
       }
     }
@@ -145,7 +148,7 @@ function createSettingsPreviewStore(): SettingsPreviewStore {
           activeSectionId: null,
           currentPreview: null,
           relatedSettings: [],
-          helpText: null
+          helpText: null,
         });
         return;
       }
@@ -160,7 +163,7 @@ function createSettingsPreviewStore(): SettingsPreviewStore {
         // relatedSettings и helpText могут быть заданы позже вызовами setRelatedSettings/setHelpText
         // поэтому не обнуляем их без необходимости.
         relatedSettings: state.relatedSettings,
-        helpText: state.helpText
+        helpText: state.helpText,
       }));
     },
 
@@ -170,7 +173,7 @@ function createSettingsPreviewStore(): SettingsPreviewStore {
         activeSectionId: null,
         currentPreview: null,
         relatedSettings: [],
-        helpText: null
+        helpText: null,
       });
     },
 
@@ -187,7 +190,7 @@ function createSettingsPreviewStore(): SettingsPreviewStore {
         const currentPreview = resolvePreview(snapshot.activeSettingId);
         set({
           ...snapshot,
-          currentPreview
+          currentPreview,
         });
       }
     },
@@ -195,16 +198,16 @@ function createSettingsPreviewStore(): SettingsPreviewStore {
     setRelatedSettings(settingIds: SettingId[]): void {
       update((state) => ({
         ...state,
-        relatedSettings: settingIds
+        relatedSettings: settingIds,
       }));
     },
 
     setHelpText(text: string | null): void {
       update((state) => ({
         ...state,
-        helpText: text
+        helpText: text,
       }));
-    }
+    },
   };
 
   return store;

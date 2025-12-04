@@ -13,6 +13,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Plugin Architecture Overview](#plugin-architecture-overview)
 3. [Core Plugin Integration](#core-plugin-integration)
@@ -25,6 +26,7 @@
 10. [Conclusion](#conclusion)
 
 ## Introduction
+
 The NC code editor leverages Tauri's plugin system to provide native capabilities while maintaining a web-based frontend. This documentation details how Tauri plugins are integrated to extend the application with essential native features such as file system operations, system dialogs, and OS-level integrations. The plugin architecture enables secure communication between the frontend and backend through well-defined command interfaces, allowing the editor to perform system-level operations while maintaining a responsive user interface.
 
 ## Plugin Architecture Overview
@@ -59,11 +61,13 @@ style Native fill:#9f9,stroke:#333
 ```
 
 **Diagram sources**
+
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 
 **Section sources**
+
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 - [lib.rs](file://src-tauri/src/lib.rs)
 
@@ -108,6 +112,7 @@ On the frontend, the corresponding npm packages are installed:
 This dual-configuration approach ensures that both the Rust backend and JavaScript frontend have the necessary components to communicate through the plugin system.
 
 **Section sources**
+
 - [Cargo.toml](file://src-tauri/Cargo.toml)
 - [package.json](file://package.json)
 - [lib.rs](file://src-tauri/src/lib.rs)
@@ -145,10 +150,12 @@ TauriAPI-->>Frontend : Resolve
 ```
 
 **Diagram sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 
@@ -177,12 +184,14 @@ The permissions are configured in the capabilities/default.json file:
 This configuration grants specific permissions for window management and dialog operations while restricting other capabilities. The security model follows the principle of least privilege, where only necessary permissions are granted for the application to function properly.
 
 The capability system allows for:
+
 - Granular control over window operations
 - Controlled access to file dialogs
 - Explicit permission for opening external applications
 - Prevention of unauthorized system access
 
 **Section sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
@@ -197,21 +206,22 @@ export const fileService: FileService = {
   async readFile(fileId) {
     return invoke<string>('read_file', { path: fileId });
   },
-  
+
   async writeFile(fileId, content) {
     await invoke<void>('write_file', { request: { path: fileId, content } });
   },
-  
+
   async onFileChange(cb) {
     const unlisten = await listen<string>('file-changed', (event) => {
       cb(event.payload);
     });
     return () => unlisten();
-  }
+  },
 };
 ```
 
 Key integration patterns include:
+
 - Using the invoke function for command execution
 - Implementing event listeners for real-time updates
 - Creating service layers to abstract Tauri interactions
@@ -235,6 +245,7 @@ async cancel(): Promise<void> {
 ```
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts)
 - [searchStore.svelte.ts](file://src/lib/stores/searchStore.svelte.ts)
 - [quickActions.ts](file://src/lib/settings/quickActions.ts)
@@ -257,18 +268,21 @@ fn read_json_file<T: for<'de> Deserialize<'de>>(path: &PathBuf) -> Result<Option
 ```
 
 Frontend error handling follows these patterns:
+
 - Wrapping invoke calls in try-catch blocks
 - Converting errors to user-friendly messages
 - Logging errors for debugging purposes
 - Providing fallback behaviors when possible
 
 The application also handles plugin availability by:
+
 - Checking for command existence before invocation
 - Providing graceful degradation when features are unavailable
 - Implementing proper cleanup for event listeners
 - Validating parameters before making native calls
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 - [quickActions.ts](file://src/lib/settings/quickActions.ts)
@@ -299,6 +313,7 @@ async fn search_files(app: AppHandle, request: SearchFilesRequest) -> Result<(),
 This approach ensures that intensive operations don't block the main thread, maintaining application responsiveness. The file watcher implementation also uses a dedicated thread for monitoring file system changes and emitting events when changes occur.
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [searchStore.svelte.ts](file://src/lib/stores/searchStore.svelte.ts)
 
@@ -316,15 +331,18 @@ Based on the NC code editor implementation, several best practices emerge for de
 8. **Clear Contracts**: Define clear interfaces between frontend and backend components
 
 When creating new plugins, consider:
+
 - Whether the functionality can be implemented as custom commands instead of external plugins
 - The security implications of the native capabilities being exposed
 - The performance impact of IPC communication
 - The user experience implications of synchronous vs asynchronous operations
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
 ## Conclusion
+
 The NC code editor demonstrates a robust implementation of Tauri's plugin system, providing native capabilities while maintaining a clean separation between frontend and backend concerns. The architecture balances functionality, security, and performance through well-defined command interfaces, proper error handling, and thoughtful permission management. By following the patterns established in this codebase, developers can create secure and efficient native extensions that enhance the editor's capabilities without compromising stability or user experience.

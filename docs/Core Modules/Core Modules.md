@@ -19,6 +19,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -30,7 +31,9 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 This document explains the core modules that form the foundation of the NC code editor. It focuses on:
+
 - The EditorCore class that encapsulates the Monaco Editor instance and exposes a unified API for editor operations.
 - State management using Svelte stores for reactive data flow across the application.
 - The service layer that handles business logic and external interactions, especially the fileService bridging frontend operations with Tauri’s backend.
@@ -38,7 +41,9 @@ This document explains the core modules that form the foundation of the NC code 
 - How the modules maintain separation of concerns while enabling seamless integration.
 
 ## Project Structure
+
 The core modules are organized by responsibility:
+
 - Editor orchestration and Monaco integration live under src/lib/editor.
 - State management resides under src/lib/stores, split into logical domains (editor, layout, settings, etc.).
 - Services abstract backend interactions under src/lib/services.
@@ -83,6 +88,7 @@ FV --> ES
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
@@ -99,12 +105,14 @@ FV --> ES
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 ## Core Components
+
 This section introduces the primary building blocks and their responsibilities.
 
 - EditorCore: Encapsulates Monaco Editor lifecycle, model management, configuration, diagnostics, diff sessions, and event subscriptions. It provides a clean API for editor operations while isolating Monaco-specific internals.
@@ -125,6 +133,7 @@ This section introduces the primary building blocks and their responsibilities.
   - fileValidator: Validates files for size/binary content and suggests performance optimizations.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
@@ -140,7 +149,9 @@ This section introduces the primary building blocks and their responsibilities.
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
 
 ## Architecture Overview
+
 The system follows a layered architecture:
+
 - EditorCore orchestrates Monaco Editor and mediates between UI components and Monaco.
 - Svelte stores manage application state and drive UI updates reactively.
 - Services abstract backend interactions (Tauri) and expose a stable API to the rest of the app.
@@ -183,6 +194,7 @@ FS --> TAURI
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
@@ -199,7 +211,9 @@ FS --> TAURI
 ## Detailed Component Analysis
 
 ### EditorCore: Unified Editor API
+
 EditorCore encapsulates Monaco Editor lifecycle and operations behind a typed API. Key responsibilities:
+
 - Attach to a DOM container and create an editor instance with performance-oriented defaults.
 - Manage multiple text models keyed by fileId, preserving undo/redo stacks when switching models.
 - Configure editor options (theme, fonts, wrapping, minimap, folding, etc.) and apply them to the active editor.
@@ -209,21 +223,25 @@ EditorCore encapsulates Monaco Editor lifecycle and operations behind a typed AP
 - Provide metadata about active model (language, EOL, tab size, spaces).
 
 Implementation highlights:
+
 - Internal state tracks Monaco instance, editor, models, active fileId, and listeners.
 - Capabilities indicate multi-model support, preserved undo stack, diff readiness, and extensible languages.
 - Options are merged with defaults and applied to the editor; minimap and performance-related toggles are optimized.
 - Event subscriptions are scoped to the active model to avoid cross-tab noise.
 
 Practical usage patterns:
+
 - Mounting and setting a model when opening a file.
 - Updating content from external sources (e.g., file watcher).
 - Applying settings changes from editorSettingsStore.
 - Creating diff sessions for compare scenarios.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 #### EditorCore Class Diagram
+
 ```mermaid
 classDiagram
 class EditorCoreApi {
@@ -261,9 +279,11 @@ EditorCoreApi --> CoreState : "manages"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ### State Management Stores
+
 The state layer uses Svelte stores to keep the UI reactive and decoupled from Monaco and backend specifics.
 
 - editorStore
@@ -291,6 +311,7 @@ The state layer uses Svelte stores to keep the UI reactive and decoupled from Mo
   - Provides mutation functions for toggling and resizing containers.
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 - [editorBehaviorStore.ts](file://src/lib/stores/editorBehaviorStore.ts#L1-L56)
@@ -298,22 +319,27 @@ The state layer uses Svelte stores to keep the UI reactive and decoupled from Mo
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 
 ### Service Layer: fileService
+
 The service layer abstracts backend interactions:
+
 - Reads/writes files, lists workspace files, creates/deletes/renames files and directories.
 - Listens to file change events and exposes a callback-based subscription.
 - Starts a file watcher and manages workspace root.
 - Provides synchronous getters/setters for workspace root.
 
 Integration points:
+
 - editorStore persists content via fileService.writeFile.
 - workspaceStore loads the file tree via fileService.listWorkspaceFiles and subscribes to file change events.
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 
 ### Editor Layer Utilities and Adapters
+
 - languageSupport
   - Maps internal language IDs to Monaco language IDs.
   - Registers basic languages lazily using Monaco’s basic-languages.
@@ -339,6 +365,7 @@ Integration points:
   - Suggests performance optimizations for large files.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
@@ -347,6 +374,7 @@ Integration points:
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
 
 ### Practical Workflow Example: Opening a File
+
 This sequence illustrates how modules collaborate to open a file in the editor:
 
 ```mermaid
@@ -369,12 +397,14 @@ ES->>FS : persist on save -> writeFile(path, value)
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ### Diff Editor Workflow
+
 Creating a diff session demonstrates EditorCore’s extensibility:
 
 ```mermaid
@@ -392,9 +422,11 @@ EC->>MON : diffEditor.updateOptions(...)
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ### Diagnostics Flow
+
 Monaco markers are adapted to diagnosticsStore:
 
 ```mermaid
@@ -410,11 +442,14 @@ UpdateStore --> End(["Done"])
 ```
 
 **Diagram sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ## Dependency Analysis
+
 Key dependencies and coupling:
+
 - EditorCore depends on Monaco APIs and exposes a stable interface; it is consumed by UI components and stores.
 - editorStore depends on workspaceStore and fileService; it also triggers persistence via fileService.
 - editorSettingsStore feeds EditorCore.configure; changes propagate to Monaco.
@@ -442,6 +477,7 @@ FS --> TAURI["Tauri Backend"]
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
@@ -456,6 +492,7 @@ FS --> TAURI["Tauri Backend"]
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
@@ -470,6 +507,7 @@ FS --> TAURI["Tauri Backend"]
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 ## Performance Considerations
+
 - Monaco Editor performance tuning in EditorCore:
   - automaticLayout enabled for responsive sizing.
   - smoothScrolling disabled and cursorSmoothCaretAnimation set to reduce GPU load.
@@ -486,7 +524,9 @@ FS --> TAURI["Tauri Backend"]
 [No sources needed since this section provides general guidance]
 
 ## Troubleshooting Guide
+
 Common issues and resolutions:
+
 - Monaco not initialized:
   - Ensure monacoEnvironment is imported before any Monaco usage.
   - Verify EditorCore.attachTo is called with a valid container and options.
@@ -500,6 +540,7 @@ Common issues and resolutions:
   - Configure editorBehaviorStore modes and delays; verify persistence via editorStore.updateContent.
 
 **Section sources**
+
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
@@ -508,9 +549,11 @@ Common issues and resolutions:
 - [editorBehaviorStore.ts](file://src/lib/stores/editorBehaviorStore.ts#L1-L56)
 
 ## Conclusion
+
 The NC code editor’s core modules are structured to separate concerns clearly:
+
 - EditorCore encapsulates Monaco, providing a stable API for editor operations.
 - Svelte stores manage state reactively, keeping UI components decoupled from backend and Monaco specifics.
 - The service layer abstracts Tauri interactions, enabling future backend swaps.
 - Utilities and adapters handle specialized tasks (language support, diagnostics, themes, workers) with minimal coupling.
-This design yields a maintainable, extensible foundation for the editor’s functionality.
+  This design yields a maintainable, extensible foundation for the editor’s functionality.

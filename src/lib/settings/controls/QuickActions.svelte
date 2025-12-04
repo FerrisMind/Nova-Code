@@ -1,25 +1,21 @@
-<svelte:options runes={true} />
 <script lang="ts">
   /**
    * QuickActions.svelte
    * Плавающая панель быстрых действий в нижней части экрана настроек
-   * 
+   *
    * Функционал:
    * - Сброс всех настроек (с подтверждением)
    * - Экспорт настроек в JSON
    * - Импорт настроек из JSON
    * - Управление профилями
-   * 
+   *
    * Дизайн: glassmorphism, минималистичный, с иконками
    */
-  
+
   import Icon from '$lib/common/Icon.svelte';
   import { getDefaultQuickActions, type QuickAction } from '$lib/settings/quickActions';
-  
-  let {
-    onchange,
-    onaction
-  }: { onchange?: never; onaction?: (detail: { actionId: string }) => void } = $props();
+
+  let { onaction }: { onaction?: (detail: { actionId: string }) => void } = $props();
 
   let showConfirmReset = $state(false);
   let isProcessing = $state(false);
@@ -28,7 +24,7 @@
 
   async function handleAction(actionId: string) {
     if (isProcessing) return;
-    
+
     // Для reset-all показываем подтверждение
     if (actionId === 'reset-all') {
       showConfirmReset = true;
@@ -73,7 +69,7 @@
 
 <div class="quick-actions-panel">
   <div class="actions-container">
-    {#each mainActions as action}
+    {#each mainActions as action (action.id)}
       <button
         class="action-button"
         onclick={() => handleAction(action.id)}
@@ -103,29 +99,22 @@
 
 <!-- Модальное окно подтверждения сброса -->
 {#if showConfirmReset}
-  <div 
-    class="modal-overlay" 
+  <div
+    class="modal-overlay"
     role="dialog"
     aria-modal="true"
     tabindex="-1"
     onclick={handleResetOverlayClick}
     onkeydown={(e) => e.key === 'Escape' && cancelReset()}
   >
-    <div 
-      class="modal-content" 
-      role="document"
-    >
+    <div class="modal-content" role="document">
       <h3>Подтвердите сброс</h3>
       <p>Вы уверены, что хотите сбросить все настройки к значениям по умолчанию?</p>
       <p class="warning">Это действие нельзя отменить.</p>
-      
+
       <div class="modal-actions">
-        <button class="btn btn-secondary" onclick={cancelReset}>
-          Отмена
-        </button>
-        <button class="btn btn-danger" onclick={confirmReset}>
-          Сбросить
-        </button>
+        <button class="btn btn-secondary" onclick={cancelReset}> Отмена </button>
+        <button class="btn btn-danger" onclick={confirmReset}> Сбросить </button>
       </div>
     </div>
   </div>
@@ -136,9 +125,9 @@
   .quick-actions-panel {
     position: fixed;
     bottom: 0;
-    left: 200px;                          /* Отступ от левой навигации */
+    left: 200px; /* Отступ от левой навигации */
     right: 0;
-    height: 64px;                         /* 16 * 4px */
+    height: 64px; /* 16 * 4px */
     background: rgba(var(--nc-bg-rgb, 20, 20, 24), 0.8);
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--nc-border, rgba(255, 255, 255, 0.1));
@@ -146,25 +135,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 24px;                      /* 6 * 4px */
+    padding: 0 24px; /* 6 * 4px */
   }
 
   .actions-container {
     display: flex;
     align-items: center;
-    gap: 12px;                            /* 3 * 4px */
+    gap: 12px; /* 3 * 4px */
   }
 
   .action-button {
     display: flex;
     align-items: center;
-    gap: 8px;                             /* 2 * 4px */
-    padding: 8px 16px;                    /* 2 * 4px, 4 * 4px */
+    gap: 8px; /* 2 * 4px */
+    padding: 8px 16px; /* 2 * 4px, 4 * 4px */
     border: 1px solid var(--nc-border, rgba(255, 255, 255, 0.1));
-    border-radius: 8px;                   /* 2 * 4px */
+    border-radius: 8px; /* 2 * 4px */
     background: rgba(var(--nc-level-1-rgb, 30, 30, 35), 0.6);
     color: var(--nc-fg);
-    font-size: 14px;                      /* 3.5 * 4px */
+    font-size: 14px; /* 3.5 * 4px */
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.33, 0.02, 0.11, 0.99);
@@ -173,7 +162,7 @@
 
   .action-button:hover:not(:disabled) {
     background: rgba(var(--nc-level-2-rgb, 40, 40, 45), 0.8);
-    border-color: var(--nc-accent, #007ACC);
+    border-color: var(--nc-accent, #007acc);
     transform: translateY(-1px);
   }
 
@@ -196,12 +185,12 @@
   }
 
   .action-label {
-    font-size: 14px;                      /* 3.5 * 4px */
+    font-size: 14px; /* 3.5 * 4px */
   }
 
   .divider {
     width: 1px;
-    height: 32px;                         /* 8 * 4px */
+    height: 32px; /* 8 * 4px */
     background: var(--nc-border, rgba(255, 255, 255, 0.1));
   }
 
@@ -233,8 +222,8 @@
   .modal-content {
     background: var(--nc-level-1, #1e1e23);
     border: 1px solid var(--nc-border, rgba(255, 255, 255, 0.1));
-    border-radius: 12px;                  /* 3 * 4px */
-    padding: 24px;                        /* 6 * 4px */
+    border-radius: 12px; /* 3 * 4px */
+    padding: 24px; /* 6 * 4px */
     max-width: 400px;
     width: 90%;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -255,14 +244,14 @@
 
   .modal-content h3 {
     margin: 0 0 12px 0;
-    font-size: 20px;                      /* 5 * 4px */
+    font-size: 20px; /* 5 * 4px */
     font-weight: 600;
     color: var(--nc-fg);
   }
 
   .modal-content p {
     margin: 0 0 12px 0;
-    font-size: 14px;                      /* 3.5 * 4px */
+    font-size: 14px; /* 3.5 * 4px */
     color: var(--nc-fg-muted);
     line-height: 1.5;
   }
@@ -274,16 +263,16 @@
 
   .modal-actions {
     display: flex;
-    gap: 12px;                            /* 3 * 4px */
-    margin-top: 20px;                     /* 5 * 4px */
+    gap: 12px; /* 3 * 4px */
+    margin-top: 20px; /* 5 * 4px */
     justify-content: flex-end;
     pointer-events: auto;
   }
 
   .btn {
-    padding: 8px 16px;                    /* 2 * 4px, 4 * 4px */
-    border-radius: 8px;                   /* 2 * 4px */
-    font-size: 14px;                      /* 3.5 * 4px */
+    padding: 8px 16px; /* 2 * 4px, 4 * 4px */
+    border-radius: 8px; /* 2 * 4px */
+    font-size: 14px; /* 3.5 * 4px */
     font-weight: 500;
     cursor: pointer;
     border: 1px solid transparent;
@@ -323,7 +312,9 @@
     }
 
     .action-label {
-      display: none;                      /* Показываем только иконки */
+      display: none; /* Показываем только иконки */
     }
   }
 </style>
+
+<svelte:options runes={true} />

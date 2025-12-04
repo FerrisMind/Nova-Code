@@ -21,7 +21,7 @@
 import { writable, type Readable } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
 import { settingsStore } from '$lib/stores/settingsStore';
-import type { SettingsProfile, SettingsSnapshot } from '$lib/settings/types';
+import type { SettingsProfile, SettingsSnapshot, SettingValue } from '$lib/settings/types';
 import type { SettingPatch } from '$lib/stores/settingsStore';
 
 // -----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ function buildPatchFromSnapshots(
     if (currentValue !== nextValue) {
       patch.push({
         id: `editor.${String(key)}`,
-        value: nextValue as any
+        value: nextValue as SettingValue,
       });
     }
   }
@@ -110,7 +110,7 @@ function buildPatchFromSnapshots(
     if (currentValue !== nextValue) {
       patch.push({
         id: `theme.${String(key)}`,
-        value: nextValue as any
+        value: nextValue as SettingValue,
       });
     }
   }
@@ -142,7 +142,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
     activeProfileId: null,
     defaultProfileId: null,
     loading: false,
-    error: null
+    error: null,
   });
 
   let initialized = false;
@@ -150,10 +150,12 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
   async function persistProfiles(profiles: ResolvedSettingsProfile[]): Promise<void> {
     try {
       await invoke('settings_profiles_save', { profiles });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { message?: unknown })?.message ?? error ?? 'Failed to save profiles';
       update((state) => ({
         ...state,
-        error: String(error?.message ?? error ?? 'Failed to save profiles')
+        error: String(errorMessage),
       }));
       throw error;
     }
@@ -166,7 +168,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
       .filter((p) => p && typeof p.id === 'string' && typeof p.label === 'string')
       .map((p) => ({
         ...p,
-        snapshot: p.snapshot
+        snapshot: p.snapshot,
       }));
   }
 
@@ -180,7 +182,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
       update((state) => ({
         ...state,
         loading: true,
-        error: null
+        error: null,
       }));
 
       try {
@@ -194,7 +196,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
             label: 'Default',
             snapshot,
             icon: 'home',
-            isDefault: true
+            isDefault: true,
           };
 
           await persistProfiles([defaultProfile]);
@@ -204,7 +206,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
             activeProfileId: 'default',
             defaultProfileId: 'default',
             loading: false,
-            error: null
+            error: null,
           });
           return;
         }
@@ -218,13 +220,15 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
           activeProfileId,
           defaultProfileId,
           loading: false,
-          error: null
+          error: null,
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage =
+          (error as { message?: unknown })?.message ?? error ?? 'Failed to load profiles';
         update((state) => ({
           ...state,
           loading: false,
-          error: String(error?.message ?? error ?? 'Failed to load profiles')
+          error: String(errorMessage),
         }));
       }
     },
@@ -244,7 +248,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
         label: label.trim(),
         icon,
         isDefault: !!isDefault,
-        snapshot
+        snapshot,
       };
 
       const profiles = [...state.profiles, created];
@@ -264,17 +268,16 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
         return created;
       }
 
-      const defaultProfileId =
-        created.isDefault
-          ? created.id
-          : state.defaultProfileId ?? (profiles[0]?.id ?? created.id);
+      const defaultProfileId = created.isDefault
+        ? created.id
+        : (state.defaultProfileId ?? profiles[0]?.id ?? created.id);
 
       set({
         profiles,
         activeProfileId: created.id,
         defaultProfileId,
         loading: false,
-        error: null
+        error: null,
       });
 
       return created;
@@ -299,7 +302,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
 
       update((s) => ({
         ...s,
-        activeProfileId: id
+        activeProfileId: id,
       }));
     },
 
@@ -311,7 +314,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
       if (profile.isDefault) {
         update((s) => ({
           ...s,
-          error: `Cannot delete default profile (${id})`
+          error: `Cannot delete default profile (${id})`,
         }));
         return;
       }
@@ -319,7 +322,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
       const profiles = state.profiles.filter((p) => p.id !== id);
       const activeProfileId = state.activeProfileId === id ? null : state.activeProfileId;
       const defaultProfileId =
-        state.defaultProfileId === id ? profiles[0]?.id ?? null : state.defaultProfileId;
+        state.defaultProfileId === id ? (profiles[0]?.id ?? null) : state.defaultProfileId;
 
       try {
         await persistProfiles(profiles);
@@ -332,7 +335,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
         activeProfileId,
         defaultProfileId,
         loading: false,
-        error: null
+        error: null,
       });
     },
 
@@ -340,9 +343,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
       if (!label || !label.trim()) return;
 
       const state = getStateSnapshot(store.subscribe);
-      const profiles = state.profiles.map((p) =>
-        p.id === id ? { ...p, label: label.trim() } : p
-      );
+      const profiles = state.profiles.map((p) => (p.id === id ? { ...p, label: label.trim() } : p));
 
       try {
         await persistProfiles(profiles);
@@ -352,15 +353,13 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
 
       set({
         ...state,
-        profiles
+        profiles,
       });
     },
 
     async updateProfileIcon(id: ProfileId, icon: string | undefined): Promise<void> {
       const state = getStateSnapshot(store.subscribe);
-      const profiles = state.profiles.map((p) =>
-        p.id === id ? { ...p, icon } : p
-      );
+      const profiles = state.profiles.map((p) => (p.id === id ? { ...p, icon } : p));
 
       try {
         await persistProfiles(profiles);
@@ -370,7 +369,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
 
       set({
         ...state,
-        profiles
+        profiles,
       });
     },
 
@@ -380,7 +379,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
 
       const profiles = state.profiles.map((p) => ({
         ...p,
-        isDefault: p.id === id
+        isDefault: p.id === id,
       }));
 
       try {
@@ -392,19 +391,18 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
       set({
         ...state,
         profiles,
-        defaultProfileId: id
+        defaultProfileId: id,
       });
     },
 
     async resetToDefaultProfile(): Promise<void> {
       const state = getStateSnapshot(store.subscribe);
-      const defaultId =
-        state.defaultProfileId ?? state.profiles.find((p) => p.isDefault)?.id;
+      const defaultId = state.defaultProfileId ?? state.profiles.find((p) => p.isDefault)?.id;
 
       if (!defaultId) {
         set({
           ...state,
-          activeProfileId: null
+          activeProfileId: null,
         });
         return;
       }
@@ -415,7 +413,7 @@ function createSettingsProfilesStore(): SettingsProfilesStore {
     getActiveProfile(): ResolvedSettingsProfile | null {
       const state = getStateSnapshot(store.subscribe);
       return state.profiles.find((p) => p.id === state.activeProfileId) ?? null;
-    }
+    },
   };
 
   return store;

@@ -12,6 +12,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Dual Theming Approach](#dual-theming-approach)
 2. [Theme Store Implementation](#theme-store-implementation)
 3. [Theme Manager for Monaco Editor](#theme-manager-for-monaco-editor)
@@ -30,6 +31,7 @@ The system allows for both independent configuration and synchronized behavior. 
 The separation of concerns between UI and editor theming enables advanced customization scenarios. For example, a user might prefer a dark UI theme for reduced eye strain during long sessions while using a light editor theme for better readability of certain code syntax. The system also supports quick switching between theme combinations through the quick start system, which provides curated theme pairings for immediate use.
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
@@ -38,6 +40,7 @@ The separation of concerns between UI and editor theming enables advanced custom
 The theme store is implemented as a Svelte writable store that manages the current theme selection and notifies components of changes. It serves as the single source of truth for the application's theme state, ensuring consistency across all UI components. The store maintains two key pieces of state: the theme mode (light or dark) and the selected color palette.
 
 The theme store provides several methods for interacting with the theme state:
+
 - `setTheme(mode)`: Sets the theme mode (light or dark), automatically preserving the palette "slot" when switching between modes
 - `toggleTheme()`: Toggles between light and dark modes while maintaining the current palette slot
 - `setPalette(palette)`: Sets the specific color palette to use within the current theme mode
@@ -64,9 +67,11 @@ ThemeStore --> ThemeState : "manages"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 ## Theme Manager for Monaco Editor
@@ -74,6 +79,7 @@ ThemeStore --> ThemeState : "manages"
 The theme manager is responsible for handling Monaco Editor theme registration and application. It acts as a bridge between the application's theme system and the Monaco Editor component, ensuring that editor themes are properly loaded, registered, and applied. The manager is implemented as a class with methods for initializing the theme system, registering both built-in and custom themes, and applying themes to the editor instance.
 
 The theme manager supports three types of themes:
+
 1. **Built-in themes**: The standard themes provided by Monaco Editor (vs, vs-dark, hc-black, hc-light)
 2. **Popular themes**: Additional themes loaded from the monaco-themes package, including Monokai, Dracula, Nord, and others
 3. **Custom themes**: User-defined themes that can be imported, exported, and managed through the editor interface
@@ -100,9 +106,11 @@ ThemeManager-->>User : Return application result
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Predefined Theme Palettes
@@ -110,10 +118,12 @@ ThemeManager-->>User : Return application result
 The theming system includes a comprehensive set of predefined theme palettes structured in the THEME_PALETTES configuration. These palettes provide a consistent and accessible color scheme across the application, with carefully selected colors that meet accessibility standards. The palettes are defined in a TypeScript module that exports a record of theme configurations, each with a unique ID, label, mode, and color properties.
 
 There are eight predefined palettes, organized into four variations for each theme mode (light and dark):
+
 - **Light theme palettes**: light-default, light-alt-1, light-alt-2, light-alt-3
 - **Dark theme palettes**: dark-default, dark-alt-1, dark-alt-2, dark-alt-3
 
 Each palette includes the following properties:
+
 - `backgroundPrimary`: The primary background color for the application shell
 - `backgroundLevels`: A record of background colors for different UI hierarchy levels (0-5)
 - `backgroundLevelMinus1`: A special background color for specific UI elements like the tab bar
@@ -148,9 +158,11 @@ ThemePaletteId --> ThemePalette : "identifies"
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 ## Quick Start Themes System
@@ -158,12 +170,14 @@ ThemePaletteId --> ThemePalette : "identifies"
 The quick start themes system provides curated theme combinations for immediate use, allowing users to quickly apply aesthetically pleasing and functionally sound theme configurations. This system is documented in the THEME_QUICK_START module, which serves as both a configuration file and a usage guide for developers and users.
 
 The quick start system offers several key features:
+
 - **Immediate theme switching**: Users can quickly change the theme mode, palette, or both with simple function calls
 - **Pre-configured combinations**: Curated pairings of UI and editor themes that work well together
 - **Usage examples**: Clear code examples demonstrating how to implement common theme operations
 - **CSS variable integration**: Documentation of the CSS variables available for theme customization
 
 The system provides straightforward methods for common operations:
+
 - `theme.setTheme('light')` or `theme.setTheme('dark')` to change the theme mode
 - `theme.toggleTheme()` to switch between light and dark modes
 - `theme.setPalette('dark-alt-1')` to change the color palette within the current mode
@@ -174,6 +188,7 @@ The quick start guide also documents the CSS variables that are available for st
 Additionally, the quick start system identifies the key files involved in the theming architecture, helping developers understand the system's structure and locate relevant code. This includes the THEME_PALETTES module for color definitions, the themeStore for state management, the layout component for applying CSS variables, and the settings registry for user configuration.
 
 **Section sources**
+
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 
 ## Custom Theme Creation and Installation
@@ -181,6 +196,7 @@ Additionally, the quick start system identifies the key files involved in the th
 The NC code editor supports custom theme creation and installation, allowing users to import, export, and manage their own theme configurations. This functionality is primarily handled by the theme manager, which provides methods for registering custom themes from JSON configuration and managing the collection of user-defined themes.
 
 To create a custom theme, users can define a JSON configuration that follows the CustomTheme interface structure:
+
 - `name`: The display name of the theme
 - `base`: The base theme to inherit from (vs, vs-dark, hc-black, or hc-light)
 - `inherit`: Whether to inherit from the base theme
@@ -194,6 +210,7 @@ The system supports both programmatic and UI-based theme management. Developers 
 When a custom theme is no longer needed, it can be removed using the theme manager's removeCustomTheme method. This removes the theme from the internal collection but does not affect the Monaco Editor instance until a different theme is applied.
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 ## Theme Switching and Customization
@@ -201,16 +218,19 @@ When a custom theme is no longer needed, it can be removed using the theme manag
 The theming system provides multiple methods for switching between themes and customizing individual color elements. Users can change themes through the settings interface, programmatically via the theme store API, or using keyboard shortcuts if configured. The system supports both immediate theme switching and animated transitions between themes.
 
 To switch between themes programmatically, developers can use the methods provided by the theme store:
+
 - `theme.setTheme('light')` or `theme.setTheme('dark')` to change the overall theme mode
 - `theme.toggleTheme()` to switch between light and dark modes
 - `theme.setPalette('dark-alt-2')` to change the specific color palette
 
 For more granular customization, the system exposes CSS variables that can be used to modify individual color elements. These variables include:
+
 - Background levels: var(--nc-level-0) through var(--nc-level-5) for different UI hierarchy levels
 - Palette colors: var(--nc-palette-text) for text color, var(--nc-palette-border) for borders
 - Semantic colors: var(--nc-color-primary), var(--nc-color-secondary), etc.
 
 Components can subscribe to theme changes to update their appearance dynamically:
+
 ```typescript
 theme.subscribe((state) => {
   console.log('Theme mode:', state.mode);
@@ -221,6 +241,7 @@ theme.subscribe((state) => {
 The settings interface provides a user-friendly way to customize themes, with visual previews of each palette option. When the user changes the theme mode, the palette selection automatically updates to show only the options available for that mode. The interface also includes a theme editor for advanced users who want to modify individual color values.
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 
@@ -229,6 +250,7 @@ The settings interface provides a user-friendly way to customize themes, with vi
 The theming system places strong emphasis on accessibility, ensuring that all predefined palettes meet or exceed WCAG AA contrast ratio requirements. The color selections are carefully chosen to provide sufficient contrast between text and background elements, making the editor usable for users with various visual impairments.
 
 The system achieves accessibility compliance through several design principles:
+
 - **High contrast ratios**: Text and background colors are selected to maintain a minimum 4.5:1 contrast ratio for normal text and 3:1 for large text, as required by WCAG AA standards
 - **Consistent hierarchy**: Background levels are systematically adjusted to maintain appropriate contrast between adjacent UI elements
 - **Color blindness considerations**: Color combinations avoid problematic pairings for common types of color vision deficiency
@@ -241,5 +263,6 @@ The devicon-dark-theme.css file contains specific fixes for icons that have poor
 Additionally, the system uses relative brightness adjustments rather than fixed color values, allowing the contrast ratios to be maintained across different palette variations. This approach ensures that accessibility is preserved even when users select alternative palettes within the same theme mode.
 
 **Section sources**
+
 - [ICON_COLORS_PALETTE.ts](file://src/lib/stores/ICON_COLORS_PALETTE.ts#L1-L800)
 - [devicon-dark-theme.css](file://static/devicon-dark-theme.css#L1-L69)

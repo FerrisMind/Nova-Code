@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/layout/ImagePreview.svelte
   // ---------------------------------------------------------------------------
@@ -8,11 +7,11 @@
   // Для SVG: split view с кодом справа
   // ---------------------------------------------------------------------------
 
-  import { onMount, onDestroy } from "svelte";
-  import { convertFileSrc } from "@tauri-apps/api/core";
-  import MonacoHost from "../editor/MonacoHost.svelte";
-  import { fileService } from "../services/fileService";
-  import { editorSettings } from "../stores/editorSettingsStore";
+  import { onMount, onDestroy } from 'svelte';
+  import { convertFileSrc } from '@tauri-apps/api/core';
+  import MonacoHost from '../editor/MonacoHost.svelte';
+  import { fileService } from '../services/fileService';
+  import { editorSettings } from '../stores/editorSettingsStore';
 
   interface Props {
     path: string;
@@ -23,7 +22,7 @@
 
   // Определяем, является ли файл SVG
   let isSvgFile = $derived(path.toLowerCase().endsWith('.svg'));
-  
+
   // Split view для SVG
   let splitViewEnabled = $state(false);
   let svgContent = $state<string>('');
@@ -58,7 +57,7 @@
 
   // Сброс состояния при смене файла
   let previousPath = $state<string | null>(null);
-  
+
   $effect(() => {
     if (path !== previousPath) {
       // Сбрасываем все состояния при смене файла
@@ -72,7 +71,7 @@
       scale = 1;
       translateX = 0;
       translateY = 0;
-      
+
       // Загружаем SVG контент для нового файла
       if (isSvgFile) {
         loadSvgContent();
@@ -99,17 +98,17 @@
   // Извлечение размеров SVG из атрибутов или viewBox
   function extractSvgDimensions() {
     if (!svgContent) return;
-    
+
     // Парсим SVG чтобы получить размеры
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgContent, 'image/svg+xml');
     const svgEl = doc.querySelector('svg');
-    
+
     if (svgEl) {
       // Пробуем получить width/height из атрибутов
       let w = parseFloat(svgEl.getAttribute('width') || '0');
       let h = parseFloat(svgEl.getAttribute('height') || '0');
-      
+
       // Если нет, берём из viewBox
       if (!w || !h) {
         const viewBox = svgEl.getAttribute('viewBox');
@@ -121,7 +120,7 @@
           }
         }
       }
-      
+
       if (w && h) {
         naturalWidth = Math.round(w);
         naturalHeight = Math.round(h);
@@ -138,13 +137,8 @@
 
   // Определяем формат файла
   let fileFormat = $derived(() => {
-    const ext = path.split(".").pop()?.toLowerCase() || "";
+    const ext = path.split('.').pop()?.toLowerCase() || '';
     return ext.toUpperCase();
-  });
-
-  // Форматируем размер файла (заглушка, можно расширить)
-  let fileSizeFormatted = $derived(() => {
-    return "—"; // Можно добавить получение размера через Tauri
   });
 
   const MIN_SCALE = 0.1;
@@ -161,7 +155,7 @@
   }
 
   function handleImageError() {
-    imageError = "Failed to load image";
+    imageError = 'Failed to load image';
     imageLoaded = false;
   }
 
@@ -236,16 +230,16 @@
   }
 
   function handleKeyDown(event: KeyboardEvent) {
-    if (event.key === "+" || event.key === "=") {
+    if (event.key === '+' || event.key === '=') {
       event.preventDefault();
       zoomIn();
-    } else if (event.key === "-") {
+    } else if (event.key === '-') {
       event.preventDefault();
       zoomOut();
-    } else if (event.key === "0") {
+    } else if (event.key === '0') {
       event.preventDefault();
       resetZoom();
-    } else if (event.key === "f" || event.key === "F") {
+    } else if (event.key === 'f' || event.key === 'F') {
       event.preventDefault();
       fitToContainer();
     }
@@ -257,16 +251,16 @@
   });
 
   onMount(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('keydown', handleKeyDown);
     // SVG контент загружается через $effect при изменении path
   });
 
   onDestroy(() => {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
-    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+    window.removeEventListener('keydown', handleKeyDown);
     settingsUnsub();
   });
 
@@ -291,13 +285,13 @@
     <div class="toolbar-group">
       <button class="toolbar-btn" onclick={zoomOut} title="Zoom Out (-)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M3 7h10v2H3z" />
+          <path d="M3 7h10v2H3z"></path>
         </svg>
       </button>
       <span class="zoom-level">{zoomPercent}%</span>
       <button class="toolbar-btn" onclick={zoomIn} title="Zoom In (+)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M8 3v4H3v2h5v4h2V9h5V7H10V3z" />
+          <path d="M8 3v4H3v2h5v4h2V9h5V7H10V3z"></path>
         </svg>
       </button>
     </div>
@@ -307,12 +301,13 @@
     <div class="toolbar-group">
       <button class="toolbar-btn" onclick={fitToContainer} title="Fit to Window (F)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M2 2h4v1H3v3H2V2zm8 0h4v4h-1V3h-3V2zm4 8v4h-4v-1h3v-3h1zM2 10v4h4v-1H3v-3H2z" />
+          <path d="M2 2h4v1H3v3H2V2zm8 0h4v4h-1V3h-3V2zm4 8v4h-4v-1h3v-3h1zM2 10v4h4v-1H3v-3H2z"
+          ></path>
         </svg>
       </button>
       <button class="toolbar-btn" onclick={resetZoom} title="Actual Size (0)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M6 3v10H5V9H2V8h3V3h1zm4 0h1v5h3v1h-3v5h-1V3z" />
+          <path d="M6 3v10H5V9H2V8h3V3h1zm4 0h1v5h3v1h-3v5h-1V3z"></path>
         </svg>
       </button>
     </div>
@@ -321,14 +316,16 @@
     {#if isSvgFile}
       <div class="toolbar-divider"></div>
       <div class="toolbar-group">
-        <button 
+        <button
           class="toolbar-btn"
           class:active={splitViewEnabled}
-          onclick={toggleSplitView} 
+          onclick={toggleSplitView}
           title="Toggle Code View"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M14 1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm0 13H8V2h6v12zM2 2h5v12H2V2z" />
+            <path
+              d="M14 1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm0 13H8V2h6v12zM2 2h5v12H2V2z"
+            ></path>
           </svg>
         </button>
       </div>
@@ -362,7 +359,9 @@
       {#if imageError}
         <div class="image-error">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
-            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+            <path
+              d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+            ></path>
           </svg>
           <p>{imageError}</p>
           <p class="error-path">{path}</p>
@@ -376,14 +375,15 @@
             style:transform="translate({translateX}px, {translateY}px)"
           >
             {#if svgContentLoaded}
-              <div 
+              <img
                 class="svg-inline-wrapper"
                 bind:this={svgWrapperRef}
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`}
+                alt={title}
                 style:width="{naturalWidth * scale}px"
                 style:height="{naturalHeight * scale}px"
-              >
-                {@html svgContent}
-              </div>
+                draggable="false"
+              />
             {:else}
               <div class="svg-loading">Loading SVG...</div>
             {/if}
@@ -552,7 +552,8 @@
 
     /* Checkerboard background */
     background-color: var(--nc-level-0);
-    background-image: linear-gradient(45deg, var(--nc-level-1) 25%, transparent 25%),
+    background-image:
+      linear-gradient(45deg, var(--nc-level-1) 25%, transparent 25%),
       linear-gradient(-45deg, var(--nc-level-1) 25%, transparent 25%),
       linear-gradient(45deg, transparent 75%, var(--nc-level-1) 75%),
       linear-gradient(-45deg, transparent 75%, var(--nc-level-1) 75%);
@@ -684,3 +685,4 @@
   }
 </style>
 
+<svelte:options runes={true} />

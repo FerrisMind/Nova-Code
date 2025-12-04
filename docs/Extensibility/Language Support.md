@@ -11,6 +11,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Language Registration and Configuration](#language-registration-and-configuration)
 3. [Syntax Highlighting and Tokenization](#syntax-highlighting-and-tokenization)
@@ -29,6 +30,7 @@ The NC code editor implements a comprehensive language support system built on t
 The language support system is composed of several key components that work together to provide a rich editing experience. These components include language registration, syntax highlighting, IntelliSense providers, diagnostics handling, and worker environment configuration. The system is optimized for performance and follows best practices for Monaco Editor integration.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L50)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L30)
 
@@ -58,6 +60,7 @@ Add --> Return
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L33-L69)
 
 For languages that require additional grammar definitions, the system dynamically imports the appropriate Monarch tokenizer provider from Monaco's basic-languages package. Currently, this includes support for Rust, TOML, and Python languages. The system checks if a language has already been registered using a Set to prevent duplicate registrations, ensuring efficient resource usage.
@@ -65,6 +68,7 @@ For languages that require additional grammar definitions, the system dynamicall
 The `LanguageSupportConfig` interface in `EditorCore.ts` provides a type-safe way to configure language support with properties for the language ID, file extensions, aliases, and an optional lazy-loader function that can be used for dynamic registration of complex grammars.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L9-L69)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L115-L127)
 
@@ -100,10 +104,12 @@ MonacoLanguages --> MonarchTokenizer : "implements"
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L3-L69)
 - [monaco-languages.d.ts](file://src/types/monaco-languages.d.ts#L1-L12)
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L43-L60)
 - [monaco-languages.d.ts](file://src/types/monaco-languages.d.ts#L1-L12)
 
@@ -138,6 +144,7 @@ end
 ```
 
 **Diagram sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L43-L58)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L133-L141)
 
@@ -150,6 +157,7 @@ Completion providers are implemented with cancellation token support to ensure U
 Hover providers supply documentation for frequently used built-in objects such as `console`, `JSON`, `Promise`, `async`, and `await`, enhancing the developer experience with contextual information.
 
 **Section sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L43-L140)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L133-L141)
 
@@ -185,6 +193,7 @@ Transform --> UpdateStore
 ```
 
 **Diagram sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L11-L61)
 
 The `setDiagnostics` method in `EditorCore.ts` provides a simplified API for setting diagnostic markers on a model by fileId. This method converts the application's `EditorDiagnostic` interface to Monaco's `IMarkerData` format, handling the translation of severity levels and other properties.
@@ -194,6 +203,7 @@ The diagnostics system supports all standard severity levels: error, warning, in
 The adapter ensures that diagnostics are properly synchronized between Monaco and the application state, allowing other components to react to diagnostic changes. The `detachDiagnosticsTracking` function provides cleanup functionality to dispose of event subscriptions when the editor is destroyed.
 
 **Section sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L11-L61)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L693-L725)
 
@@ -237,9 +247,11 @@ WorkerFactory --> WorkerMap : "contains"
 ```
 
 **Diagram sources**
+
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L94-L119)
 
 The worker factory creates a mapping between language labels and specific worker instances. Different language features are handled by specialized workers:
+
 - JSON: JSON Schema validation and formatting
 - CSS/SCSS/LESS: CSS language features
 - HTML/Handlebars/Razor: HTML language features
@@ -249,6 +261,7 @@ The worker factory creates a mapping between language labels and specific worker
 The system implements a singleton pattern to ensure that the worker environment is initialized only once per application lifecycle. A global flag `__MONACO_ENV_INITIALIZED__` prevents duplicate initialization, which could lead to memory leaks or inconsistent behavior.
 
 The configuration is designed for optimal performance with several key optimizations:
+
 - ESM workers through Vite's `?worker` import for native bundler support
 - Direct worker instance control via `getWorker` instead of `getWorkerUrl`
 - Lazy loading of workers, which are created only when first needed for a specific language
@@ -257,6 +270,7 @@ The configuration is designed for optimal performance with several key optimizat
 The worker environment must be imported before the first use of Monaco Editor to ensure proper configuration. This is typically done as a side-effect import in the application's entry point.
 
 **Section sources**
+
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 ## Integration with EditorCore
@@ -296,6 +310,7 @@ EditorCore --> Options
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L215-L239)
 
 The `registerLanguageSupport` method provides a thin wrapper around `monaco.languages.register`, accepting a `LanguageSupportConfig` object that includes the language ID, file extensions, aliases, and an optional lazy-loader function. If a loader is provided, it is invoked immediately to enable dynamic language feature registration.
@@ -307,6 +322,7 @@ The EditorCore also manages the relationship between file IDs and editor models,
 The system's architecture follows the principle of encapsulation, with all Monaco dependencies localized within the EditorCore module. This design allows the rest of the application to interact with the editor through a clean, well-defined interface without direct dependencies on Monaco's API.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L215-L239)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L543-L563)
 
@@ -315,6 +331,7 @@ The system's architecture follows the principle of encapsulation, with all Monac
 The NC editor implements several performance optimizations to ensure responsive editing even with large files or complex grammars. These optimizations are applied at multiple levels of the language support system.
 
 For the editor itself, the `EditorCore` configuration includes several performance-focused settings:
+
 - `smoothScrolling: false` to improve responsiveness
 - `cursorSmoothCaretAnimation: 'off'` to reduce GPU load
 - `renderValidationDecorations: 'editable'` to limit validation rendering to editable areas
@@ -330,6 +347,7 @@ IntelliSense providers are implemented with cancellation token support to ensure
 The diagnostics system is optimized by translating Monaco's marker events into the application's state management system efficiently. The adapter processes only the URIs that have changed, retrieving and transforming only the necessary diagnostic data.
 
 For large files, the system benefits from Monaco's built-in optimizations such as:
+
 - Incremental syntax highlighting
 - Virtualized rendering of content
 - Efficient model change tracking
@@ -338,6 +356,7 @@ For large files, the system benefits from Monaco's built-in optimizations such a
 These optimizations work together to provide a smooth editing experience while maintaining rich language features across various file sizes and complexity levels.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L350-L356)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L484-L487)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L11-L14)
@@ -371,6 +390,7 @@ This may happen when language IDs are not properly mapped. Solution: Verify that
 By understanding these common issues and their solutions, developers can effectively implement and troubleshoot language support in the NC editor, ensuring a high-quality editing experience for users.
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L9-L27)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L52-L86)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L64-L80)
@@ -380,6 +400,7 @@ By understanding these common issues and their solutions, developers can effecti
 The language support system in the NC code editor provides a comprehensive and extensible framework for implementing rich editing features across multiple programming languages. By leveraging the Monaco Editor API and following best practices for performance and architecture, the system delivers syntax highlighting, IntelliSense, diagnostics, and other language features in a responsive and efficient manner.
 
 Key aspects of the system include:
+
 - A modular architecture that separates concerns between language registration, IntelliSense, diagnostics, and worker management
 - Performance optimizations at multiple levels, from editor configuration to lazy loading of language grammars
 - Type-safe interfaces that provide a clean API for integrating language features

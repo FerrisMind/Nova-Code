@@ -60,7 +60,7 @@ export const activeEditorMeta: Readable<EditorMeta> = derived(
         languageId: null,
         eol: null,
         tabSize: null,
-        insertSpaces: null
+        insertSpaces: null,
       };
     }
 
@@ -70,7 +70,7 @@ export const activeEditorMeta: Readable<EditorMeta> = derived(
         languageId: null,
         eol: null,
         tabSize: null,
-        insertSpaces: null
+        insertSpaces: null,
       };
     }
 
@@ -78,13 +78,13 @@ export const activeEditorMeta: Readable<EditorMeta> = derived(
       languageId: meta.languageId,
       eol: meta.eol,
       tabSize: meta.tabSize,
-      insertSpaces: meta.insertSpaces
+      insertSpaces: meta.insertSpaces,
     };
   },
   {
     languageId: null,
     eol: null,
     tabSize: null,
-    insertSpaces: null
+    insertSpaces: null,
   }
 );

@@ -22,10 +22,10 @@ export interface CustomTheme {
  * Встроенные темы Monaco Editor
  */
 export const builtInThemes = {
-  'vs': 'Light',
+  vs: 'Light',
   'vs-dark': 'Dark',
   'hc-black': 'High Contrast Dark',
-  'hc-light': 'High Contrast Light'
+  'hc-light': 'High Contrast Light',
 } as const;
 
 /**
@@ -84,7 +84,12 @@ export class ThemeManager {
       const theme: CustomTheme = JSON.parse(themeJson);
 
       // Валидация структуры темы
-      if (!theme.name || !theme.base || !Array.isArray(theme.rules) || typeof theme.colors !== 'object') {
+      if (
+        !theme.name ||
+        !theme.base ||
+        !Array.isArray(theme.rules) ||
+        typeof theme.colors !== 'object'
+      ) {
         return { success: false, error: 'Неверная структура темы' };
       }
 
@@ -96,7 +101,7 @@ export class ThemeManager {
         base: theme.base,
         inherit: theme.inherit,
         rules: theme.rules,
-        colors: theme.colors
+        colors: theme.colors,
       });
 
       // Сохраняем тему в коллекции
@@ -128,7 +133,11 @@ export class ThemeManager {
   /**
    * Получить список доступных тем
    */
-  getAvailableThemes(): Array<{ id: string; name: string; type: 'built-in' | 'custom' | 'popular' }> {
+  getAvailableThemes(): Array<{
+    id: string;
+    name: string;
+    type: 'built-in' | 'custom' | 'popular';
+  }> {
     const themes: Array<{ id: string; name: string; type: 'built-in' | 'custom' | 'popular' }> = [];
 
     // Встроенные темы
@@ -138,11 +147,17 @@ export class ThemeManager {
 
     // Популярные темы
     const popularThemes = [
-      'monokai', 'dracula', 'one-dark-pro', 'material', 'nord',
-      'github-light', 'solarized-light', 'atom-one-light'
+      'monokai',
+      'dracula',
+      'one-dark-pro',
+      'material',
+      'nord',
+      'github-light',
+      'solarized-light',
+      'atom-one-light',
     ];
-    popularThemes.forEach(id => {
-      const name = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    popularThemes.forEach((id) => {
+      const name = id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
       themes.push({ id, name, type: 'popular' });
     });
 
@@ -196,7 +211,7 @@ export class ThemeManager {
         { token: 'comment', foreground: isDark ? '6A9955' : '008000', fontStyle: 'italic' },
         { token: 'keyword', foreground: isDark ? '569CD6' : '0000FF', fontStyle: 'bold' },
         { token: 'string', foreground: isDark ? 'CE9178' : 'A31515' },
-        { token: 'number', foreground: isDark ? 'B5CEA8' : '09885A' }
+        { token: 'number', foreground: isDark ? 'B5CEA8' : '09885A' },
       ],
       colors: {
         'editor.background': palette.backgroundLevels[1],
@@ -205,8 +220,8 @@ export class ThemeManager {
         'editorCursor.foreground': palette.textColor,
         'editor.selectionBackground': isDark ? '#264F78' : '#ADD6FF',
         'editorLineNumber.foreground': isDark ? '#858585' : '#237893',
-        'editorLineNumber.activeForeground': palette.textColor
-      }
+        'editorLineNumber.activeForeground': palette.textColor,
+      },
     };
 
     return theme;
@@ -228,21 +243,23 @@ export class ThemeManager {
     // Запускаем загрузку в фоне, не блокируя основной поток
     // Используем dynamic imports для lazy loading
     const themeLoaders = {
-      'monokai': () => import('monaco-themes/themes/Monokai.json'),
-      'dracula': () => import('monaco-themes/themes/Dracula.json'),
-      'nord': () => import('monaco-themes/themes/Nord.json'),
+      monokai: () => import('monaco-themes/themes/Monokai.json'),
+      dracula: () => import('monaco-themes/themes/Dracula.json'),
+      nord: () => import('monaco-themes/themes/Nord.json'),
       'github-light': () => import('monaco-themes/themes/GitHub Light.json'),
       'github-dark': () => import('monaco-themes/themes/GitHub Dark.json'),
       'solarized-light': () => import('monaco-themes/themes/Solarized-light.json'),
       'solarized-dark': () => import('monaco-themes/themes/Solarized-dark.json'),
-      'night-owl': () => import('monaco-themes/themes/Night Owl.json')
+      'night-owl': () => import('monaco-themes/themes/Night Owl.json'),
     };
 
     const promises = Object.entries(themeLoaders).map(async ([id, loader]) => {
       try {
         const module = await loader();
-        const themeData = module.default || module;
-        this.monaco!.editor.defineTheme(id, themeData as any);
+        const themeData =
+          (module as { default?: monaco.editor.IStandaloneThemeData }).default ??
+          (module as monaco.editor.IStandaloneThemeData);
+        this.monaco!.editor.defineTheme(id, themeData);
       } catch (error) {
         console.warn(`[ThemeManager] Failed to load theme ${id}:`, error);
       }
@@ -261,10 +278,7 @@ export const themeManager = new ThemeManager();
  * - Если editorTheme явно задана (и не 'auto'), используется она.
  * - Иначе тема следует за palette из ThemeState: nova-${palette}.
  */
-export function getMonacoThemeId(
-  themeState: ThemeState,
-  editorTheme?: string
-): string {
+export function getMonacoThemeId(themeState: ThemeState, editorTheme?: string): string {
   if (editorTheme && editorTheme !== 'auto') {
     return editorTheme;
   }

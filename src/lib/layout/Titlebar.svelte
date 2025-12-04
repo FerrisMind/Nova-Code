@@ -1,8 +1,12 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import Icon from '../common/Icon.svelte';
-  import { toggleLeftSidebar, toggleBottomPanel, toggleRightSidebar } from '../stores/layout/layoutStore';
+  import {
+    toggleLeftSidebar,
+    toggleBottomPanel,
+    toggleRightSidebar,
+  } from '../stores/layout/layoutStore';
   import { editorStore } from '../stores/editorStore';
   import { openCommandPalette, commandPaletteOpen } from '../stores/commandPaletteStore';
 
@@ -16,8 +20,8 @@
   });
 
   // Реактивные переменные для отслеживания состояния
-  const maximizeIcon = $derived(isMaximized ? "lucide:Minimize" : "lucide:Maximize");
-  const maximizeLabel = $derived(isMaximized ? "Restore" : "Maximize");
+  const maximizeIcon = $derived(isMaximized ? 'lucide:Minimize' : 'lucide:Maximize');
+  const maximizeLabel = $derived(isMaximized ? 'Restore' : 'Maximize');
 
   // Обновляем ссылку на окно при монтировании (на случай окружения без Tauri при билде)
   onMount(() => {
@@ -38,11 +42,14 @@
 
     // Слушаем изменения состояния окна
     let unlisten: (() => void) | undefined;
-    appWindow.listen('tauri://window-resized', updateWindowState).then((cleanup) => {
-      unlisten = cleanup;
-    }).catch((e) => {
-      console.error('Failed to listen for window resize', e);
-    });
+    appWindow
+      .listen('tauri://window-resized', updateWindowState)
+      .then((cleanup) => {
+        unlisten = cleanup;
+      })
+      .catch((e) => {
+        console.error('Failed to listen for window resize', e);
+      });
 
     // Очищаем слушатели при размонтировании
     return () => {
@@ -97,7 +104,13 @@
   };
 </script>
 
-<div class="titlebar" data-tauri-drag-region ondblclick={handleMaximize} role="banner" aria-label="Window title bar">
+<div
+  class="titlebar"
+  data-tauri-drag-region
+  ondblclick={handleMaximize}
+  role="banner"
+  aria-label="Window title bar"
+>
   <div class="titlebar-left">
     <div class="app-icon">
       <img src="/app-icon.png" alt="App Icon" />
@@ -106,7 +119,12 @@
 
   <div class="titlebar-center">
     {#if !isPaletteOpen}
-      <button class="command-palette" data-tauri-drag-region="false" onclick={openCommandPalette} aria-label="Command Palette">
+      <button
+        class="command-palette"
+        data-tauri-drag-region="false"
+        onclick={openCommandPalette}
+        aria-label="Command Palette"
+      >
         <Icon name="lucide:Search" size={14} />
         <span class="command-palette-text">Поиск...</span>
       </button>
@@ -115,7 +133,11 @@
 
   <!-- Блок с контролами окна фиксирован справа -->
   <div class="titlebar-right" data-tauri-drag-region="false">
-    <button class="layout-btn" onclick={handleLayoutCustomization} aria-label="Layout Customization">
+    <button
+      class="layout-btn"
+      onclick={handleLayoutCustomization}
+      aria-label="Layout Customization"
+    >
       <Icon name="lucide:LayoutPanelLeft" size={16} />
     </button>
     <button class="layout-btn" onclick={handleToggleSidebar} aria-label="Toggle Sidebar">
@@ -147,14 +169,14 @@
     -webkit-app-region: drag;
   }
 
-  :global([data-tauri-drag-region="false"]),
+  :global([data-tauri-drag-region='false']),
   .win-btn {
     -webkit-app-region: no-drag;
   }
 
   .titlebar {
-    height: 40px;                /* Reduced by 4px */
-    padding: 0;                  /* без горизонтального паддинга — контролы реально у края */
+    height: 40px; /* Reduced by 4px */
+    padding: 0; /* без горизонтального паддинга — контролы реально у края */
     display: flex;
     align-items: center;
     background-color: var(--nc-bg);
@@ -166,15 +188,15 @@
   .titlebar-left {
     display: flex;
     align-items: center;
-    gap: 8px;                    /* 2 * 4px */
+    gap: 8px; /* 2 * 4px */
     min-width: 0;
-    padding-left: 12px;          /* 3 * 4px — локальный отступ слева */
+    padding-left: 12px; /* 3 * 4px — локальный отступ слева */
   }
 
   .app-icon {
-    width: 24px;                 /* Increased size */
-    height: 24px;                /* Increased size */
-    border-radius: 4px;          /* 1 * 4px */
+    width: 24px; /* Increased size */
+    height: 24px; /* Increased size */
+    border-radius: 4px; /* 1 * 4px */
   }
 
   .app-icon img {
@@ -205,7 +227,9 @@
     height: 28px;
     border: 1px solid var(--nc-highlight-subtle);
     font-size: 12px;
-    transition: background-color 0.12s ease, border-color 0.12s ease;
+    transition:
+      background-color 0.12s ease,
+      border-color 0.12s ease;
   }
 
   .command-palette:hover {
@@ -225,7 +249,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-left: auto;           /* выталкиваем вправо */
+    margin-left: auto; /* выталкиваем вправо */
   }
 
   /* Каждая win-btn вплотную к правому краю окна:
@@ -235,8 +259,8 @@
   }
 
   .win-btn {
-    width: 48px;                 /* 12 * 4px */
-    height: 40px;                /* Match titlebar height */
+    width: 48px; /* 12 * 4px */
+    height: 40px; /* Match titlebar height */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -277,5 +301,4 @@
     background-color: var(--nc-tab-bg-active);
     color: var(--nc-fg);
   }
-
 </style>

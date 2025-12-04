@@ -26,13 +26,11 @@
 </script>
 
 <div class={`code-editor lang-${language}`}>
-  {#each lines as line, index}
-    {#key `${fileId}-${index}`}
-      <div class="code-line">
-        <span class="gutter">{index + 1}</span>
-        <span class={`token ${classify(line)}`}>{line}</span>
-      </div>
-    {/key}
+  {#each lines as line, index (`${fileId}-${index}`)}
+    <div class="code-line">
+      <span class="gutter">{index + 1}</span>
+      <span class={`token ${classify(line)}`}>{line}</span>
+    </div>
   {/each}
 </div>
 

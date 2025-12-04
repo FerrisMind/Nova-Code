@@ -1,6 +1,4 @@
-<svelte:options runes={true} />
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import Icon from '../common/Icon.svelte';
   import { activityStore, type ActivityId } from '../stores/activityStore';
   import { sidebarViews } from './sidebarRegistry';
@@ -38,7 +36,7 @@
 
 <div class="activity-bar" class:rounded={!layout.current.leftSidebarVisible}>
   <div class="activity-items">
-    {#each leftViews as view}
+    {#each leftViews as view (view.id)}
       <button
         class="activity-btn"
         class:active={activity.current === view.id && layout.current.leftSidebarVisible}
@@ -70,41 +68,41 @@
 
 <style>
   .activity-bar {
-    width: 44px;                         /* Reduced by 4px */
+    width: 44px; /* Reduced by 4px */
     background-color: var(--nc-level-0);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 0;                      /* 2 * 4px */
-    gap: 4px;                            /* Back to 4px */
+    padding: 8px 0; /* 2 * 4px */
+    gap: 4px; /* Back to 4px */
     border-radius: 12px 0 0 12px;
     box-sizing: border-box;
   }
 
   .activity-bar.rounded {
-    border-radius: 12px;  /* Rounded for detached state */
+    border-radius: 12px; /* Rounded for detached state */
   }
 
   .activity-items {
     display: flex;
     flex-direction: column;
-    gap: 4px;                            /* Back to 4px */
-    margin-top: -4px;                     /* Raised by 4px */
+    gap: 4px; /* Back to 4px */
+    margin-top: -4px; /* Raised by 4px */
   }
 
   .activity-bottom {
     margin-top: auto;
-    padding-bottom: 4px;                 /* 1 * 4px */
+    padding-bottom: 4px; /* 1 * 4px */
     display: flex;
     flex-direction: column;
-    gap: 4px;                            /* Back to 4px */
+    gap: 4px; /* Back to 4px */
     align-items: center;
   }
 
   .activity-btn {
-    width: 32px;                         /* Reduced proportionally */
-    height: 32px;                        /* Reduced proportionally */
-    border-radius: 7px;                  /* Reduced proportionally */
+    width: 32px; /* Reduced proportionally */
+    height: 32px; /* Reduced proportionally */
+    border-radius: 7px; /* Reduced proportionally */
     border: none;
     background: transparent;
     color: var(--nc-fg-muted);
@@ -112,7 +110,10 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.12s ease, color 0.12s ease, transform 0.06s ease;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease,
+      transform 0.06s ease;
   }
 
   .activity-btn:hover {
@@ -129,3 +130,5 @@
     color: var(--nc-fg-muted);
   }
 </style>
+
+<svelte:options runes={true} />

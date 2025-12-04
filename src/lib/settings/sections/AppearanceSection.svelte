@@ -1,4 +1,3 @@
-<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/sections/AppearanceSection.svelte
   // ----------------------------------------------------------------------------
@@ -12,34 +11,30 @@
   // Использует CardSelect для визуальных настроек с preview.
   // ----------------------------------------------------------------------------
 
-  import { Palette, User, Plus, Trash2, Check, Sun, Moon } from '@lucide/svelte';
+  import { Palette, User, Plus, Sun, Moon } from '@lucide/svelte';
   import { Separator } from '$lib/components/ui/separator';
-  import * as Tooltip from '$lib/components/ui/tooltip';
   import CardSelect from '$lib/settings/controls/CardSelect.svelte';
   import ProfileCard from '$lib/settings/controls/ProfileCard.svelte';
   import SaveIndicator from '$lib/settings/controls/SaveIndicator.svelte';
   import { getSetting } from '$lib/settings/registry';
   import { theme } from '$lib/stores/themeStore';
   import { settingsProfilesStore } from '$lib/stores/settingsProfilesStore';
-  import {
-    PALETTES,
-    listPalettesByMode,
-    type ThemePalette
-  } from '$lib/stores/THEME_PALETTES';
+  import type { SettingsProfilesState } from '$lib/stores/settingsProfilesStore';
+  import { listPalettesByMode } from '$lib/stores/THEME_PALETTES';
 
   // ---------------------------------------------------------------------------
   // Состояние
   // ---------------------------------------------------------------------------
 
   // Состояние профилей
-  let profilesState = $state<{ profiles: any[]; activeProfileId: string | null }>({ 
-    profiles: [], 
-    activeProfileId: null 
+  let profilesState = $state<Pick<SettingsProfilesState, 'profiles' | 'activeProfileId'>>({
+    profiles: [],
+    activeProfileId: null,
   });
-  
+
   // Отслеживаем изменения темы для обновления палитр
   let currentTheme = $state(theme.getState());
-  
+
   // Индикатор сохранения для темы
   let themeSaveVisible = $state(false);
   let paletteSaveVisible = $state(false);
@@ -57,40 +52,13 @@
     const unsubscribe = settingsProfilesStore.subscribe((state) => {
       profilesState = {
         profiles: state.profiles ?? [],
-        activeProfileId: state.activeProfileId
+        activeProfileId: state.activeProfileId,
       };
     });
     return unsubscribe;
   });
 
-  // ---------------------------------------------------------------------------
-  // Определения настроек из registry
-  // ---------------------------------------------------------------------------
-
-  const themeModeDef = getSetting('theme.mode');
   const themePaletteDef = getSetting('theme.palette');
-
-  // ---------------------------------------------------------------------------
-  // Опции для CardSelect
-  // ---------------------------------------------------------------------------
-
-  // Опции темы (Light/Dark)
-  const themeModeOptions = [
-    { 
-      value: false, 
-      label: 'Light', 
-      description: 'Светлая тема',
-      backgroundColor: '#ffffff',
-      textColor: '#1a1a1e'
-    },
-    { 
-      value: true, 
-      label: 'Dark', 
-      description: 'Тёмная тема',
-      backgroundColor: '#1a1a1e',
-      textColor: '#e0e0e0'
-    }
-  ];
 
   // Динамические опции палитры на основе текущего режима
   const getPaletteOptions = () => {
@@ -103,7 +71,7 @@
       textColor: palette.textColor,
       // Передаём все уровни для мини-UI preview
       levels: palette.backgroundLevels,
-      levelMinus1: palette.backgroundLevelMinus1
+      levelMinus1: palette.backgroundLevelMinus1,
     }));
   };
 
@@ -126,7 +94,7 @@
   // ---------------------------------------------------------------------------
 
   async function createProfile() {
-    const name = prompt('Название профиля:');
+    const name = typeof window !== 'undefined' ? window.prompt('Название профиля:') : null;
     if (name && settingsProfilesStore.createProfileFromCurrent) {
       await settingsProfilesStore.createProfileFromCurrent({ label: name });
     }
@@ -156,9 +124,7 @@
       </div>
       <div class="header-content">
         <h2 class="subsection-title">Theme & Palette</h2>
-        <p class="subsection-description">
-          Выберите цветовую тему и палитру для интерфейса
-        </p>
+        <p class="subsection-description">Выберите цветовую тему и палитру для интерфейса</p>
       </div>
     </header>
 
@@ -167,9 +133,7 @@
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Color Theme</div>
-          <p class="setting-description">
-            Переключение между светлой и тёмной темами
-          </p>
+          <p class="setting-description">Переключение между светлой и тёмной темами</p>
         </div>
         <div class="setting-control">
           <div class="theme-switcher" role="radiogroup" aria-label="Color theme">
@@ -196,7 +160,11 @@
               <span>Dark</span>
             </button>
           </div>
-          <SaveIndicator visible={themeSaveVisible} compact onHide={() => themeSaveVisible = false} />
+          <SaveIndicator
+            visible={themeSaveVisible}
+            compact
+            onHide={() => (themeSaveVisible = false)}
+          />
         </div>
       </div>
 
@@ -205,9 +173,7 @@
         <div class="setting-row setting-row--full">
           <div class="setting-info">
             <div class="setting-label">Color Palette</div>
-            <p class="setting-description">
-              Цветовая схема для выбранной темы
-            </p>
+            <p class="setting-description">Цветовая схема для выбранной темы</p>
           </div>
           <div class="setting-control setting-control--cards">
             <CardSelect
@@ -216,7 +182,11 @@
               columns={3}
               onchange={handlePaletteChange}
             />
-            <SaveIndicator visible={paletteSaveVisible} compact onHide={() => paletteSaveVisible = false} />
+            <SaveIndicator
+              visible={paletteSaveVisible}
+              compact
+              onHide={() => (paletteSaveVisible = false)}
+            />
           </div>
         </div>
       {/if}
@@ -235,9 +205,7 @@
       </div>
       <div class="header-content">
         <h2 class="subsection-title">Profiles</h2>
-        <p class="subsection-description">
-          Сохраняйте и переключайтесь между наборами настроек
-        </p>
+        <p class="subsection-description">Сохраняйте и переключайтесь между наборами настроек</p>
       </div>
     </header>
 
@@ -415,7 +383,7 @@
     font-size: var(--settings-font-size-sm, 13px);
     font-weight: 500;
     cursor: pointer;
-    transition: 
+    transition:
       background-color var(--settings-transition-fast, 150ms),
       color var(--settings-transition-fast, 150ms),
       box-shadow var(--settings-transition-fast, 150ms);
@@ -460,7 +428,7 @@
     color: var(--nc-fg-muted, hsl(var(--muted-foreground)));
     font-size: var(--settings-font-size-sm, 13px);
     cursor: pointer;
-    transition: 
+    transition:
       border-color var(--settings-transition-fast, 150ms),
       color var(--settings-transition-fast, 150ms),
       background-color var(--settings-transition-fast, 150ms);
@@ -483,6 +451,6 @@
     color: var(--nc-fg-muted, hsl(var(--muted-foreground)));
     font-size: var(--settings-font-size-sm, 13px);
   }
-
 </style>
 
+<svelte:options runes={true} />

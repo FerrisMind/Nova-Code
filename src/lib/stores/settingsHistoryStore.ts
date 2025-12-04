@@ -18,11 +18,7 @@
 import { writable, type Readable } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
 import { settingsStore } from '$lib/stores/settingsStore';
-import type {
-  SettingId,
-  SettingValue,
-  SettingsHistoryEntry
-} from '$lib/settings/types';
+import type { SettingId, SettingValue, SettingsHistoryEntry } from '$lib/settings/types';
 import type { SettingPatch } from '$lib/stores/settingsStore';
 
 // -----------------------------------------------------------------------------
@@ -100,7 +96,7 @@ async function loadHistoryFromBackend(): Promise<ExtendedSettingsHistoryEntry[] 
     return raw
       .filter((e) => e && typeof e.id === 'string')
       .map((e) => ({
-        ...e
+        ...e,
       }));
   } catch {
     return null;
@@ -114,7 +110,7 @@ async function loadHistoryFromBackend(): Promise<ExtendedSettingsHistoryEntry[] 
 export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryStore {
   const { subscribe, set, update } = writable<SettingsHistoryState>({
     entries: [],
-    limit: initialLimit
+    limit: initialLimit,
   });
 
   let initialized = false;
@@ -130,21 +126,16 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
       if (loaded && Array.isArray(loaded)) {
         update((state) => {
           const truncated =
-            loaded.length > state.limit
-              ? loaded.slice(loaded.length - state.limit)
-              : loaded;
+            loaded.length > state.limit ? loaded.slice(loaded.length - state.limit) : loaded;
           return {
             ...state,
-            entries: truncated
+            entries: truncated,
           };
         });
       }
     },
 
-    async appendChanges(
-      changes,
-      meta
-    ): Promise<void> {
+    async appendChanges(changes, meta): Promise<void> {
       if (!changes || changes.length === 0) return;
 
       const now = Date.now();
@@ -160,22 +151,21 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
             oldValue: change.oldValue,
             newValue: change.newValue,
             source: meta.source,
-            batchId: meta.batchId
+            batchId: meta.batchId,
           };
           nextEntries.push(entry);
         }
 
         // Ограничение по limit: обрезаем с головы
         const overflow = nextEntries.length - state.limit;
-        const entries =
-          overflow > 0 ? nextEntries.slice(overflow) : nextEntries;
+        const entries = overflow > 0 ? nextEntries.slice(overflow) : nextEntries;
 
         // Асинхронное сохранение (без await в update)
         void persistHistory(entries);
 
         return {
           ...state,
-          entries
+          entries,
         };
       });
     },
@@ -210,7 +200,7 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
       // Формируем patch из oldValue
       const patch: SettingPatch[] = group.map((e) => ({
         id: e.changedSettingId,
-        value: e.oldValue
+        value: e.oldValue,
       }));
 
       if (patch.length === 0) return;
@@ -223,7 +213,7 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
 
       set({
         ...state,
-        entries: newEntries
+        entries: newEntries,
       });
 
       await persistHistory(newEntries);
@@ -246,7 +236,7 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
 
       const patch: SettingPatch[] = group.map((e) => ({
         id: e.changedSettingId,
-        value: e.oldValue
+        value: e.oldValue,
       }));
 
       if (patch.length === 0) return;
@@ -258,7 +248,7 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
 
       set({
         ...state,
-        entries: newEntries
+        entries: newEntries,
       });
 
       await persistHistory(newEntries);
@@ -267,7 +257,7 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
     async clearHistory(): Promise<void> {
       set({
         entries: [],
-        limit: getStateSnapshot(store.subscribe).limit
+        limit: getStateSnapshot(store.subscribe).limit,
       });
 
       try {
@@ -282,17 +272,16 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
 
       update((state) => {
         const overflow = state.entries.length - limit;
-        const entries =
-          overflow > 0 ? state.entries.slice(overflow) : state.entries;
+        const entries = overflow > 0 ? state.entries.slice(overflow) : state.entries;
         // Сохраняем обрезанную историю асинхронно.
         void persistHistory(entries);
         return {
           ...state,
           limit,
-          entries
+          entries,
         };
       });
-    }
+    },
   };
 
   return store;
@@ -300,5 +289,4 @@ export function createSettingsHistoryStore(initialLimit = 200): SettingsHistoryS
 
 // Глобальный экземпляр для приложения.
 // Tauri-команды settings_history_* должны быть реализованы на стороне Rust.
-export const settingsHistoryStore: SettingsHistoryStore =
-  createSettingsHistoryStore();
+export const settingsHistoryStore: SettingsHistoryStore = createSettingsHistoryStore();

@@ -10,6 +10,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Capability-Based Security Overview](#capability-based-security-overview)
 3. [Core Window Permissions](#core-window-permissions)
@@ -20,6 +21,7 @@
 8. [Security Best Practices and Considerations](#security-best-practices-and-considerations)
 
 ## Introduction
+
 The NC code editor implements a robust security model based on Tauri v2's capability-based security system. This document provides a comprehensive analysis of the security architecture, focusing on the explicit declaration of required capabilities rather than granting broad system access. The security model is designed to minimize attack surface by restricting application privileges to only those necessary for core functionality. By leveraging Tauri's modern security-first approach, the NC editor ensures protection against arbitrary code execution, safeguards user data, and implements secure file system access patterns.
 
 ## Capability-Based Security Overview
@@ -42,10 +44,12 @@ J --> L[Asset Protocol]
 ```
 
 **Diagram sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
 **Section sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
@@ -72,10 +76,12 @@ F --> K[Drag window by title bar]
 ```
 
 **Diagram sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [desktop-schema.json](file://src-tauri/gen/schemas/desktop-schema.json)
 
 **Section sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [desktop-schema.json](file://src-tauri/gen/schemas/desktop-schema.json)
 
@@ -104,11 +110,13 @@ K --> L[Secure File Operations]
 ```
 
 **Diagram sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [desktop-schema.json](file://src-tauri/gen/schemas/desktop-schema.json)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 
 **Section sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [desktop-schema.json](file://src-tauri/gen/schemas/desktop-schema.json)
 - [fileService.ts](file://src/lib/services/fileService.ts)
@@ -135,9 +143,11 @@ G --> J[All directories]
 ```
 
 **Diagram sources**
+
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
 **Section sources**
+
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
 The Content Security Policy (CSP) setting is configured as `null`, which means Tauri applies its default security policy. This default policy restricts the application from loading external resources, executing inline scripts, or using `eval()`, effectively preventing cross-site scripting (XSS) attacks and code injection vulnerabilities. By not specifying a custom CSP, the application benefits from Tauri's security-first defaults that are regularly updated to address emerging threats.
@@ -173,10 +183,12 @@ FileService-->>Frontend : return result
 ```
 
 **Diagram sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [fileService.ts](file://src/lib/services/fileService.ts)
 
@@ -203,10 +215,12 @@ C --> L[Fine-grained Permission Control]
 ```
 
 **Diagram sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
 **Section sources**
+
 - [default.json](file://src-tauri/capabilities/default.json)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
@@ -238,10 +252,12 @@ F --> P[Meaningful error messages]
 ```
 
 **Diagram sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 
 **Section sources**
+
 - [lib.rs](file://src-tauri/src/lib.rs)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json)
 

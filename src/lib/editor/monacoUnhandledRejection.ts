@@ -10,10 +10,7 @@ export function silenceMonacoCancellationErrors() {
 
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason;
-    const message =
-      typeof reason === 'string'
-        ? reason
-        : reason?.message ?? '';
+    const message = typeof reason === 'string' ? reason : (reason?.message ?? '');
     const name = reason?.name ?? '';
 
     const isCanceled =

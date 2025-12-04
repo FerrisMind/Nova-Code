@@ -17,6 +17,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -29,10 +30,13 @@
 10. [Appendices](#appendices)
 
 ## Introduction
+
 This document explains the UI themes sub-feature for the Nova Code editor’s user interface. It covers how the theme store manages UI theme state, how changes propagate through Svelte stores, the structure of THEME_PALETTES and how it defines color schemes for UI components (sidebar, tabs, panels), how theme variables are implemented in CSS and dynamically updated, quick start theme combinations, customization via the settings interface and direct store manipulation, the relationship between UI themes and Tailwind CSS utility classes, and accessibility considerations including high contrast modes and persistence across restarts.
 
 ## Project Structure
+
 The UI theme system is centered around a small set of cohesive modules:
+
 - Theme palette definitions and helpers
 - Theme store for reactive state
 - Settings registry and types for UI-driven customization
@@ -71,6 +75,7 @@ TS --> ESS
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L155)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L174)
@@ -81,6 +86,7 @@ TS --> ESS
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L155)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L174)
@@ -91,6 +97,7 @@ TS --> ESS
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 ## Core Components
+
 - THEME_PALETTES: Defines approved palettes and computes background level gradients for both light and dark modes. Provides utilities to retrieve palettes by id and mode.
 - themeStore: Central Svelte store managing theme mode and palette selection, with methods to set theme, toggle theme, and set palette. Exposes a synchronous getState for early initialization.
 - +layout.svelte: Applies theme state to CSS variables, sets data-theme attributes, and toggles theme classes for Tailwind variants.
@@ -101,6 +108,7 @@ TS --> ESS
 - editorSettingsStore.ts: Integrates editor theme selection and editor-specific UI settings.
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L155)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L136)
@@ -112,7 +120,9 @@ TS --> ESS
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 ## Architecture Overview
+
 The theme system follows a “single source of truth” pattern:
+
 - THEME_PALETTES defines the approved color scheme contract.
 - themeStore holds the current ThemeState and exposes imperative methods to mutate it.
 - +layout.svelte subscribes to themeStore and updates CSS variables and classes.
@@ -138,6 +148,7 @@ CSS-->>UI : "Re-render with new theme"
 ```
 
 **Diagram sources**
+
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L174)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L248-L285)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L47-L117)
@@ -147,6 +158,7 @@ CSS-->>UI : "Re-render with new theme"
 ## Detailed Component Analysis
 
 ### THEME_PALETTES: Palette Definitions and Background Levels
+
 - Purpose: Single source of truth for approved UI color palettes and computed background levels.
 - Structure:
   - ThemeMode: 'light' | 'dark'
@@ -172,13 +184,16 @@ Minus1 --> Output(["Return palette with levels"])
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L158-L314)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L155)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L158-L314)
 
 ### themeStore: Reactive Theme State and Mutations
+
 - ThemeState: mode and palette
 - Methods:
   - setTheme(mode): switches mode while preserving palette slot (e.g., dark-alt-2 becomes light-alt-2)
@@ -204,12 +219,15 @@ ThemeStore --> ThemeState : "manages"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 
 ### +layout.svelte: Applying Theme Variables and Classes
+
 - Subscribes to themeStore and initializes on mount.
 - Computes palette and levels, then:
   - Sets data-theme attribute for global selectors and icon themes
@@ -232,13 +250,16 @@ L->>D : "set data-theme and theme-* class"
 ```
 
 **Diagram sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L46-L85)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L293-L314)
 
 **Section sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L136)
 
 ### Settings Integration: registry.ts and settingsStore.ts
+
 - registry.ts:
   - Exposes theme.mode and theme.palette as selectable settings with:
     - theme.mode: toggle control mapped to theme.setTheme
@@ -268,22 +289,25 @@ SettingsRegistry --> SettingsStore : "used by"
 ```
 
 **Diagram sources**
+
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L174)
 - [types.ts](file://src/lib/settings/types.ts#L24-L110)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L198-L233)
 
 **Section sources**
+
 - [registry.ts](file://src/lib/settings/registry.ts#L128-L174)
 - [types.ts](file://src/lib/settings/types.ts#L24-L110)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L198-L233)
 
 ### CSS Variables and Tailwind Integration
+
 - app.css:
   - Defines Tailwind base tokens and theme-aware variables for background, foreground, card, popover, primary, secondary, muted, accent, destructive, border, input, ring, and sidebar tokens.
   - Uses dark variant selector to invert tokens for .dark class.
-  - Maps Tailwind variables to internal color-* variables for consistent theming.
+  - Maps Tailwind variables to internal color-\* variables for consistent theming.
 - +layout.svelte:
-  - Applies theme-dark or theme-light class and sets --nc-level-* and --nc-palette-* variables.
+  - Applies theme-dark or theme-light class and sets --nc-level-_ and --nc-palette-_ variables.
   - Components consume these variables for backgrounds, borders, and text.
 
 ```mermaid
@@ -294,14 +318,17 @@ Vars --> Comp["Components"]
 ```
 
 **Diagram sources**
+
 - [app.css](file://src/app.css#L1-L111)
 - [+layout.svelte](file://src/routes/+layout.svelte#L325-L366)
 
 **Section sources**
+
 - [app.css](file://src/app.css#L1-L111)
 - [+layout.svelte](file://src/routes/+layout.svelte#L325-L366)
 
 ### Quick Start Theme Combinations
+
 - THEME_QUICK_START.ts documents:
   - Available palettes per mode (light-default, light-alt-1..3, dark-default, dark-alt-1..3)
   - Level hierarchy and brightness progression
@@ -309,14 +336,17 @@ Vars --> Comp["Components"]
   - Files involved in the system
 
 These combinations provide coordinated UI and editor theme pairings:
+
 - Use theme.setTheme('light' | 'dark') to switch modes.
 - Use theme.setPalette('light-default' | 'light-alt-1' | ... | 'dark-alt-3') to pick a palette.
 - Subscribe to theme to react to changes.
 
 **Section sources**
+
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 
 ### Customizing UI Colors via Settings and Direct Store Manipulation
+
 - Via Settings UI:
   - Navigate to Theme & Palette section.
   - Toggle theme.mode and select theme.palette from the filtered list.
@@ -327,19 +357,23 @@ These combinations provide coordinated UI and editor theme pairings:
   - theme.getState() for immediate reads during initialization
 
 **Section sources**
+
 - [registry.ts](file://src/lib/settings/registry.ts#L132-L174)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L47-L117)
 
 ### Relationship Between UI Themes and Tailwind CSS Utility Classes
-- Tailwind base tokens are defined in app.css and mapped to internal color-* variables.
+
+- Tailwind base tokens are defined in app.css and mapped to internal color-\* variables.
 - +layout.svelte toggles theme-dark or theme-light class, enabling dark variant selectors to invert tokens.
 - Components can use Tailwind utilities that rely on these tokens, ensuring consistent theming across the UI.
 
 **Section sources**
+
 - [app.css](file://src/app.css#L1-L111)
 - [+layout.svelte](file://src/routes/+layout.svelte#L325-L366)
 
 ### Accessibility Features and High Contrast Modes
+
 - High contrast considerations:
   - The codebase does not currently define explicit high contrast variables or selectors. The theme system focuses on palette-driven color levels and Tailwind token inversion via .dark.
   - If high contrast support is desired, introduce explicit high-contrast tokens and selectors in app.css and map them in +layout.svelte similarly to how theme-dark/theme-light are handled.
@@ -347,9 +381,11 @@ These combinations provide coordinated UI and editor theme pairings:
   - devicon-dark-theme.css adjusts icon brightness and fixes problematic colors for both themes to improve visibility on contrasting backgrounds.
 
 **Section sources**
+
 - [devicon-dark-theme.css](file://static/devicon-dark-theme.css#L1-L69)
 
 ### Persistence Across Application Restarts
+
 - The repository demonstrates persistence patterns for settings via Tauri commands:
   - settings_profiles_store persists and loads profiles.
   - settings_history_store persists and loads history.
@@ -359,10 +395,12 @@ These combinations provide coordinated UI and editor theme pairings:
   - Using Tauri commands similar to settings_profiles_save/load to store and restore theme settings
 
 **Section sources**
+
 - [settingsProfilesStore.ts](file://src/lib/stores/settingsProfilesStore.ts#L139-L426)
 - [settingsHistoryStore.ts](file://src/lib/stores/settingsHistoryStore.ts#L1-L110)
 
 ## Dependency Analysis
+
 - Coupling:
   - +layout.svelte depends on themeStore and THEME_PALETTES for applying CSS variables.
   - registry.ts depends on themeStore for options and theme.getState() for UI binding.
@@ -386,6 +424,7 @@ TS --> ESS["editorSettingsStore.ts"]
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L155)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L136)
@@ -396,6 +435,7 @@ TS --> ESS["editorSettingsStore.ts"]
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L155)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [+layout.svelte](file://src/routes/+layout.svelte#L1-L136)
@@ -406,11 +446,13 @@ TS --> ESS["editorSettingsStore.ts"]
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L1-L180)
 
 ## Performance Considerations
+
 - CSS variable updates are efficient; they trigger style recalculations only for affected nodes.
 - THEME_PALETTES computes levels once per palette selection; keep palette choices discrete to minimize recomputation.
 - Subscribe to themeStore only where necessary (e.g., +layout.svelte) to avoid unnecessary re-renders in components that do not depend on theme.
 
 ## Troubleshooting Guide
+
 - Theme not applying:
   - Verify +layout.svelte is subscribed and applying CSS variables and data-theme attribute.
   - Confirm palette ids are valid ThemePaletteId values.
@@ -420,16 +462,19 @@ TS --> ESS["editorSettingsStore.ts"]
   - editorSettingsStore defaults to theme: 'auto'; ensure it remains 'auto' to follow UI palette or set a specific editor theme id.
 
 **Section sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L46-L85)
 - [devicon-dark-theme.css](file://static/devicon-dark-theme.css#L1-L69)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L34-L58)
 
 ## Conclusion
+
 The UI themes subsystem centers on a strict palette contract, a reactive theme store, and a layout that dynamically applies CSS variables and Tailwind tokens. Settings integration provides a user-friendly way to switch modes and palettes, while editor settings can be coordinated to complement UI themes. Persistence can be added using the established Tauri patterns demonstrated by profiles and history stores.
 
 ## Appendices
 
 ### Appendix A: Palette and Level Reference
+
 - Palettes by mode:
   - light-default, light-alt-1, light-alt-2, light-alt-3
   - dark-default, dark-alt-1, dark-alt-2, dark-alt-3
@@ -442,10 +487,12 @@ The UI themes subsystem centers on a strict palette contract, a reactive theme s
   - Level 5: Hover states
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L60-L155)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L73-L82)
 
 ### Appendix B: CSS Variable Contracts
+
 - Root-level variables:
   - --nc-level-minus1, --nc-level-0..5
   - --nc-palette-text, --nc-palette-border
@@ -454,6 +501,7 @@ The UI themes subsystem centers on a strict palette contract, a reactive theme s
   - --color-background, --color-foreground, etc., mapped from Tailwind tokens
 
 **Section sources**
+
 - [+layout.svelte](file://src/routes/+layout.svelte#L46-L85)
 - [+layout.svelte](file://src/routes/+layout.svelte#L325-L366)
 - [app.css](file://src/app.css#L67-L100)

@@ -48,7 +48,7 @@ export async function validateFile(path: string): Promise<FileValidationResult> 
     '.c',
     '.cpp',
     '.h',
-    '.hpp'
+    '.hpp',
   ]);
 
   if (size > 50 * 1024 * 1024) {
@@ -59,8 +59,7 @@ export async function validateFile(path: string): Promise<FileValidationResult> 
     };
   }
 
-  const isBinary =
-    textLikeExtensions.has(ext) ? false : detectBinaryFromBytes(preview.bytes);
+  const isBinary = textLikeExtensions.has(ext) ? false : detectBinaryFromBytes(preview.bytes);
   if (isBinary) {
     return {
       canOpen: false,

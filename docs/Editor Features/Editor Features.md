@@ -15,6 +15,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Core Editor Architecture](#core-editor-architecture)
 3. [Syntax Highlighting and Language Support](#syntax-highlighting-and-language-support)
@@ -31,6 +32,7 @@
 The NC code editor provides a rich, modern editing experience through its integration with the Monaco Editor, the same editor that powers Visual Studio Code. This document details the implementation of advanced code editing capabilities in the NC editor, focusing on syntax highlighting, IntelliSense, code folding, bracket matching, diagnostics, diff editor functionality, and customization options. The editor architecture is designed to be lightweight, extensible, and performant, leveraging the powerful APIs of Monaco Editor while providing a seamless user experience.
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
 
@@ -56,11 +58,13 @@ J[diagnosticsStore.ts] --> G
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [MonacoHost.svelte](file://src/lib/editor/MonacoHost.svelte#L1-L260)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
@@ -90,10 +94,12 @@ LanguageSupport --> MonacoLanguages : "uses"
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 - [monaco-languages.d.ts](file://src/types/monaco-languages.d.ts#L1-L12)
@@ -125,9 +131,11 @@ Monaco-->>Editor : Ready for editing
 ```
 
 **Diagram sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 
 **Section sources**
+
 - [intellisense.ts](file://src/lib/editor/intellisense.ts#L1-L327)
 
 ## Code Folding and Bracket Matching
@@ -153,9 +161,11 @@ G --> |No| I[Normal Typing]
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ## Diagnostics System
@@ -184,10 +194,12 @@ DiagnosticsStore --> Statusbar : "provides counts"
 ```
 
 **Diagram sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 
 **Section sources**
+
 - [diagnosticsAdapter.ts](file://src/lib/editor/diagnosticsAdapter.ts#L1-L61)
 - [diagnosticsStore.ts](file://src/lib/stores/diagnosticsStore.ts#L1-L142)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
@@ -219,9 +231,11 @@ Core->>Diff : mount in container
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ## Editor Customization Options
@@ -265,10 +279,12 @@ EditorCore --> ThemeManager : "uses"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 
@@ -306,11 +322,13 @@ L --> N[Language Features Ready]
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [monacoEnvironment.ts](file://src/lib/editor/monacoEnvironment.ts#L1-L131)

@@ -29,8 +29,6 @@
 //
 // Все публичные функции задокументированы TSDoc.
 
-/* eslint-disable @typescript-eslint/no-namespace */
-
 import type * as monacoNamespace from 'monaco-editor';
 
 /**
@@ -346,7 +344,7 @@ interface CoreState {
 /**
  * Фабрика ядра редактора.
  * Вызывается один раз на инстанс MonacoHost.svelte.
- * 
+ *
  * Оптимизации производительности (Monaco Editor ^0.52+, 2025):
  * - automaticLayout: true — ResizeObserver для отслеживания размеров
  * - smoothScrolling: false — отключено для отзывчивости
@@ -373,7 +371,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         enabled: true,
         side: 'right',
         renderCharacters: false, // Символы отключены для производительности
-        maxColumn: 80,           // Ограничение ширины
+        maxColumn: 80, // Ограничение ширины
         showSlider: 'mouseover', // Слайдер только при наведении
       },
 
@@ -401,7 +399,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
     multiModel: true,
     preserveUndoStackOnSwitch: true,
     preparedForDiff: true,
-    extensibleLanguages: true
+    extensibleLanguages: true,
   };
 
   const api: EditorCoreApi = {
@@ -481,7 +479,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         },
 
         // --- Performance Optimizations ---
-        smoothScrolling: false,           // Отключено для производительности
+        smoothScrolling: false, // Отключено для производительности
         cursorSmoothCaretAnimation: 'off', // Плавная анимация курсора отключена
         renderValidationDecorations: 'editable', // Валидация только для редактируемых
 
@@ -508,7 +506,6 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         // --- Cursor ---
         cursorBlinking: 'smooth',
         cursorStyle: 'line',
-
       });
 
       state.editor = constructed;
@@ -555,11 +552,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
           // Reuse existing global model to avoid duplicate URI creation errors.
           model = already;
         } else {
-          model = state.monaco.editor.createModel(
-            descriptor.value,
-            descriptor.language,
-            uri
-          );
+          model = state.monaco.editor.createModel(descriptor.value, descriptor.language, uri);
         }
         state.models.set(descriptor.fileId, model);
       }
@@ -590,19 +583,18 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
 
       // Подписка на изменение позиции курсора для активного редактора.
       if (state.editor) {
-        state.cursorPositionSubscription =
-          state.editor.onDidChangeCursorPosition((e) => {
-            if (!state.activeFileId) return;
-            if (state.cursorPositionListeners.size === 0) return;
-            const payload = {
-              fileId: state.activeFileId,
-              lineNumber: e.position.lineNumber,
-              column: e.position.column
-            };
-            for (const listener of state.cursorPositionListeners) {
-              listener(payload);
-            }
-          });
+        state.cursorPositionSubscription = state.editor.onDidChangeCursorPosition((e) => {
+          if (!state.activeFileId) return;
+          if (state.cursorPositionListeners.size === 0) return;
+          const payload = {
+            fileId: state.activeFileId,
+            lineNumber: e.position.lineNumber,
+            column: e.position.column,
+          };
+          for (const listener of state.cursorPositionListeners) {
+            listener(payload);
+          }
+        });
       }
     },
 
@@ -628,11 +620,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
       state.options = { ...state.options, ...options };
 
       if (state.editor) {
-        const {
-          minimap,
-          bracketPairColorization,
-          ...editorOptions
-        } = state.options;
+        const { minimap, bracketPairColorization, ...editorOptions } = state.options;
 
         state.editor.updateOptions({
           wordWrap: editorOptions.wordWrap,
@@ -650,7 +638,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
           readOnly: editorOptions.readOnly,
           codeLens: editorOptions.codeLens,
           links: editorOptions.links,
-          largeFileOptimizations: editorOptions.largeFileOptimizations
+          largeFileOptimizations: editorOptions.largeFileOptimizations,
         });
       }
     },
@@ -663,7 +651,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
       state.monaco.languages.register({
         id,
         extensions,
-        aliases
+        aliases,
       });
 
       if (loader) {
@@ -674,11 +662,10 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
     registerCompletionProvider(languageId, providerConfig) {
       if (!state.monaco) return null;
 
-      const disposable =
-        state.monaco.languages.registerCompletionItemProvider(languageId, {
-          triggerCharacters: providerConfig.triggerCharacters,
-          provideCompletionItems: providerConfig.provideCompletionItems
-        });
+      const disposable = state.monaco.languages.registerCompletionItemProvider(languageId, {
+        triggerCharacters: providerConfig.triggerCharacters,
+        provideCompletionItems: providerConfig.provideCompletionItems,
+      });
 
       return disposable;
     },
@@ -686,12 +673,9 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
     registerHoverProvider(languageId, providerConfig) {
       if (!state.monaco) return null;
 
-      const disposable = state.monaco.languages.registerHoverProvider(
-        languageId,
-        {
-          provideHover: providerConfig.provideHover
-        }
-      );
+      const disposable = state.monaco.languages.registerHoverProvider(languageId, {
+        provideHover: providerConfig.provideHover,
+      });
 
       return disposable;
     },
@@ -702,30 +686,28 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
       const model = state.models.get(fileId);
       if (!model) return;
 
-      const markers = diagnostics.map(
-        (d): monacoNamespace.editor.IMarkerData => {
-          const severity =
-            typeof d.severity === 'number'
-              ? d.severity
-              : d.severity === 'error'
-                ? state.monaco!.MarkerSeverity.Error
-                : d.severity === 'warning'
-                  ? state.monaco!.MarkerSeverity.Warning
-                  : d.severity === 'info'
-                    ? state.monaco!.MarkerSeverity.Info
-                    : state.monaco!.MarkerSeverity.Hint;
+      const markers = diagnostics.map((d): monacoNamespace.editor.IMarkerData => {
+        const severity =
+          typeof d.severity === 'number'
+            ? d.severity
+            : d.severity === 'error'
+              ? state.monaco!.MarkerSeverity.Error
+              : d.severity === 'warning'
+                ? state.monaco!.MarkerSeverity.Warning
+                : d.severity === 'info'
+                  ? state.monaco!.MarkerSeverity.Info
+                  : state.monaco!.MarkerSeverity.Hint;
 
-          return {
-            severity,
-            message: d.message,
-            startLineNumber: d.startLineNumber,
-            startColumn: d.startColumn,
-            endLineNumber: d.endLineNumber,
-            endColumn: d.endColumn,
-            code: d.code !== undefined ? String(d.code) : undefined
-          };
-        }
-      );
+        return {
+          severity,
+          message: d.message,
+          startLineNumber: d.startLineNumber,
+          startColumn: d.startColumn,
+          endLineNumber: d.endLineNumber,
+          endColumn: d.endColumn,
+          code: d.code !== undefined ? String(d.code) : undefined,
+        };
+      });
 
       state.monaco.editor.setModelMarkers(model, 'nova-code', markers);
     },
@@ -735,18 +717,12 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         throw new Error('[EditorCore] Monaco is not initialized');
       }
 
-      const getOrCreateModel = (
-        fileId: string
-      ): monacoNamespace.editor.ITextModel => {
+      const getOrCreateModel = (fileId: string): monacoNamespace.editor.ITextModel => {
         const existing = state.models.get(fileId);
         if (existing) return existing;
 
         const uri = state.monaco!.Uri.parse(`file://${fileId}`);
-        const model = state.monaco!.editor.createModel(
-          '',
-          'plaintext',
-          uri
-        );
+        const model = state.monaco!.editor.createModel('', 'plaintext', uri);
         state.models.set(fileId, model);
         return model;
       };
@@ -754,8 +730,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
       const originalModel = getOrCreateModel(originalFileId);
       const modifiedModel = getOrCreateModel(modifiedFileId);
 
-      let diffEditor: monacoNamespace.editor.IStandaloneDiffEditor | null =
-        null;
+      let diffEditor: monacoNamespace.editor.IStandaloneDiffEditor | null = null;
       let currentOptions = options ?? {};
 
       return {
@@ -772,7 +747,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
           const {
             renderSideBySide = true,
             readOnlyLeft = true,
-            ignoreTrimWhitespace = false
+            ignoreTrimWhitespace = false,
           } = currentOptions;
 
           const baseOpts = state.options;
@@ -797,13 +772,13 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
               horizontalHasArrows: false,
               verticalScrollbarSize: 10,
               horizontalScrollbarSize: 10,
-              arrowSize: 0
-            }
+              arrowSize: 0,
+            },
           });
 
           diffEditor.setModel({
             original: originalModel,
-            modified: modifiedModel
+            modified: modifiedModel,
           });
 
           return diffEditor;
@@ -813,11 +788,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
           currentOptions = { ...currentOptions, ...next };
           if (!diffEditor) return;
 
-          const {
-            renderSideBySide,
-            readOnlyLeft,
-            ignoreTrimWhitespace
-          } = currentOptions;
+          const { renderSideBySide, readOnlyLeft, ignoreTrimWhitespace } = currentOptions;
 
           const updates: monacoNamespace.editor.IDiffEditorOptions = {};
 
@@ -839,7 +810,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
             diffEditor.dispose();
             diffEditor = null;
           }
-        }
+        },
       };
     },
 
@@ -870,15 +841,14 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
 
       const languageId = model.getLanguageId();
       const eolString = model.getEOL();
-      const eol: 'LF' | 'CRLF' =
-        eolString === '\r\n' ? 'CRLF' : 'LF';
+      const eol: 'LF' | 'CRLF' = eolString === '\r\n' ? 'CRLF' : 'LF';
 
       const options = model.getOptions();
       return {
         languageId,
         eol,
         tabSize: options.tabSize,
-        insertSpaces: options.insertSpaces
+        insertSpaces: options.insertSpaces,
       };
     },
 
@@ -889,7 +859,7 @@ export function createEditorCore(monaco: typeof monacoNamespace): EditorCoreApi 
         }
       }
       return null;
-    }
+    },
   };
 
   return api;

@@ -13,6 +13,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [State Properties](#state-properties)
 3. [Theme Change Methods](#theme-change-methods)
@@ -29,6 +30,7 @@
 The themeStore is the central state management system for the Nova Code (NC) application's theming system. It serves as the single source of truth for all theme-related state, ensuring consistency across the entire application. The store manages the current theme mode (light/dark), color palette selection, and coordinates with various components to ensure a cohesive user experience. It integrates with the Monaco Editor through the themeManager, synchronizes with UI components via CSS variables, and maintains theme preferences across sessions. The system is designed to be reactive, allowing components to subscribe to theme changes and update accordingly.
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L1-L135)
 
@@ -60,10 +62,12 @@ ThemeState --> ThemePalette : "references"
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L24-L27)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L35-L54)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L24-L27)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L32)
 
@@ -91,10 +95,12 @@ Note over Store : Notify all subscribers
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L53-L87)
 - [registry.ts](file://src/lib/settings/registry.ts#L140-L144)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L53-L117)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L11-L25)
 
@@ -119,10 +125,12 @@ I --> B
 ```
 
 **Diagram sources**
+
 - [registry.ts](file://src/lib/settings/registry.ts#L133-L174)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L98-L99)
 
 **Section sources**
+
 - [registry.ts](file://src/lib/settings/registry.ts#L133-L174)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L95-L102)
 
@@ -154,10 +162,12 @@ ThemeStore --> THEME_PALETTES : "uses getDefaultPaletteForMode"
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L75-L155)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L2-L6)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L21-L314)
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L2-L6)
 
@@ -183,10 +193,12 @@ Note over Manager,Editor : Theme applied to editor
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L187-L213)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L264-L273)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L187-L213)
 - [editorSettingsStore.ts](file://src/lib/stores/editorSettingsStore.ts#L36-L37)
 
@@ -209,10 +221,12 @@ G --> H["Consistent appearance"]
 ```
 
 **Diagram sources**
+
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L87-L102)
 - [activityStore.ts](file://src/lib/stores/activityStore.ts#L1-L19)
 
 **Section sources**
+
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L87-L114)
 - [activityStore.ts](file://src/lib/stores/activityStore.ts#L1-L19)
 
@@ -241,10 +255,12 @@ J --> K["Built-in hc-black/hc-light themes"]
 ```
 
 **Diagram sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L60-L68)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L24-L29)
 
 **Section sources**
+
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L60-L68)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L24-L29)
 
@@ -277,10 +293,12 @@ ThemeManager --> CustomTheme : "applies to editor"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L8-L19)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L78-L110)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L8-L19)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L225-L253)
 
@@ -307,9 +325,11 @@ Note over Component : Smooth visual transition
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L111-L117)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L21-L25)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L106-L117)
 - [THEME_QUICK_START.ts](file://src/lib/stores/THEME_QUICK_START.ts#L21-L25)

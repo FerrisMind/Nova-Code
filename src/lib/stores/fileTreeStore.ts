@@ -16,7 +16,7 @@
 import { writable, derived, get, type Readable } from 'svelte/store';
 import type { FileNode } from '../types/fileNode';
 import { workspaceStore } from './workspaceStore';
-import { editorStore, activeEditor } from './editorStore';
+import { activeEditor } from './editorStore';
 
 // -----------------------------------------------------------------------------
 // Типы
@@ -112,7 +112,7 @@ function getWorkspaceFilesSnapshot(): FileNode[] {
 
 const internal = writable<FileTreeState>({
   expanded: new Set<FileNodeId>(),
-  selectedFileId: null
+  selectedFileId: null,
 });
 
 // -----------------------------------------------------------------------------
@@ -126,10 +126,7 @@ const internal = writable<FileTreeState>({
  *
  * Отдаём как Readable, модификации только через экспортированные функции.
  */
-export const fileTreeState: Readable<FileTreeState> = derived(
-  internal,
-  ($state) => $state
-);
+export const fileTreeState: Readable<FileTreeState> = derived(internal, ($state) => $state);
 
 // -----------------------------------------------------------------------------
 // API
@@ -153,7 +150,7 @@ export function expand(id: FileNodeId): void {
     next.add(id);
     return {
       ...state,
-      expanded: next
+      expanded: next,
     };
   });
 }
@@ -168,7 +165,7 @@ export function collapse(id: FileNodeId): void {
     next.delete(id);
     return {
       ...state,
-      expanded: next
+      expanded: next,
     };
   });
 }
@@ -186,7 +183,7 @@ export function toggleDir(id: FileNodeId): void {
     }
     return {
       ...state,
-      expanded: next
+      expanded: next,
     };
   });
 }
@@ -198,7 +195,7 @@ export function toggleDir(id: FileNodeId): void {
 export function selectFile(id: FileNodeId): void {
   internal.update((state) => ({
     ...state,
-    selectedFileId: id
+    selectedFileId: id,
   }));
 }
 
@@ -223,7 +220,7 @@ export function syncWithActiveTab(tabId: string | null): void {
     // Если активной вкладки нет — не сбрасываем expanded, только выбор.
     internal.update((state) => ({
       ...state,
-      selectedFileId: null
+      selectedFileId: null,
     }));
     return;
   }
@@ -258,7 +255,7 @@ export function syncWithActiveTab(tabId: string | null): void {
     return {
       ...state,
       expanded: nextExpanded,
-      selectedFileId: node!.id
+      selectedFileId: node!.id,
     };
   });
 }
@@ -283,7 +280,7 @@ export function revealNode(node: FileNode | null): void {
     return {
       ...state,
       expanded: nextExpanded,
-      selectedFileId: target.id
+      selectedFileId: target.id,
     };
   });
 }

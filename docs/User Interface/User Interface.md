@@ -17,6 +17,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -28,6 +29,7 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 The NC code editor features a modern user interface built with Svelte 5 and styled using Tailwind CSS v4. The interface follows a component-based architecture with a clear separation of concerns between UI components, layout management, and application state. The design emphasizes accessibility, responsive behavior, and theme consistency across all interface elements. This documentation provides a comprehensive overview of the UI architecture, component organization, styling approach, and state management patterns that power the editor's user experience.
 
 ## Project Structure
@@ -59,11 +61,13 @@ L --> W[settingsStore]
 ```
 
 **Diagram sources**
+
 - [app.html](file://src/app.html#L1-L49)
 - [app.css](file://src/app.css#L1-L111)
 - [package.json](file://package.json#L1-L41)
 
 **Section sources**
+
 - [app.html](file://src/app.html#L1-L49)
 - [app.css](file://src/app.css#L1-L111)
 - [svelte.config.js](file://svelte.config.js#L1-L19)
@@ -74,6 +78,7 @@ L --> W[settingsStore]
 The NC code editor's user interface is built around several core components that define the main layout and functionality. These include the editor area, sidebar panels, status bar, command palette, and various UI controls. The components are organized in a hierarchical structure with clear responsibilities and well-defined interfaces. The UI leverages Svelte 5's reactivity system for efficient updates and smooth interactions, while maintaining a clean separation between presentation and business logic.
 
 **Section sources**
+
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 - [components/ui](file://src/lib/components/ui)
 - [app.css](file://src/app.css#L1-L111)
@@ -104,6 +109,7 @@ A --> P
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -140,9 +146,11 @@ LayoutStore --> LayoutState : "manages"
 ```
 
 **Diagram sources**
+
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 
 **Section sources**
+
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 
@@ -178,9 +186,11 @@ EditorState --> EditorTab : "contains"
 ```
 
 **Diagram sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 
 **Section sources**
+
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [editor](file://src/lib/editor)
 
@@ -204,9 +214,11 @@ sidebarViews --> SidebarViewConfig : "contains"
 ```
 
 **Diagram sources**
+
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 
 **Section sources**
+
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 - [sidebar](file://src/lib/sidebar)
 
@@ -225,9 +237,11 @@ class CommandPaletteStore {
 ```
 
 **Diagram sources**
+
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 
 **Section sources**
+
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 - [commands](file://src/lib/commands)
 
@@ -250,9 +264,11 @@ BottomPanelStore --> BottomPanelState : "manages"
 ```
 
 **Diagram sources**
+
 - [bottomPanelStore.ts](file://src/lib/stores/bottomPanelStore.ts#L1-L24)
 
 **Section sources**
+
 - [bottomPanelStore.ts](file://src/lib/stores/bottomPanelStore.ts#L1-L24)
 
 ## Dependency Analysis
@@ -277,6 +293,7 @@ L --> D
 ```
 
 **Diagram sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -285,6 +302,7 @@ L --> D
 - [bottomPanelStore.ts](file://src/lib/stores/bottomPanelStore.ts#L1-L24)
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -293,6 +311,7 @@ L --> D
 - [bottomPanelStore.ts](file://src/lib/stores/bottomPanelStore.ts#L1-L24)
 
 ## Performance Considerations
+
 The NC code editor's UI architecture is designed with performance in mind. The use of Svelte 5's compile-time reactivity system ensures efficient updates with minimal runtime overhead. The component library follows best practices for reusability and maintainability, reducing code duplication and improving bundle size. The store-based state management pattern minimizes unnecessary re-renders by allowing components to subscribe only to the specific state they need. The integration with Monaco editor is optimized to handle large files and complex language features without impacting the responsiveness of the user interface.
 
 ## Troubleshooting Guide
@@ -310,10 +329,12 @@ When encountering UI issues in the NC code editor, consider the following common
 5. **Sidebar views not appearing**: Confirm that the view is properly registered in the sidebarRegistry and that the component path is correct.
 
 **Section sources**
+
 - [themeStore.ts](file://src/lib/stores/themeStore.ts#L1-L120)
 - [layoutStore.ts](file://src/lib/stores/layout/layoutStore.ts#L1-L131)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
 - [settingsStore.ts](file://src/lib/stores/settingsStore.ts#L1-L313)
 
 ## Conclusion
+
 The NC code editor's user interface represents a modern, component-based architecture built with Svelte 5 and styled with Tailwind CSS v4. The design emphasizes clean separation of concerns, reusability, and maintainability through a well-organized component library and store-based state management system. The layout system provides flexibility for different workflows while maintaining consistency across the interface. The theming system enables easy customization and supports both light and dark modes with multiple color palettes. Overall, the UI architecture balances functionality, performance, and developer experience, providing a solid foundation for a powerful code editing environment.

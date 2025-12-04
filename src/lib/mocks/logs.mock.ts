@@ -8,5 +8,5 @@ export const mockLogs: string[] = [
   '[info] SvelteKit SPA mode enabled (ssr = false)',
   '[info] Initialized theme: dark (Cursor-like)',
   '[info] ActivityBar: Explorer active',
-  '[info] Ready.'
+  '[info] Ready.',
 ];

@@ -18,6 +18,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Plugin Architecture](#plugin-architecture)
 3. [Command System](#command-system)
@@ -34,6 +35,7 @@
 The NC code editor is designed with extensibility as a core principle, enabling developers to customize and enhance its functionality through various extension mechanisms. This document provides comprehensive guidance on the extensibility features of the NC editor, covering plugin architecture, command registration, language support, API access, Tauri integration, theme customization, and security considerations. The editor's architecture is inspired by VS Code but adapted for the SvelteKit and Tauri v2 ecosystem, providing a modern, performant foundation for extension development.
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
@@ -75,10 +77,12 @@ ExtensionManager --> Plugin : "manages"
 ```
 
 **Diagram sources**
+
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 - [ExtensionsView.svelte](file://src/lib/sidebar/ExtensionsView.svelte#L1-L147)
 
 **Section sources**
+
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 - [ExtensionsView.svelte](file://src/lib/sidebar/ExtensionsView.svelte#L1-L147)
 
@@ -108,10 +112,12 @@ CommandRegistry-->>CommandPalette : Command executed
 ```
 
 **Diagram sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [commandPaletteStore.ts](file://src/lib/stores/commandPaletteStore.ts#L1-L29)
 
@@ -140,10 +146,12 @@ ReturnError --> End
 ```
 
 **Diagram sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 **Section sources**
+
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
@@ -194,9 +202,11 @@ EditorCoreApi --> EditorModelDescriptor : "uses"
 ```
 
 **Diagram sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 **Section sources**
+
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L891)
 
 ## Tauri Integration
@@ -237,11 +247,13 @@ F --> J
 ```
 
 **Diagram sources**
+
 - [main.rs](file://src-tauri/src/main.rs#L1-L7)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json#L1-L44)
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L204)
 
 **Section sources**
+
 - [main.rs](file://src-tauri/src/main.rs#L1-L7)
 - [tauri.conf.json](file://src-tauri/tauri.conf.json#L1-L44)
 - [ExplorerView.svelte](file://src/lib/sidebar/ExplorerView.svelte#L1-L204)
@@ -295,10 +307,12 @@ ThemeManager --> ThemePalette : "integrates with"
 ```
 
 **Diagram sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
 **Section sources**
+
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)
 - [THEME_PALETTES.ts](file://src/lib/stores/THEME_PALETTES.ts#L1-L314)
 
@@ -348,6 +362,7 @@ F3 --> G
 ```
 
 **Section sources**
+
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [sidebarRegistry.ts](file://src/lib/layout/sidebarRegistry.ts#L1-L73)
 - [languageSupport.ts](file://src/lib/editor/languageSupport.ts#L1-L70)
@@ -382,6 +397,7 @@ style J fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 **Section sources**
+
 - [tauri.conf.json](file://src-tauri/tauri.conf.json#L1-L44)
 - [commandRegistry.ts](file://src/lib/commands/commandRegistry.ts#L1-L64)
 - [themeManager.ts](file://src/lib/editor/themeManager.ts#L1-L274)

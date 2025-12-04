@@ -45,7 +45,7 @@ const createEditorSettingsStore = () => {
     minimap: true,
     folding: true,
     lineNumbers: 'on',
-    bracketPairColorization: true
+    bracketPairColorization: true,
   };
 
   const store: Writable<EditorSettings> = writable(defaultSettings);
@@ -95,7 +95,9 @@ const createEditorSettingsStore = () => {
   /**
    * Установить отображение пробелов и табуляции
    */
-  const setRenderWhitespace = (renderWhitespace: 'selection' | 'boundary' | 'trailing' | 'all' | 'none') => {
+  const setRenderWhitespace = (
+    renderWhitespace: 'selection' | 'boundary' | 'trailing' | 'all' | 'none'
+  ) => {
     store.update((settings) => ({ ...settings, renderWhitespace }));
   };
 
@@ -172,7 +174,7 @@ const createEditorSettingsStore = () => {
     setLineNumbers,
     setBracketPairColorization,
     resetToDefaults,
-    getSettings: () => currentSettings
+    getSettings: () => currentSettings,
   };
 };
 

@@ -1,13 +1,8 @@
-<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { activeEditor } from '../stores/editorStore';
-  import Icon from '../common/Icon.svelte';
   import { cursorPosition } from '../stores/editorCursorStore';
   import { activeEditorMeta } from '../stores/editorMetaStore';
-
-  // Текущее состояние из editorStore (имя/путь файла).
-  let current = $state<import('../stores/editorStore').EditorTab | null>(null);
 
   // Состояние курсора.
   let cursorLn = $state(1);
@@ -21,8 +16,8 @@
 
   // Подписки на сторы. Используем ручное управление без onMount,
   // чтобы сохранить минималистичный и предсказуемый подход.
-  const unsubEditor = activeEditor.subscribe(($active) => {
-    current = $active;
+  const unsubEditor = activeEditor.subscribe(() => {
+    // здесь можно обновлять UI для файла, если понадобится
   });
 
   const unsubCursor = cursorPosition.subscribe(($cursor) => {
@@ -43,8 +38,6 @@
     unsubMeta();
   });
 
-  const projectLabel = 'SvelteKit + Tauri v2';
-
   // Отображаемое имя языка для статус-бара (минимальный mapping).
   const mapLanguageIdToLabel = (id: string | null): string => {
     if (!id) return '';
@@ -63,11 +56,7 @@
   const languageLabel = $derived(mapLanguageIdToLabel(languageId));
   const eolLabel = $derived(eol ?? '');
   const indentLabel = $derived(
-    tabSize == null
-      ? ''
-      : insertSpaces
-      ? `Spaces: ${tabSize}`
-      : `Tab Size: ${tabSize}`,
+    tabSize == null ? '' : insertSpaces ? `Spaces: ${tabSize}` : `Tab Size: ${tabSize}`
   );
 </script>
 
@@ -116,14 +105,14 @@
 
 <style>
   .status-bar {
-    height: 24px;                         /* 6 * 4px */
+    height: 24px; /* 6 * 4px */
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 12px;                      /* 3 * 4px */
+    padding: 0 12px; /* 3 * 4px */
     background-color: var(--nc-bg);
     color: var(--nc-fg-muted);
-    font-size: 12px;                      /* 3 * 4px */
+    font-size: 12px; /* 3 * 4px */
     box-sizing: border-box;
   }
 
@@ -131,7 +120,7 @@
   .right {
     display: flex;
     align-items: center;
-    gap: 12px;                            /* 3 * 4px */
+    gap: 12px; /* 3 * 4px */
   }
 
   .center {
@@ -144,22 +133,21 @@
   }
 
   .item {
-    padding: 0 8px;                       /* 2 * 4px */
+    padding: 0 8px; /* 2 * 4px */
     display: inline-flex;
     align-items: center;
-    gap: 4px;                             /* 1 * 4px */
-    border-radius: 4px;                   /* 1 * 4px */
+    gap: 4px; /* 1 * 4px */
+    border-radius: 4px; /* 1 * 4px */
     white-space: nowrap;
   }
-
 
   .meta-btn {
     cursor: pointer;
     border: none;
     background: transparent;
     color: inherit;
-    padding: 0 8px;                       /* 2 * 4px */
-    border-radius: 4px;                   /* 1 * 4px */
+    padding: 0 8px; /* 2 * 4px */
+    border-radius: 4px; /* 1 * 4px */
   }
 
   .meta-btn:hover,
@@ -168,3 +156,5 @@
     color: var(--nc-fg);
   }
 </style>
+
+<svelte:options runes={true} />

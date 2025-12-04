@@ -22,6 +22,8 @@
 // - serde / serde_json
 // -----------------------------------------------------------------------------
 
+mod git;
+
 use notify::{
     event::{Event, EventKind, ModifyKind},
     recommended_watcher, RecommendedWatcher, RecursiveMode, Watcher,
@@ -41,7 +43,12 @@ use std::{
     thread,
     time::UNIX_EPOCH,
 };
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, State};
+
+use git::{
+    types::{CommitInfo, GitDiff, GitFileStatus, GitRepositoryStatus},
+    GitState,
+};
 
 #[derive(Debug)]
 struct AppPaths {
@@ -781,6 +788,235 @@ async fn settings_import(
 }
 
 // -----------------------------------------------------------------------------
+// Git commands
+// -----------------------------------------------------------------------------
+
+fn map_git_error(err: git::GitError) -> String {
+    match err {
+        git::GitError::NoRepository => "Git repository is not available".to_string(),
+        git::GitError::InvalidInput(msg) => msg,
+        git::GitError::Git(msg) | git::GitError::Io(msg) | git::GitError::Notify(msg) => msg,
+    }
+}
+
+fn require_repo_root(state: &GitState) -> Result<PathBuf, String> {
+    state
+        .repository_root()
+        .ok_or_else(|| "Git repository is not detected yet".to_string())
+}
+
+fn git_op_post(app: &AppHandle, git_state: &GitState) {
+    git_state.invalidate_status_cache();
+    git_state.emit_status_changed(app);
+}
+
+#[tauri::command]
+async fn git_detect_repository(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+    root: String,
+) -> Result<Option<String>, String> {
+    let resolved = resolve_path(&root)?;
+    let detected = tauri::async_runtime::spawn_blocking(move || git::detect_repository(&resolved))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+
+    if let Some(repo_root) = detected.clone() {
+        git_state.set_repository_root(Some(repo_root.clone()));
+        git_state.ensure_watcher(&app).map_err(map_git_error)?;
+        git_state.emit_status_changed(&app);
+        Ok(Some(repo_root.to_string_lossy().replace('\\', "/")))
+    } else {
+        git_state.set_repository_root(None);
+        Ok(None)
+    }
+}
+
+#[tauri::command]
+async fn git_init(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+    root: String,
+) -> Result<(), String> {
+    let resolved = resolve_path(&root)?;
+    let repo_root = tauri::async_runtime::spawn_blocking(move || git::init_repository(&resolved))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+
+    git_state.set_repository_root(Some(repo_root));
+    git_state.ensure_watcher(&app).map_err(map_git_error)?;
+    git_state.emit_status_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+async fn git_get_status(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+) -> Result<GitRepositoryStatus, String> {
+    if let Some(cached) = git_state.get_cached_status() {
+        return Ok(cached);
+    }
+    let repo_root = require_repo_root(&git_state)?;
+    let status = tauri::async_runtime::spawn_blocking(move || git::collect_status(&repo_root))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_state.store_status_cache(status.clone());
+    git_state.ensure_watcher(&app).map_err(map_git_error)?;
+    Ok(status)
+}
+
+#[tauri::command]
+async fn git_refresh_status(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+) -> Result<GitRepositoryStatus, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    let status = tauri::async_runtime::spawn_blocking(move || git::collect_status(&repo_root))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_state.store_status_cache(status.clone());
+    git_state.emit_status_changed(&app);
+    Ok(status)
+}
+
+#[tauri::command]
+async fn git_get_file_statuses(
+    git_state: State<'_, GitState>,
+    paths: Vec<String>,
+) -> Result<Vec<(String, GitFileStatus)>, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::file_statuses(&repo_root, &paths))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)
+}
+
+#[tauri::command]
+async fn git_stage_file(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+    path: String,
+) -> Result<(), String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::stage_file(&repo_root, &path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_op_post(&app, &git_state);
+    Ok(())
+}
+
+#[tauri::command]
+async fn git_unstage_file(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+    path: String,
+) -> Result<(), String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::unstage_file(&repo_root, &path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_op_post(&app, &git_state);
+    Ok(())
+}
+
+#[tauri::command]
+async fn git_stage_all(app: AppHandle, git_state: State<'_, GitState>) -> Result<u32, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    let staged = tauri::async_runtime::spawn_blocking(move || git::stage_all(&repo_root))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_op_post(&app, &git_state);
+    Ok(staged)
+}
+
+#[tauri::command]
+async fn git_unstage_all(app: AppHandle, git_state: State<'_, GitState>) -> Result<u32, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    let unstaged = tauri::async_runtime::spawn_blocking(move || git::unstage_all(&repo_root))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_op_post(&app, &git_state);
+    Ok(unstaged)
+}
+
+#[tauri::command]
+async fn git_discard_changes(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+    paths: Vec<String>,
+) -> Result<(), String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::discard_changes(&repo_root, &paths))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)?;
+    git_op_post(&app, &git_state);
+    Ok(())
+}
+
+#[tauri::command]
+async fn git_commit(
+    app: AppHandle,
+    git_state: State<'_, GitState>,
+    message: String,
+) -> Result<String, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    let commit_hash =
+        tauri::async_runtime::spawn_blocking(move || git::commit_staged(&repo_root, &message))
+            .await
+            .map_err(|e| e.to_string())?
+            .map_err(map_git_error)?;
+    git_op_post(&app, &git_state);
+    Ok(commit_hash)
+}
+
+#[tauri::command]
+async fn git_get_history(
+    git_state: State<'_, GitState>,
+    offset: u32,
+    limit: u32,
+) -> Result<Vec<CommitInfo>, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::read_history(&repo_root, offset, limit))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)
+}
+
+#[tauri::command]
+async fn git_get_file_diff(
+    git_state: State<'_, GitState>,
+    path: String,
+) -> Result<GitDiff, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::working_diff(&repo_root, &path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)
+}
+
+#[tauri::command]
+async fn git_get_staged_diff(
+    git_state: State<'_, GitState>,
+    path: String,
+) -> Result<GitDiff, String> {
+    let repo_root = require_repo_root(&git_state)?;
+    tauri::async_runtime::spawn_blocking(move || git::staged_diff(&repo_root, &path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(map_git_error)
+}
+
+// -----------------------------------------------------------------------------
 // App entry
 // -----------------------------------------------------------------------------
 
@@ -790,6 +1026,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .manage::<AppPathsState>(AppPathsState)
+        .manage::<GitState>(GitState::default())
         .invoke_handler(tauri::generate_handler![
             read_workspace,
             read_file,
@@ -808,7 +1045,21 @@ pub fn run() {
             settings_history_save,
             settings_history_clear,
             settings_export,
-            settings_import
+            settings_import,
+            git_detect_repository,
+            git_init,
+            git_get_status,
+            git_refresh_status,
+            git_get_file_statuses,
+            git_stage_file,
+            git_unstage_file,
+            git_stage_all,
+            git_unstage_all,
+            git_discard_changes,
+            git_commit,
+            git_get_history,
+            git_get_file_diff,
+            git_get_staged_diff
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

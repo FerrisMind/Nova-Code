@@ -13,7 +13,7 @@ import { writable } from 'svelte/store';
 const open = writable(false);
 
 export const commandPaletteOpen = {
-  subscribe: open.subscribe
+  subscribe: open.subscribe,
 };
 
 export function openCommandPalette(): void {

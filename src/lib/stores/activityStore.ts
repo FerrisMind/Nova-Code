@@ -11,7 +11,7 @@ const createActivityStore = () => {
 
   return {
     subscribe,
-    setActivity
+    setActivity,
   };
 };
 

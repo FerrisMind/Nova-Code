@@ -16,6 +16,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -27,10 +28,13 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
+
 This document describes the integration layer between the frontend and backend in the NC code editor. It focuses on the service abstraction over Tauri commands, the data model for file nodes bridging UI and filesystem, validation patterns for safe file operations, and the end-to-end data flow from user actions through stores, services, Tauri commands, to Rust backend operations and back. It also covers error handling, retry strategies, and performance considerations including caching and asynchronous processing.
 
 ## Project Structure
+
 The integration layer spans three main areas:
+
 - Frontend services and stores: fileService.ts, workspaceStore.ts, editorStore.ts, fileTreeStore.ts, fileTreeActions.ts, fileValidator.ts, fileNode.ts, editorGroupsStore.ts, EditorCore.ts
 - Backend (Rust): lib.rs (Tauri commands), main.rs (application entry)
 
@@ -63,6 +67,7 @@ EG --> ES
 ```
 
 **Diagram sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -76,10 +81,12 @@ EG --> ES
 - [main.rs](file://src-tauri/src/main.rs#L1-L7)
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [lib.rs](file://src-tauri/src/lib.rs#L248-L425)
 
 ## Core Components
+
 - fileService.ts: Provides a unified asynchronous API for filesystem operations and file watching, wrapping Tauri invoke and event listeners. It exposes methods for reading/writing files, listing workspace files, creating/deleting/rename, revealing in explorer, and starting the file watcher.
 - fileNode.ts: Defines the FileNode data contract used across the UI and backend, including id, name, path, type, size, modified timestamp, and optional children.
 - fileValidator.ts: Validates files before opening in the editor, checking size limits and binary detection heuristics, and returns optimization hints for large files.
@@ -91,6 +98,7 @@ EG --> ES
 - EditorCore.ts: Encapsulates Monaco Editor integration, exposing a clean API for model management, configuration, diagnostics, and diff sessions.
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
@@ -102,7 +110,9 @@ EG --> ES
 - [EditorCore.ts](file://src/lib/editor/EditorCore.ts#L1-L800)
 
 ## Architecture Overview
+
 The integration architecture follows a layered approach:
+
 - UI layer: Stores and actions orchestrate user interactions.
 - Service abstraction: fileService.ts encapsulates Tauri commands and events.
 - Backend layer: Rust Tauri commands implement filesystem operations and file watching.
@@ -129,6 +139,7 @@ ES->>FS : write/update content when needed
 ```
 
 **Diagram sources**
+
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L58-L134)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L297-L306)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L37-L87)
@@ -138,6 +149,7 @@ ES->>FS : write/update content when needed
 ## Detailed Component Analysis
 
 ### Service Layer: fileService.ts
+
 - Purpose: Provide a single interface to Tauri commands for filesystem operations and file watching.
 - Key responsibilities:
   - Read/write files
@@ -184,12 +196,15 @@ FileService <|.. fileService
 ```
 
 **Diagram sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L15-L83)
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 
 ### Data Model: FileNode
+
 - Contract: id, name, path, type ('file' | 'dir'), optional size and modified timestamp, optional children for directories.
 - Alignment: Mirrors the Rust FileEntry structure and is produced by the read_workspace Tauri command.
 
@@ -206,14 +221,17 @@ number modified
 ```
 
 **Diagram sources**
+
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 - [lib.rs](file://src-tauri/src/lib.rs#L122-L133)
 
 **Section sources**
+
 - [fileNode.ts](file://src/lib/types/fileNode.ts#L1-L19)
 - [lib.rs](file://src-tauri/src/lib.rs#L122-L133)
 
 ### Validation Patterns: fileValidator.ts
+
 - Validates files prior to opening in the editor:
   - Size checks: rejects files larger than a threshold.
   - Binary detection: heuristic checks for null bytes and non-ASCII ratios.
@@ -235,12 +253,15 @@ LargeCheck --> |No| Allow["Return canOpen=true"]
 ```
 
 **Diagram sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
 
 **Section sources**
+
 - [fileValidator.ts](file://src/lib/utils/fileValidator.ts#L1-L131)
 
 ### Data Flow: From UI to Backend and Back
+
 - User actions in the file tree trigger fileTreeActions.ts, which invokes fileService methods.
 - fileService.ts wraps Tauri invoke calls and listens for file-changed events.
 - workspaceStore.ts subscribes to fileService.onFileChange and refreshes the workspace tree.
@@ -270,6 +291,7 @@ Store->>Store : refresh()
 ```
 
 **Diagram sources**
+
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L84-L134)
 - [fileService.ts](file://src/lib/services/fileService.ts#L30-L83)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L37-L87)
@@ -277,6 +299,7 @@ Store->>Store : refresh()
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L297-L306)
 
 **Section sources**
+
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
@@ -284,6 +307,7 @@ Store->>Store : refresh()
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L297-L306)
 
 ### Error Handling and Retry Strategies
+
 - UI-level error handling:
   - fileTreeActions.ts catches errors during create/rename/delete and displays an alert with the action name and error.
   - workspaceStore.ts captures errors during loadWorkspaceFiles and sets an error state.
@@ -294,11 +318,13 @@ Store->>Store : refresh()
   - No explicit retry loops are implemented in the current code. On failure, the UI alerts the user and the workspace remains in a consistent state. Future enhancements could add retry policies at the service layer with exponential backoff and user feedback.
 
 **Section sources**
+
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L44-L57)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L55-L71)
 - [lib.rs](file://src-tauri/src/lib.rs#L248-L425)
 
 ### Technical Decisions: Service Abstraction
+
 - Why a service abstraction over direct Tauri calls:
   - Testability: fileService can be mocked to isolate UI logic.
   - Maintainability: centralized Tauri invocation and event handling reduce duplication.
@@ -309,12 +335,14 @@ Store->>Store : refresh()
   - workspaceStore.ts orchestrates refresh cycles without embedding Tauri logic.
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L1-L135)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L297-L306)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L37-L87)
 
 ## Dependency Analysis
+
 - Frontend dependencies:
   - fileService.ts depends on @tauri-apps/api for invoke and listen.
   - workspaceStore.ts depends on fileService and exposes a public API for refresh/open/close.
@@ -338,6 +366,7 @@ MR["main.rs"] --> RL
 ```
 
 **Diagram sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L1-L130)
 - [editorStore.ts](file://src/lib/stores/editorStore.ts#L1-L381)
@@ -348,10 +377,12 @@ MR["main.rs"] --> RL
 - [main.rs](file://src-tauri/src/main.rs#L1-L7)
 
 **Section sources**
+
 - [fileService.ts](file://src/lib/services/fileService.ts#L1-L85)
 - [lib.rs](file://src-tauri/src/lib.rs#L248-L425)
 
 ## Performance Considerations
+
 - File watching:
   - Rust starts a recursive file watcher and emits "file-changed" events. The frontend subscribes and refreshes the workspace tree, minimizing redundant polling.
 - Large file handling:
@@ -368,6 +399,7 @@ MR["main.rs"] --> RL
 [No sources needed since this section provides general guidance]
 
 ## Troubleshooting Guide
+
 - Workspace fails to load:
   - Check workspaceStore error state and confirm the root path is valid.
   - Verify Tauri commands are registered and lib.rs is running.
@@ -379,9 +411,11 @@ MR["main.rs"] --> RL
   - Verify "file-changed" events are emitted and listened to by fileService.onFileChange.
 
 **Section sources**
+
 - [workspaceStore.ts](file://src/lib/stores/workspaceStore.ts#L55-L71)
 - [fileTreeActions.ts](file://src/lib/sidebar/fileTreeActions.ts#L44-L57)
 - [lib.rs](file://src-tauri/src/lib.rs#L390-L425)
 
 ## Conclusion
+
 The integration layer cleanly separates UI concerns from filesystem operations through a service abstraction, enabling testability and maintainability. The FileNode contract bridges UI and backend seamlessly, while fileValidator ensures safe editor usage. The end-to-end flow from user actions to Tauri commands and Rust backend is robust, with clear error handling and a responsive file watcher. Future enhancements can focus on retry strategies, debounced refresh, and lightweight caching to further improve performance and reliability.
