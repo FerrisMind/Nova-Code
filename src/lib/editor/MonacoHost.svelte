@@ -39,14 +39,14 @@
   let {
     fileId,
     uri,
-    value,
+    value = $bindable(""),
     language,
     options,
     onchange,
   }: {
     fileId: string;
     uri: string;
-    value: string;
+    value?: string;
     language: string;
     options?: EditorCoreOptions;
     onchange?: (detail: { fileId: string; value: string }) => void;
@@ -145,6 +145,7 @@ core = createEditorCore(monaco as any);
       unsubscribe = core.onDidChangeContent((changedFileId, changedValue) => {
         // Хост отвечает за один fileId; фильтруем для надёжности.
         if (changedFileId === fileId) {
+          value = changedValue;
           onchange?.({ fileId: changedFileId, value: changedValue });
         }
       });
@@ -252,4 +253,3 @@ core = createEditorCore(monaco as any);
     color: var(--nc-fg);
   }
 </style>
-
