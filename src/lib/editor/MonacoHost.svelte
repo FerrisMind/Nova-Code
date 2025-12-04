@@ -56,6 +56,10 @@
   let core: EditorCoreApi | null = null;
   let monacoEditor = $state<any>(null); // Monaco editor instance for InlineSearch
   let monacoInstance: typeof import("monaco-editor") | null = null;
+  let lastAppliedValue = "";
+  let lastFileId = fileId;
+  let lastUri = uri;
+  let lastLanguage = language;
 
   // Текущая тема
   let currentTheme: ThemeState = { mode: "dark", palette: "dark-default" };
@@ -130,6 +134,10 @@ core = createEditorCore(monaco as any);
         value,
         language: monacoLanguage,
       });
+      lastAppliedValue = value ?? "";
+      lastFileId = fileId;
+      lastUri = uri;
+      lastLanguage = language;
 
       initCursorTracking(core);
       initEditorMeta(core);
@@ -146,6 +154,7 @@ core = createEditorCore(monaco as any);
         // Хост отвечает за один fileId; фильтруем для надёжности.
         if (changedFileId === fileId) {
           value = changedValue;
+          lastAppliedValue = changedValue;
           onchange?.({ fileId: changedFileId, value: changedValue });
         }
       });
@@ -184,22 +193,37 @@ core = createEditorCore(monaco as any);
    * В Svelte 5 runes-режиме используем $effect.
    */
   $effect(() => {
-    if (!core) return;
-    if (!fileId || !uri || typeof value !== "string") return;
+    if (!core || !monacoInstance) return;
+    if (!fileId || !uri) return;
+
+    const incoming = value ?? "";
+    const needsReset =
+      fileId !== lastFileId || uri !== lastUri || language !== lastLanguage;
 
     void (async () => {
-      if (!monacoInstance) return;
-      const monacoLanguage = await ensureLanguageRegistered(
-        monacoInstance as any,
-        language,
-      );
+      if (needsReset) {
+        const monacoLanguage = await ensureLanguageRegistered(
+          monacoInstance as any,
+          language,
+        );
 
-      core?.setModel({
-        fileId,
-        uri,
-        value,
-        language: monacoLanguage,
-      });
+        core?.setModel({
+          fileId,
+          uri,
+          value: incoming,
+          language: monacoLanguage,
+        });
+        lastFileId = fileId;
+        lastUri = uri;
+        lastLanguage = language;
+        lastAppliedValue = incoming;
+        return;
+      }
+
+      if (incoming !== lastAppliedValue) {
+        core?.updateContent(fileId, incoming);
+        lastAppliedValue = incoming;
+      }
     })();
   });
 
