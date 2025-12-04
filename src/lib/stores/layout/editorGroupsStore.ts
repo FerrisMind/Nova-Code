@@ -242,6 +242,7 @@ export function initSingleGroup(): void {
 export function setActiveGroup(groupId: EditorGroupId): void {
   internal.update((state) => {
     if (!state.groups.some((g) => g.id === groupId)) return state;
+    if (state.activeGroupId === groupId) return state;
     return ensureStateShape({
       ...state,
       activeGroupId: groupId
@@ -255,14 +256,19 @@ export function setActiveGroup(groupId: EditorGroupId): void {
  */
 export function setActiveTab(groupId: EditorGroupId, tabId: string): void {
   internal.update((state) => {
-    const groups = state.groups.map((g) => {
-      if (g.id !== groupId) return g;
-      if (!g.tabIds.includes(tabId)) return g;
-      return {
-        ...g,
-        activeTabId: tabId
-      };
-    });
+    const group = state.groups.find((g) => g.id === groupId);
+    if (!group) return state;
+    if (!group.tabIds.includes(tabId)) return state;
+    if (group.activeTabId === tabId) return state;
+
+    const groups = state.groups.map((g) =>
+      g.id === groupId
+        ? {
+            ...g,
+            activeTabId: tabId
+          }
+        : g
+    );
 
     return ensureStateShape({
       ...state,

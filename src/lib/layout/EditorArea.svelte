@@ -217,10 +217,7 @@
     current !== null && firstTabId !== null && current.id === firstTabId,
   );
 
-  /**
-   * Получение строк и значения для активного файла.
-   * Сейчас используем mocks; далее здесь будет интеграция с workspace/Tauri.
-   */
+  /** Получение строк и значения для активного файла. */
   const getContent = async (fileId: string, filePath?: string) => {
     if (!filePath) {
       throw new Error("missing file path for editor");
@@ -258,6 +255,36 @@
       };
     }
   };
+
+  type ContentResult =
+    | {
+        lines: string[];
+        value: string;
+        error: string | null;
+        warning: string | null;
+        optimizations?: Partial<EditorCoreOptions>;
+      }
+    | {
+        lines: never[];
+        value: string;
+        error: string;
+        warning?: string | null;
+        optimizations?: Partial<EditorCoreOptions>;
+      };
+
+  let contentPromise = $state<Promise<ContentResult>>(Promise.resolve({
+    lines: [],
+    value: "",
+    error: null,
+    warning: null
+  }));
+
+  // Обновляем промис только при смене файла
+  $effect(() => {
+    if (current) {
+      contentPromise = getContent(current.id, current.path);
+    }
+  });
 
   function handleEditorContentChange(fileId: string, value: string) {
     editorStore.markDirty(fileId, true);
@@ -320,8 +347,8 @@
   {:else}
     <Breadcrumbs tab={current} />
     <!-- Локально вычисляем контент для активного файла. -->
-    {#await Promise.resolve(getContent(current.id, current.path)) then content}
-      {#if content?.error}
+    {#await contentPromise then content}
+      {#if content && content.error}
         <div class="editor-error">
           <h2>Cannot open file</h2>
           <p class="path">{current.path || current.id}</p>
@@ -343,7 +370,7 @@
         <MonacoHost
           fileId={current.id}
           uri={`file://${current.path || current.id}`}
-          value={content.value}
+          value={content?.value ?? ""}
           language={current.language}
           options={mergeEditorOptions(
             {
@@ -368,7 +395,7 @@
               autoClosingQuotes: "always",
               autoClosingOvertype: "always",
             },
-            content.optimizations,
+            content?.optimizations,
           )}
           onchange={({ fileId, value }: { fileId: string; value: string }) =>
             handleEditorContentChange(fileId, value)}

@@ -214,6 +214,15 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
   const setActiveEditor = (fileId: string) => {
     const groupsState = get(editorGroups);
     const hostGroup = groupsState.groups.find((g) => g.tabIds.includes(fileId));
+    const currentState = get({ subscribe });
+    const alreadyActiveEditor = currentState.activeEditorId === fileId;
+    const alreadyActiveGroup =
+      hostGroup && groupsState.activeGroupId === hostGroup.id && hostGroup.activeTabId === fileId;
+
+    // No-op if editor and group are already active for this tab
+    if (alreadyActiveEditor && alreadyActiveGroup) {
+      return;
+    }
 
     if (hostGroup) {
       setActiveGroup(hostGroup.id);
@@ -222,6 +231,7 @@ const createEditorStore = (filesTreeProvider: () => FileNode[]) => {
 
     update((state) => {
       if (!state.openTabs.find((t) => t.id === fileId)) return state;
+      if (state.activeEditorId === fileId) return state;
       return { ...state, activeEditorId: fileId };
     });
   };
