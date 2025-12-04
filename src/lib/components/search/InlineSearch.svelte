@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
     // src/lib/components/search/InlineSearch.svelte
     // -----------------------------------------------------------------------------
@@ -21,20 +22,20 @@
   import type * as monaco from "monaco-editor";
 
     // Props
-    export let editor: monaco.editor.IStandaloneCodeEditor | null = null;
+    let { editor = null }: { editor: monaco.editor.IStandaloneCodeEditor | null } = $props();
 
     // Local state
-    let searchInput: HTMLInputElement;
-    let replaceInput: HTMLInputElement;
+    let searchInput: HTMLInputElement | null = $state(null);
+    let replaceInput: HTMLInputElement | null = $state(null);
 
     // Reactive state from store
-    $: state = inlineSearchStore.current;
+    const searchState = $derived(inlineSearchStore.current);
 
     /**
      * Handle search input change - trigger find in Monaco.
      */
     function handleSearch(): void {
-        if (!editor || !state.query) return;
+        if (!editor || !searchState.query) return;
 
         // Use Monaco's built-in find controller
         const controller = editor.getContribution(
@@ -43,10 +44,10 @@
         if (controller) {
             // Trigger find with current settings
             editor.trigger("inlineSearch", "actions.find", {
-                searchString: state.query,
-                isRegex: state.useRegex,
-                matchCase: state.caseSensitive,
-                wholeWord: state.wholeWord,
+                searchString: searchState.query,
+                isRegex: searchState.useRegex,
+                matchCase: searchState.caseSensitive,
+                wholeWord: searchState.wholeWord,
             });
         }
     }
@@ -79,9 +80,9 @@
      * Replace current match.
      */
     function replace(): void {
-        if (!editor || !state.replaceText) return;
+        if (!editor || !searchState.replaceText) return;
         editor.trigger("inlineSearch", "editor.action.replaceOne", {
-            replaceString: state.replaceText,
+            replaceString: searchState.replaceText,
         });
     }
 
@@ -89,9 +90,9 @@
      * Replace all matches.
      */
     function replaceAll(): void {
-        if (!editor || !state.replaceText) return;
+        if (!editor || !searchState.replaceText) return;
         editor.trigger("inlineSearch", "editor.action.replaceAll", {
-            replaceString: state.replaceText,
+            replaceString: searchState.replaceText,
         });
     }
 
@@ -126,9 +127,11 @@
     /**
      * Focus search input when panel becomes visible.
      */
-    $: if (state.visible && searchInput) {
-        setTimeout(() => searchInput?.focus(), 50);
-    }
+    $effect(() => {
+        if (searchState.visible && searchInput) {
+            setTimeout(() => searchInput?.focus(), 50);
+        }
+    });
 
     onMount(() => {
         // Setup global keyboard listeners for Ctrl+F / Ctrl+H
@@ -150,7 +153,7 @@
     });
 </script>
 
-{#if state.visible}
+{#if searchState.visible}
     <div
         class="inline-search-panel"
         role="dialog"
@@ -164,12 +167,12 @@
                     type="text"
                     class="search-input"
                     placeholder="Find"
-                    value={state.query}
-                    on:input={(e) => {
+                    value={searchState.query}
+                    oninput={(e) => {
                         inlineSearchStore.setQuery(e.currentTarget.value);
                         handleSearch();
                     }}
-                    on:keydown={handleKeydown}
+                    onkeydown={handleKeydown}
                     aria-label="Search query"
                 />
 
@@ -177,8 +180,8 @@
                 <div class="toggle-group">
                     <button
                         class="toggle-btn"
-                        class:active={state.caseSensitive}
-                        on:click={() => {
+                        class:active={searchState.caseSensitive}
+                    onclick={() => {
                             inlineSearchStore.toggleCaseSensitive();
                             handleSearch();
                         }}
@@ -189,8 +192,8 @@
                     </button>
                     <button
                         class="toggle-btn"
-                        class:active={state.wholeWord}
-                        on:click={() => {
+                        class:active={searchState.wholeWord}
+                    onclick={() => {
                             inlineSearchStore.toggleWholeWord();
                             handleSearch();
                         }}
@@ -201,8 +204,8 @@
                     </button>
                     <button
                         class="toggle-btn"
-                        class:active={state.useRegex}
-                        on:click={() => {
+                        class:active={searchState.useRegex}
+                    onclick={() => {
                             inlineSearchStore.toggleRegex();
                             handleSearch();
                         }}
@@ -218,7 +221,7 @@
             <div class="nav-buttons">
                 <button
                     class="nav-btn"
-                    on:click={findPrevious}
+                    onclick={findPrevious}
                     title="Previous Match (Shift+Enter)"
                     aria-label="Previous Match"
                 >
@@ -226,7 +229,7 @@
                 </button>
                 <button
                     class="nav-btn"
-                    on:click={findNext}
+                    onclick={findNext}
                     title="Next Match (Enter)"
                     aria-label="Next Match"
                 >
@@ -234,7 +237,7 @@
                 </button>
                 <button
                     class="close-btn"
-                    on:click={close}
+                    onclick={close}
                     title="Close (Esc)"
                     aria-label="Close search"
                 >
@@ -243,7 +246,7 @@
             </div>
         </div>
 
-        {#if state.isReplaceMode}
+        {#if searchState.isReplaceMode}
             <div class="replace-row">
                 <!-- Replace input -->
                 <div class="input-group">
@@ -252,12 +255,12 @@
                         type="text"
                         class="search-input"
                         placeholder="Replace"
-                        value={state.replaceText}
-                        on:input={(e) =>
+                        value={searchState.replaceText}
+                        oninput={(e) =>
                             inlineSearchStore.setReplaceText(
                                 e.currentTarget.value,
                             )}
-                        on:keydown={handleKeydown}
+                        onkeydown={handleKeydown}
                         aria-label="Replace text"
                     />
                 </div>
@@ -266,14 +269,14 @@
                 <div class="replace-buttons">
                     <button
                         class="action-btn"
-                        on:click={replace}
+                        onclick={replace}
                         title="Replace"
                     >
                         Replace
                     </button>
                     <button
                         class="action-btn"
-                        on:click={replaceAll}
+                        onclick={replaceAll}
                         title="Replace All"
                     >
                         Replace All

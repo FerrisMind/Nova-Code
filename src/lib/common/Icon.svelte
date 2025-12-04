@@ -24,13 +24,23 @@
    * через ICON_COLORS_PALETTE.
    */
 
-  export let name: string;
-  export let size: number = 22;
-  export let className: string = '';
-  /** Использовать адаптивный цвет из ICON_COLORS_PALETTE */
-  export let useAdaptiveColor: boolean = false;
-  /** Переопределить цвет вручную (приоритет выше useAdaptiveColor) */
-  export let color: string | undefined = undefined;
+  type IconProps = {
+    name: string;
+    size?: number;
+    className?: string;
+    /** Использовать адаптивный цвет из ICON_COLORS_PALETTE */
+    useAdaptiveColor?: boolean;
+    /** Переопределить цвет вручную (приоритет выше useAdaptiveColor) */
+    color?: string | undefined;
+  };
+
+  let {
+    name,
+    size = 22,
+    className = '',
+    useAdaptiveColor = false,
+    color = undefined
+  }: IconProps = $props();
 
   const [set, key] = name.split(':');
 
@@ -76,16 +86,18 @@
   const svg = !isLucide && !deviconData.baseClass ? getIcon(name) : '';
 
   // Реактивно получаем текущую тему
-  $: currentTheme = $theme.mode as ThemeMode;
-  
+  const currentTheme = $derived($theme.mode as ThemeMode);
+
   // Вычисляем адаптивный цвет для иконки
-  $: adaptiveColor = useAdaptiveColor && !color ? getIconColorFromDevicon(name, currentTheme) : undefined;
-  
+  const adaptiveColor = $derived(
+    useAdaptiveColor && !color ? getIconColorFromDevicon(name, currentTheme) : undefined
+  );
+
   // Итоговый цвет: приоритет у явно заданного color, затем adaptiveColor
-  $: finalColor = color || adaptiveColor;
-  
+  const finalColor = $derived(color || adaptiveColor);
+
   // Для devicon с colored классом используем адаптивный цвет только если useAdaptiveColor=true
-  $: useDeviconColored = deviconData.hasColored && !useAdaptiveColor && !color;
+  const useDeviconColored = $derived(deviconData.hasColored && !useAdaptiveColor && !color);
 </script>
 
 {#if isLucide}

@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/sections/AppearanceSection.svelte
   // ----------------------------------------------------------------------------
@@ -213,7 +214,7 @@
               definition={themePaletteDef}
               options={getPaletteOptions()}
               columns={3}
-              on:change={handlePaletteChange}
+              onchange={handlePaletteChange}
             />
             <SaveIndicator visible={paletteSaveVisible} compact onHide={() => paletteSaveVisible = false} />
           </div>

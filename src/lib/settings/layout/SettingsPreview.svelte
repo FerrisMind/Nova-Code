@@ -21,17 +21,22 @@
   /**
    * Текущая активная настройка для превью.
    */
-  export let activeSettingDefinition: SettingDefinition | undefined;
+  let {
+    activeSettingDefinition,
+    relatedSettings,
+    helpText
+  }: {
+    activeSettingDefinition?: SettingDefinition;
+    relatedSettings?: SettingDefinition[];
+    helpText?: string;
+  } = $props();
 
   /**
    * Связанные настройки для контекста.
    */
-  export let relatedSettings: SettingDefinition[] | undefined;
-
   /**
    * Дополнительный текст справки.
    */
-  export let helpText: string | undefined;
 </script>
 
 <aside class="settings-preview-root">

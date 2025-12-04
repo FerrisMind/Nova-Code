@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
 // src/lib/sidebar/FileTreeContextMenu.svelte
 // -----------------------------------------------------------------------------
@@ -12,28 +13,32 @@
 // - действия реализуются в fileTreeActions.ts;
 // - дизайн и API повторяют идеи VS Code Explorer, без зависимостей от Tauri.
 // -----------------------------------------------------------------------------
-
-  import { createEventDispatcher } from 'svelte';
-import type { FileNode } from '../types/fileNode';
+  import type { FileNode } from '../types/fileNode';
   import type { FileTreeActionId } from './fileTreeActions';
 
-  export let visible: boolean = false;
-  export let x: number = 0;
-  export let y: number = 0;
-  export let node: FileNode | null = null;
-
-  const dispatch = createEventDispatcher<{
-    action: { id: FileTreeActionId; node: FileNode };
-    close: void;
-  }>();
+  let {
+    visible = false,
+    x = 0,
+    y = 0,
+    node = null,
+    onaction,
+    onclose
+  }: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    node?: FileNode | null;
+    onaction?: (detail: { id: FileTreeActionId; node: FileNode }) => void;
+    onclose?: () => void;
+  } = $props();
 
   function trigger(id: FileTreeActionId) {
     if (!node) return;
-    dispatch('action', { id, node });
+    onaction?.({ id, node });
   }
 
   function handleBlur() {
-    dispatch('close');
+    onclose?.();
   }
 </script>
 
@@ -42,7 +47,7 @@ import type { FileNode } from '../types/fileNode';
     class="ctx-backdrop"
     role="presentation"
     aria-hidden="true"
-    on:click={() => dispatch('close')}
+    onclick={() => onclose?.()}
   ></div>
 
   <div
@@ -50,34 +55,34 @@ import type { FileNode } from '../types/fileNode';
     style={`top:${y}px;left:${x}px;`}
     tabindex="0"
     role="menu"
-    on:blur={handleBlur}
-    on:keydown={(event) => {
+    onblur={handleBlur}
+    onkeydown={(event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        dispatch('close');
+        onclose?.();
       }
     }}
   >
-    <button class="ctx-item" type="button" on:click={() => trigger('open')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('open')}>
       Open
     </button>
-    <button class="ctx-item" type="button" on:click={() => trigger('openToSide')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('openToSide')}>
       Open to Side
     </button>
-    <button class="ctx-item" type="button" on:click={() => trigger('revealInExplorer')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('revealInExplorer')}>
       Reveal in Explorer
     </button>
     <div class="ctx-separator"></div>
-    <button class="ctx-item" type="button" on:click={() => trigger('newFile')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('newFile')}>
       New File
     </button>
-    <button class="ctx-item" type="button" on:click={() => trigger('newFolder')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('newFolder')}>
       New Folder
     </button>
-    <button class="ctx-item" type="button" on:click={() => trigger('rename')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('rename')}>
       Rename
     </button>
-    <button class="ctx-item" type="button" on:click={() => trigger('delete')}>
+    <button class="ctx-item" type="button" onclick={() => trigger('delete')}>
       Delete
     </button>
   </div>

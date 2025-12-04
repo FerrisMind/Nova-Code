@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
     // src/lib/components/search/ProjectSearchPanel.svelte
     // -----------------------------------------------------------------------------
@@ -23,9 +24,9 @@
     import { workspaceStore } from "$lib/stores/workspaceStore";
 
     // Reactive state
-    $: state = projectSearchStore.current;
-    $: resultCount = projectSearchStore.resultCount;
-    $: isSearching = projectSearchStore.isActive;
+    const state = $derived(projectSearchStore.current);
+    const resultCount = $derived(projectSearchStore.resultCount);
+    const isSearching = $derived(projectSearchStore.isActive);
 
     // Local state
     let queryInput: HTMLInputElement;
@@ -117,14 +118,14 @@
                 class="search-input"
                 placeholder="Search in project..."
                 value={state.query}
-                on:input={(e) => handleSearchInput(e.currentTarget.value)}
+                oninput={(e) => handleSearchInput(e.currentTarget.value)}
                 aria-label="Search query"
             />
 
             {#if isSearching}
                 <button
                     class="action-btn cancel-btn"
-                    on:click={handleCancel}
+                    onclick={handleCancel}
                     title="Cancel search"
                 >
                     Cancel
@@ -132,7 +133,7 @@
             {:else if resultCount > 0}
                 <button
                     class="action-btn clear-btn"
-                    on:click={handleClear}
+                    onclick={handleClear}
                     title="Clear results"
                 >
                     Clear
@@ -146,7 +147,7 @@
                 <input
                     type="checkbox"
                     checked={state.caseSensitive}
-                    on:change={() => projectSearchStore.toggleCaseSensitive()}
+                    onchange={() => projectSearchStore.toggleCaseSensitive()}
                 />
                 <span>Match Case</span>
             </label>
@@ -154,7 +155,7 @@
                 <input
                     type="checkbox"
                     checked={state.useRegex}
-                    on:change={() => projectSearchStore.toggleRegex()}
+                    onchange={() => projectSearchStore.toggleRegex()}
                 />
                 <span>Use Regex</span>
             </label>
@@ -190,7 +191,7 @@
                 {#each state.results as result, index (index)}
                     <button
                         class="result-item"
-                        on:click={() => handleResultClick(result)}
+                        onclick={() => handleResultClick(result)}
                         title="Open file at line {result.line}"
                     >
                         <div class="result-header">

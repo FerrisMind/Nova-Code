@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   /**
    * QuickActions.svelte
@@ -12,13 +13,13 @@
    * Дизайн: glassmorphism, минималистичный, с иконками
    */
   
-  import { createEventDispatcher } from 'svelte';
   import Icon from '$lib/common/Icon.svelte';
   import { getDefaultQuickActions, type QuickAction } from '$lib/settings/quickActions';
   
-  const dispatch = createEventDispatcher<{
-    action: { actionId: string };
-  }>();
+  let {
+    onchange,
+    onaction
+  }: { onchange?: never; onaction?: (detail: { actionId: string }) => void } = $props();
 
   let showConfirmReset = $state(false);
   let isProcessing = $state(false);
@@ -35,7 +36,7 @@
     }
 
     isProcessing = true;
-    dispatch('action', { actionId });
+    onaction?.({ actionId });
 
     try {
       const action = quickActions.find((a: QuickAction) => a.id === actionId);

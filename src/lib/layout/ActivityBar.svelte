@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   import { goto } from '$app/navigation';
   import Icon from '../common/Icon.svelte';
@@ -5,6 +6,7 @@
   import { sidebarViews } from './sidebarRegistry';
   import { layoutState, toggleLeftSidebar } from '../stores/layout/layoutStore';
   import { editorStore } from '../stores/editorStore';
+  import { fromStore } from 'svelte/store';
 
   /**
    * ActivityBar:
@@ -13,16 +15,18 @@
    * - управление видимостью левого сайдбара делегировано layoutStore.
    */
   const leftViews = sidebarViews.filter((v) => v.position === 'left');
+  const activity = fromStore(activityStore);
+  const layout = fromStore(layoutState);
 
   const setActive = (id: ActivityId) => {
-    if ($activityStore === id) {
+    if (activity.current === id) {
       // Повторный клик по активной иконке сворачивает/разворачивает левый сайдбар.
       toggleLeftSidebar();
       return;
     }
 
     activityStore.setActivity(id);
-    if (!$layoutState.leftSidebarVisible) {
+    if (!layout.current.leftSidebarVisible) {
       toggleLeftSidebar();
     }
   };
@@ -32,13 +36,13 @@
   };
 </script>
 
-<div class="activity-bar" class:rounded={!$layoutState.leftSidebarVisible}>
+<div class="activity-bar" class:rounded={!layout.current.leftSidebarVisible}>
   <div class="activity-items">
     {#each leftViews as view}
       <button
         class="activity-btn"
-        class:active={$activityStore === view.id && $layoutState.leftSidebarVisible}
-        on:click={() => setActive(view.id as ActivityId)}
+        class:active={activity.current === view.id && layout.current.leftSidebarVisible}
+        onclick={() => setActive(view.id as ActivityId)}
         title={view.title}
       >
         <!-- Отладка: явно логируем id/icon в data-* для визуальной проверки -->
@@ -56,8 +60,8 @@
     <button
       class="activity-btn settings-bottom"
       title="Settings"
-      class:active={$activityStore === 'settings' && $layoutState.leftSidebarVisible}
-      on:click={handleSettingsClick}
+      class:active={activity.current === 'settings' && layout.current.leftSidebarVisible}
+      onclick={handleSettingsClick}
     >
       <Icon name="lucide:Settings" size={20} />
     </button>

@@ -10,11 +10,11 @@
     import { workspaceStore } from "$lib/stores/workspaceStore";
     import Icon from "$lib/common/Icon.svelte";
 
-    $: activePath = $activeEditor?.path || "";
-    $: workspaceFiles = $workspaceStore?.files || [];
+    const activePath = $derived($activeEditor?.path || "");
+    const workspaceFiles = $derived($workspaceStore?.files || []);
 
     // Get the actual workspace root by looking at the file tree
-    $: workspaceRoot = (() => {
+    const workspaceRoot = $derived((() => {
         if (!workspaceFiles || workspaceFiles.length === 0) return null;
 
         // Get the path from the first file and extract the root
@@ -32,10 +32,10 @@
         // Find the folder that contains all workspace files
         // Usually it's the parent of the first part
         return parts.slice(0, -1).join("/");
-    })();
+    })());
 
     // Calculate relative path from workspace root
-    $: relativePath = (() => {
+    const relativePath = $derived((() => {
         if (!activePath) return "";
 
         // Normalize path
@@ -67,12 +67,16 @@
 
         // Fallback: just return the normalized path
         return normalized;
-    })();
+    })());
 
     // Split into segments - show full path from workspace root
-    $: pathSegments = relativePath
-        ? relativePath.split("/").filter((s) => s && s !== "." && s !== "..")
-        : [];
+    const pathSegments = $derived(
+        relativePath
+            ? relativePath
+                  .split("/")
+                  .filter((s) => s && s !== "." && s !== "..")
+            : [],
+    );
 </script>
 
 {#if pathSegments.length > 0}

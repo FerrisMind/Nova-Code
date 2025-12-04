@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { activityStore, type ActivityId } from '../stores/activityStore';
@@ -15,11 +16,10 @@
    */
 
   const MIN_WIDTH = 220;
-  let MAX_WIDTH = 600;
   let windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
 
   // Reactive max width: 62.5% of window width
-  $: MAX_WIDTH = Math.floor(windowWidth * 0.625);
+  const MAX_WIDTH = $derived(Math.floor(windowWidth * 0.625));
 
   // Функция обновления размеров окна
   const updateWindowWidth = () => {
@@ -45,11 +45,11 @@
   });
 
   // Текущее активное view-конфиг для левой панели.
-  $: activeView = leftViews.find((v) => v.id === activeId);
+  const activeView = $derived(leftViews.find((v) => v.id === activeId));
 
   // Drag-resize: обработчик на вертикальном хендле справа.
-  let isResizing = false;
-  let hideTimer: number | null = null;
+  let isResizing = $state(false);
+  let hideTimer: number | null = $state(null);
 
   const onHandleMouseDown = (event: MouseEvent) => {
     event.preventDefault();
@@ -123,7 +123,8 @@
     style={`width: ${$layoutState.leftSidebarWidth}px`}
   >
     {#if activeView}
-      <svelte:component this={activeView.component} />
+      {@const ActiveView = activeView.component}
+      <ActiveView />
     {/if}
 
     <!-- Вертикальный ресайз-хендл справа:
@@ -134,7 +135,7 @@
       role="button"
       aria-label="Resize sidebar"
       tabindex="0"
-      on:mousedown={onHandleMouseDown}
+      onmousedown={onHandleMouseDown}
     ></div>
   </div>
 {/if}

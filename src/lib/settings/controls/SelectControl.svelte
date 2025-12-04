@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/SelectControl.svelte
   // ----------------------------------------------------------------------------
@@ -9,8 +10,6 @@
   //
   // API совместим с другими контролами (definition, on:change)
   // ----------------------------------------------------------------------------
-
-  import { createEventDispatcher } from 'svelte';
   import * as Select from '$lib/components/ui/select';
   import type {
     SettingDefinition,
@@ -43,18 +42,15 @@
     placeholder?: string;
   }
 
-  const dispatch = createEventDispatcher<{
-    change: { value: SettingValue; meta: SettingChangeMeta };
-  }>();
-
   let {
     definition,
     options,
     value = undefined,
     onChange = undefined,
     disabled = false,
-    placeholder = 'Select...'
-  }: SelectControlProps = $props();
+    placeholder = 'Select...',
+    onchange
+  }: SelectControlProps & { onchange?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void } = $props();
 
   // ---------------------------------------------------------------------------
   // Состояние
@@ -102,7 +98,7 @@
     }
 
     selectedValue = newValue;
-    dispatch('change', { value: newValue, meta });
+    onchange?.({ value: newValue, meta });
   }
 </script>
 
@@ -124,4 +120,3 @@
     {/each}
   </Select.Content>
 </Select.Root>
-

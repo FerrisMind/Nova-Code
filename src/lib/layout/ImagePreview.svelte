@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/layout/ImagePreview.svelte
   // ---------------------------------------------------------------------------
@@ -432,8 +433,8 @@
               lineNumbers: editorOptions.lineNumbers,
               readOnly: false,
             }}
-            on:change={(e) => {
-              svgContent = e.detail.value;
+            onchange={({ value }: { fileId: string; value: string }) => {
+              svgContent = value;
               extractSvgDimensions();
             }}
           />

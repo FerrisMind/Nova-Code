@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import EditorTabs from './EditorTabs.svelte';
@@ -13,8 +14,10 @@
     type EditorGroupId
   } from '../stores/layout/editorGroupsStore';
 
-  export let groupId: EditorGroupId;
-  export let isActive: boolean = false;
+  let {
+    groupId,
+    isActive = false
+  }: { groupId: EditorGroupId; isActive?: boolean } = $props();
 
   let activeTab: EditorTab | null = null;
 
@@ -41,9 +44,9 @@
   role="button"
   aria-pressed={isActive}
   tabindex="0"
-  on:click={focusGroup}
-  on:keydown={(event) => (event.key === 'Enter' || event.key === ' ') && focusGroup()}
-  on:focusin={focusGroup}
+  onclick={focusGroup}
+  onkeydown={(event) => (event.key === 'Enter' || event.key === ' ') && focusGroup()}
+  onfocusin={focusGroup}
 >
   <EditorTabs {groupId} {isActive} />
   <EditorArea {groupId} />

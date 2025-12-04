@@ -1,10 +1,9 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/CardSelect.svelte
   // ----------------------------------------------------------------------------
   // Адаптированный компонент на основе shadcn-svelte Radio Group с карточным дизайном.
   // ----------------------------------------------------------------------------
-
-  import { createEventDispatcher } from "svelte";
   import type {
     SettingDefinition,
     SettingId,
@@ -42,18 +41,20 @@
     idPrefix?: string;
   };
 
-  const dispatch = createEventDispatcher<{
-    change: { value: SettingValue; meta: SettingChangeMeta };
-    select: { value: SettingValue; meta: SettingChangeMeta };
-  }>();
-
-  export let definition: CardSelectProps["definition"];
-  export let options: CardSelectProps["options"] = [];
-  export let value: CardSelectProps["value"] = undefined;
-  export let onChange: CardSelectProps["onChange"] = undefined;
-  export let disabled: CardSelectProps["disabled"] = false;
-  export let columns: CardSelectProps["columns"] = 0;
-  export let idPrefix: CardSelectProps["idPrefix"] = "setting-card";
+  let {
+    definition,
+    options = [],
+    value = undefined,
+    onChange = undefined,
+    disabled = false,
+    columns = 0,
+    idPrefix = "setting-card",
+    onchange,
+    onselect
+  }: CardSelectProps & {
+    onchange?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void;
+    onselect?: (detail: { value: SettingValue; meta: SettingChangeMeta }) => void;
+  } = $props();
 
   const current = (): SettingValue | undefined => {
     if (value !== undefined) return value;
@@ -88,8 +89,8 @@
       definition.set(next);
     }
 
-    dispatch("change", { value: next, meta });
-    dispatch("select", { value: next, meta });
+    onchange?.({ value: next, meta });
+    onselect?.({ value: next, meta });
   };
 
   const handleKeydown = (event: KeyboardEvent, opt: CardSelectOption) => {

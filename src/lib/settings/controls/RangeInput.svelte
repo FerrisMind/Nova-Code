@@ -1,10 +1,9 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/RangeInput.svelte
   // ----------------------------------------------------------------------------
   // Обёртка для shadcn-svelte Slider с number input, сохраняет оригинальный API.
   // ----------------------------------------------------------------------------
-
-  import { createEventDispatcher } from "svelte";
   import { Slider } from "$lib/components/ui/slider";
   import type {
     SettingDefinition,
@@ -33,10 +32,6 @@
     idPrefix?: string;
   }
 
-  const dispatch = createEventDispatcher<{
-    change: { value: number; meta: SettingChangeMeta };
-  }>();
-
   let {
     definition,
     value = undefined,
@@ -49,7 +44,8 @@
     compact = false,
     id = "",
     idPrefix = "setting-range",
-  }: RangeInputProps = $props();
+    onchange
+  }: RangeInputProps & { onchange?: (detail: { value: number; meta: SettingChangeMeta }) => void } = $props();
 
   if (min === undefined || max === undefined) {
     throw new Error("RangeInput requires explicit min and max props.");
@@ -125,7 +121,7 @@
 
     sliderValue = clamped;
     inputBuffer = String(clamped);
-    dispatch("change", { value: clamped, meta });
+    onchange?.({ value: clamped, meta });
   };
 
   const handleSliderChange = (val: number | number[]) => {

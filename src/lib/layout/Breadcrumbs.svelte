@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
     import { activeEditor, type EditorTab } from "../stores/editorStore";
     import { workspaceStore } from "../stores/workspaceStore";
@@ -5,16 +6,10 @@
     import { getLanguageIcon } from "../mocks/languageIcons";
     import { onDestroy } from "svelte";
 
-    export let tab: EditorTab | null = null;
+    let { tab = null }: { tab: EditorTab | null } = $props();
 
-    let currentPath: string | null = null;
-    let pathParts: string[] = [];
-    let fileName: string = "";
-    let workspaceRoot: string | null = null;
-    let activeFromStore: EditorTab | null = null;
-
-    // Derived icon based on the current filename
-    $: fileIcon = fileName ? getLanguageIcon(fileName) : "lucide:File";
+    let workspaceRoot = $state<string | null>(null);
+    let activeFromStore = $state<EditorTab | null>(null);
 
     const unsubscribeWorkspace = workspaceStore.subscribe((state) => {
         workspaceRoot = state.root;
@@ -24,36 +19,26 @@
         activeFromStore = $active;
     });
 
-    const applyTab = (target: EditorTab | null) => {
-        if (target) {
-            currentPath = target.path || target.id;
+    const activeTab = $derived(tab ?? activeFromStore);
 
-            let displayPath = currentPath.replace(/\\/g, "/");
-
-            if (workspaceRoot) {
-                const normalizedRoot = workspaceRoot.replace(/\\/g, "/");
-                if (
-                    displayPath
-                        .toLowerCase()
-                        .startsWith(normalizedRoot.toLowerCase())
-                ) {
-                    displayPath = displayPath.slice(normalizedRoot.length);
-                    if (displayPath.startsWith("/")) {
-                        displayPath = displayPath.slice(1);
-                    }
-                }
+    const normalizedPath = $derived((() => {
+        if (!activeTab) return null;
+        const raw = (activeTab.path || activeTab.id).replace(/\\/g, "/");
+        if (workspaceRoot) {
+            const normalizedRoot = workspaceRoot.replace(/\\/g, "/");
+            if (raw.toLowerCase().startsWith(normalizedRoot.toLowerCase())) {
+                const sliced = raw.slice(normalizedRoot.length);
+                return sliced.startsWith("/") ? sliced.slice(1) : sliced;
             }
-
-            pathParts = displayPath.split("/").filter((p) => p.length > 0);
-            fileName = pathParts.pop() || "";
-        } else {
-            currentPath = null;
-            pathParts = [];
-            fileName = "";
         }
-    };
+        return raw;
+    })() as string | null);
 
-    $: applyTab(tab ?? activeFromStore);
+    const pathParts = $derived(
+        normalizedPath ? normalizedPath.split("/").filter((p: string) => p.length > 0) : [],
+    );
+    const fileName = $derived(pathParts[pathParts.length - 1] || "");
+    const fileIcon = $derived(fileName ? getLanguageIcon(fileName) : "lucide:File");
 
     onDestroy(() => {
         unsubscribeEditor();
@@ -61,7 +46,7 @@
     });
 </script>
 
-{#if currentPath}
+{#if normalizedPath}
     <div class="breadcrumbs">
         {#each pathParts as part}
             <div class="crumb">

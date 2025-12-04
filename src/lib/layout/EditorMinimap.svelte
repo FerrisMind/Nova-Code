@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let lines: string[] = [];
+  let { lines = [] }: { lines?: string[] } = $props();
 </script>
 
 <div class="minimap">

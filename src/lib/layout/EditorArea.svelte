@@ -370,8 +370,8 @@
             },
             content.optimizations,
           )}
-          on:change={(e) =>
-            handleEditorContentChange(e.detail.fileId, e.detail.value)}
+          onchange={({ fileId, value }: { fileId: string; value: string }) =>
+            handleEditorContentChange(fileId, value)}
         />
       {/if}
     {/await}

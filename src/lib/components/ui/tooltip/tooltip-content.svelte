@@ -26,27 +26,47 @@
 		data-slot="tooltip-content"
 		{sideOffset}
 		{side}
-		class={cn(
-			"bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-end-2 data-[side=right]:slide-in-from-start-2 data-[side=top]:slide-in-from-bottom-2 origin-(--bits-tooltip-content-transform-origin) z-50 w-fit text-balance rounded-md px-3 py-1.5 text-xs",
-			className
-		)}
+		class={cn("nc-tooltip-content", className)}
 		{...restProps}
 	>
 		{@render children?.()}
 		<TooltipPrimitive.Arrow>
 			{#snippet child({ props })}
 				<div
-					class={cn(
-						"bg-primary z-50 size-2.5 rotate-45 rounded-[2px]",
-						"data-[side=top]:translate-x-1/2 data-[side=top]:translate-y-[calc(-50%_+_2px)]",
-						"data-[side=bottom]:-translate-x-1/2 data-[side=bottom]:-translate-y-[calc(-50%_+_1px)]",
-						"data-[side=right]:translate-x-[calc(50%_+_2px)] data-[side=right]:translate-y-1/2",
-						"data-[side=left]:-translate-y-[calc(50%_-_3px)]",
-						arrowClasses
-					)}
+					class={cn("nc-tooltip-arrow", arrowClasses)}
 					{...props}
 				></div>
 			{/snippet}
 		</TooltipPrimitive.Arrow>
 	</TooltipPrimitive.Content>
 </TooltipPortal>
+
+<style>
+  :global(.nc-tooltip-content) {
+    z-index: 50;
+    display: inline-flex;
+    flex-direction: column;
+    max-width: 320px;
+    padding: 8px 12px;
+    background: var(--nc-bg-elevated, #1e1e1e);
+    color: var(--nc-fg, #fafafa);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  :global(.nc-tooltip-content[data-state='closed']) {
+    display: none;
+  }
+
+  :global(.nc-tooltip-arrow) {
+    width: 10px;
+    height: 10px;
+    background: var(--nc-bg-elevated, #1e1e1e);
+    transform: rotate(45deg);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  }
+</style>

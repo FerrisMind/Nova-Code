@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/SearchCommand.svelte
   // ----------------------------------------------------------------------------
@@ -16,8 +17,6 @@
   // - рекомендации Context7 + официальную документацию Svelte 5
   //   по управлению локальным состоянием и событиями.
   // ----------------------------------------------------------------------------
-
-  import { createEventDispatcher } from 'svelte';
   import { searchSettings } from '$lib/settings/registry';
   import type { SettingsSearchResult } from '$lib/settings/types';
 
@@ -28,16 +27,18 @@
     compact?: boolean;
   };
 
-  const dispatch = createEventDispatcher<{
-    select: SettingsSearchResult;
-    search: { query: string; results: SettingsSearchResult[] };
-  }>();
-
   const {
     placeholder = 'Поиск настроек...',
     autofocus = false,
     limit = 20,
-    compact = false
+    compact = false,
+    onchange,
+    onselect,
+    onsearch
+  }: SearchCommandProps & {
+    onchange?: never;
+    onselect?: (detail: SettingsSearchResult) => void;
+    onsearch?: (detail: { query: string; results: SettingsSearchResult[] }) => void;
   } = $props();
 
   let query = $state('');
@@ -58,7 +59,7 @@
     const trimmed = query.trim();
     if (!trimmed) {
       results = [];
-      dispatch('search', { query: '', results });
+      onsearch?.({ query: '', results });
       return;
     }
 
@@ -67,7 +68,7 @@
     });
 
     results = next;
-    dispatch('search', { query: trimmed, results });
+    onsearch?.({ query: trimmed, results });
   };
 
   const handleInput = (event: Event) => {
@@ -87,7 +88,7 @@
   };
 
   const handleSelect = (result: SettingsSearchResult) => {
-    dispatch('select', result);
+    onselect?.(result);
   };
 </script>
 

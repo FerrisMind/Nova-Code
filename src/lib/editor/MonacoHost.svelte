@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/editor/MonacoHost.svelte
   // -------------------------------------------------------------------------
@@ -14,7 +15,7 @@
   //
   // Готов к расширению: diff-режим, IntelliSense, кастомные языки.
 
-  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import {
     createEditorCore,
     type EditorCoreOptions,
@@ -41,17 +42,15 @@
     value,
     language,
     options,
+    onchange,
   }: {
     fileId: string;
     uri: string;
     value: string;
     language: string;
     options?: EditorCoreOptions;
+    onchange?: (detail: { fileId: string; value: string }) => void;
   } = $props();
-
-  const dispatch = createEventDispatcher<{
-    change: { fileId: string; value: string };
-  }>();
 
   let containerElement: HTMLDivElement;
   let core: EditorCoreApi | null = null;
@@ -146,7 +145,7 @@ core = createEditorCore(monaco as any);
       unsubscribe = core.onDidChangeContent((changedFileId, changedValue) => {
         // Хост отвечает за один fileId; фильтруем для надёжности.
         if (changedFileId === fileId) {
-          dispatch("change", { fileId: changedFileId, value: changedValue });
+          onchange?.({ fileId: changedFileId, value: changedValue });
         }
       });
 
@@ -253,7 +252,4 @@ core = createEditorCore(monaco as any);
     color: var(--nc-fg);
   }
 </style>
-
-
-
 

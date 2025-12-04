@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { activeEditor } from '../stores/editorStore';
@@ -6,17 +7,17 @@
   import { activeEditorMeta } from '../stores/editorMetaStore';
 
   // Текущее состояние из editorStore (имя/путь файла).
-  let current = null as import('../stores/editorStore').EditorTab | null;
+  let current = $state<import('../stores/editorStore').EditorTab | null>(null);
 
   // Состояние курсора.
-  let cursorLn = 1;
-  let cursorCol = 1;
+  let cursorLn = $state(1);
+  let cursorCol = $state(1);
 
   // Мета-информация активного файла.
-  let languageId: string | null = null;
-  let eol: 'LF' | 'CRLF' | null = null;
-  let tabSize: number | null = null;
-  let insertSpaces: boolean | null = null;
+  let languageId = $state<string | null>(null);
+  let eol = $state<'LF' | 'CRLF' | null>(null);
+  let tabSize = $state<number | null>(null);
+  let insertSpaces = $state<boolean | null>(null);
 
   // Подписки на сторы. Используем ручное управление без onMount,
   // чтобы сохранить минималистичный и предсказуемый подход.
@@ -59,14 +60,15 @@
     return id;
   };
 
-  $: languageLabel = mapLanguageIdToLabel(languageId);
-  $: eolLabel = eol ?? '';
-  $: indentLabel =
+  const languageLabel = $derived(mapLanguageIdToLabel(languageId));
+  const eolLabel = $derived(eol ?? '');
+  const indentLabel = $derived(
     tabSize == null
       ? ''
       : insertSpaces
       ? `Spaces: ${tabSize}`
-      : `Tab Size: ${tabSize}`;
+      : `Tab Size: ${tabSize}`,
+  );
 </script>
 
 <div class="status-bar">

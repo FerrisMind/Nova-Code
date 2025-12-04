@@ -1,5 +1,6 @@
+<svelte:options runes={true} />
 <script lang="ts">
-  import { afterUpdate, onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import {
     editorStore,
     tabsForGroup,
@@ -20,11 +21,13 @@
   import Icon from '../common/Icon.svelte';
   import { getLanguageIcon } from '../mocks/languageIcons';
 
-  export let groupId: EditorGroupId;
-  export let isActive: boolean = false;
+  let {
+    groupId,
+    isActive = false
+  }: { groupId: EditorGroupId; isActive?: boolean } = $props();
 
-  let stateTabs: EditorTab[] = [];
-  let currentActive: EditorTab | null = null;
+  let stateTabs: EditorTab[] = $state([]);
+  let currentActive: EditorTab | null = $state(null);
   let tabContainer: HTMLDivElement | null = null;
   let scrollbarTrack: HTMLDivElement | null = null;
   let scrollbarThumb: HTMLSpanElement | null = null;
@@ -38,19 +41,18 @@
   let dragStartScrollLeft = 0;
   let hoverActive = false;
   let scrollActive = false;
-  let scrollVisible = false;
+  let scrollVisible = $state(false);
   let scrollVisibilityTimer: ReturnType<typeof setTimeout> | null = null;
   const SCROLL_VISIBILITY_TIMEOUT = 1200;
 
-  let groupCount = 1;
-  let moveTargets: EditorGroupId[] = [];
-  let contextMenuOpen = false;
-  let contextMenuX = 0;
-  let contextMenuY = 0;
-  let contextTabId: string | null = null;
-  let showActiveIndicator = false;
-  let actionsMenuOpen = false;
-  let activeTabAtRightEdge = false;
+  let groupCount = $state(1);
+  let moveTargets: EditorGroupId[] = $state([]);
+  let contextMenuOpen = $state(false);
+  let contextMenuX = $state(0);
+  let contextMenuY = $state(0);
+  let contextTabId: string | null = $state(null);
+  let actionsMenuOpen = $state(false);
+  let activeTabAtRightEdge = $state(false);
 
 
   const tabsUnsub = tabsForGroup(groupId).subscribe((tabs) => {
@@ -68,7 +70,7 @@
     moveTargets = $state.groups.filter((g) => g.id !== groupId).map((g) => g.id);
   });
 
-  $: showActiveIndicator = isActive && !!currentActive && groupCount > 1;
+  const showActiveIndicator = $derived(isActive && !!currentActive && groupCount > 1);
 
   const scheduleScrollbarUpdate = () => {
     if (typeof requestAnimationFrame !== 'function') {
@@ -293,7 +295,10 @@
     };
   });
 
-  afterUpdate(() => {
+  $effect(() => {
+    stateTabs;
+    currentActive;
+    scrollVisible;
     scheduleScrollbarUpdate();
   });
 
@@ -374,8 +379,8 @@
   class="tabs-bar-wrapper"
   class:hidden={stateTabs.length === 0}
   class:scroll-visible={scrollVisible}
-  on:pointerenter={handleMouseEnter}
-  on:pointerleave={handleMouseLeave}
+  onpointerenter={handleMouseEnter}
+  onpointerleave={handleMouseLeave}
   role="presentation"
 >
   <div class="tabs-main">
@@ -391,9 +396,9 @@
             data-tab-id={tab.id}
             role="tab"
             tabindex="0"
-            on:click={() => setActive(tab.id)}
-            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && setActive(tab.id)}
-            on:contextmenu={(event) => openContextMenu(event, tab.id)}
+            onclick={() => setActive(tab.id)}
+            onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && setActive(tab.id)}
+            oncontextmenu={(event) => openContextMenu(event, tab.id)}
             title={tab.path}
           >
             <span class="tab-title">
@@ -409,7 +414,10 @@
               class="tab-close"
               class:visible={currentActive && currentActive.id === tab.id}
               aria-label={`Close ${tab.title}`}
-              on:click|stopPropagation={() => close(tab.id)}
+              onclick={(event) => {
+                event.stopPropagation();
+                close(tab.id);
+              }}
             >
               <Icon name="lucide:X" size={16} />
             </button>
@@ -423,7 +431,7 @@
         class="icon-button"
         aria-label="Split editor right"
         title={groupCount >= MAX_GROUPS ? 'Maximum groups reached' : 'Split editor right'}
-        on:click={handleSplit}
+        onclick={handleSplit}
         disabled={groupCount >= MAX_GROUPS || !currentActive}
       >
         <Icon name="lucide:columns-2" size={24} />
@@ -432,7 +440,7 @@
         class="icon-button"
         aria-label="More editor actions"
         title="More editor actions"
-        on:click={toggleActionsMenu}
+        onclick={toggleActionsMenu}
       >
         <Icon name="lucide:Ellipsis" size={24} />
       </button>
@@ -443,12 +451,12 @@
     <div
       class="tabs-scrollbar-track"
       bind:this={scrollbarTrack}
-      on:pointerdown={handleTrackPointerDown}
+      onpointerdown={handleTrackPointerDown}
     >
       <span
         class="tabs-scrollbar-thumb"
         bind:this={scrollbarThumb}
-        on:pointerdown={startThumbDrag}
+        onpointerdown={startThumbDrag}
       ></span>
     </div>
   </div>
@@ -459,8 +467,8 @@
       role="button"
       tabindex="0"
       aria-label="Close tab context menu"
-      on:click={closeContextMenu}
-      on:keydown={(event) =>
+      onclick={closeContextMenu}
+      onkeydown={(event) =>
         (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') && closeContextMenu()}
     ></div>
     <div
@@ -468,13 +476,13 @@
       style={`top:${contextMenuY}px;left:${contextMenuX}px;`}
       role="menu"
       tabindex="-1"
-      on:keydown={(event) => event.key === 'Escape' && closeContextMenu()}
+      onkeydown={(event) => event.key === 'Escape' && closeContextMenu()}
     >
       {#if moveTargets.length === 0}
         <div class="tab-menu-empty">No other groups</div>
       {:else}
         {#each moveTargets as targetId}
-          <button class="tab-menu-item" type="button" on:click={() => moveToGroup(targetId)}>
+          <button class="tab-menu-item" type="button" onclick={() => moveToGroup(targetId)}>
             Move to Group {targetId}
           </button>
         {/each}
@@ -489,17 +497,17 @@
       role="button"
       tabindex="0"
       aria-label="Close actions menu"
-      on:click={closeActionsMenu}
-      on:keydown={(event) =>
+      onclick={closeActionsMenu}
+      onkeydown={(event) =>
         (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') && closeActionsMenu()}
     ></div>
     <div
       class="tab-menu actions-menu"
       role="menu"
       tabindex="-1"
-      on:keydown={(event) => event.key === 'Escape' && closeActionsMenu()}
+      onkeydown={(event) => event.key === 'Escape' && closeActionsMenu()}
     >
-      <button class="tab-menu-item" type="button" on:click={closeAllTabs}>
+      <button class="tab-menu-item" type="button" onclick={closeAllTabs}>
         Close all tabs
       </button>
     </div>

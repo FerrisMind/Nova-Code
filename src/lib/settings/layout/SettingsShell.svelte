@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/layout/SettingsShell.svelte
   // ----------------------------------------------------------------------------
@@ -13,7 +14,7 @@
   // - < 768px: hamburger menu, навигация скрывается
   // ----------------------------------------------------------------------------
 
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import { Menu, X, Search } from '@lucide/svelte';
   import SettingsNav from '$lib/settings/layout/SettingsNav.svelte';
   import SettingsFooter from '$lib/settings/layout/SettingsFooter.svelte';
@@ -36,10 +37,6 @@
     sectionId: string;
   };
 
-  const dispatch = createEventDispatcher<{
-    sectionchange: SettingsShellSectionChangeDetail;
-  }>();
-
   // ---------------------------------------------------------------------------
   // Публичные пропсы
   // ---------------------------------------------------------------------------
@@ -56,8 +53,13 @@
   let {
     id = undefined,
     initialSectionId = 'appearance',
-    compactMode = false
-  }: SettingsShellProps = $props();
+    compactMode = false,
+    onchange,
+    onsectionchange
+  }: SettingsShellProps & {
+    onchange?: never;
+    onsectionchange?: (detail: SettingsShellSectionChangeDetail) => void;
+  } = $props();
 
   // ---------------------------------------------------------------------------
   // Локальное состояние
@@ -122,13 +124,13 @@
     if (isMobile()) {
       mobileMenuOpen = false;
     }
-    
+
     // Скроллим контент вверх
     if (contentContainer) {
       contentContainer.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    dispatch('sectionchange', { sectionId });
+    onsectionchange?.({ sectionId });
   }
 
   function toggleMobileMenu() {

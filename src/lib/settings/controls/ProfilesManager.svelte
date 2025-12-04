@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   /**
    * ProfilesManager.svelte
@@ -10,14 +11,16 @@
    * - Редактирование названия и иконки профиля
    */
   
-  import { createEventDispatcher } from 'svelte';
   import { settingsProfilesStore } from '$lib/stores/settingsProfilesStore';
   import Icon from '$lib/common/Icon.svelte';
   
-  const dispatch = createEventDispatcher<{
-    close: void;
-    profileSelected: { profileId: string };
-  }>();
+  let {
+    onclose,
+    onprofileselected
+  }: {
+    onclose?: () => void;
+    onprofileselected?: (detail: { profileId: string }) => void;
+  } = $props();
 
   interface ProfilesState {
     profiles: any[];
@@ -26,15 +29,15 @@
     error: string | null;
   }
 
-  let state: any = { profiles: [], activeProfileId: null, loading: false, error: null };
-  let showCreateDialog = false;
-  let newProfileName = '';
-  let newProfileIcon = 'lucide:User';
-  let isProcessing = false;
+  let profilesState: any = $state({ profiles: [], activeProfileId: null, loading: false, error: null });
+  let showCreateDialog = $state(false);
+  let newProfileName = $state('');
+  let newProfileIcon = $state('lucide:User');
+  let isProcessing = $state(false);
 
   // Подписка на изменения
   const unsubscribe = settingsProfilesStore.subscribe((value) => {
-    state = value;
+    profilesState = value;
   });
 
   // Очистка при размонтировании
@@ -81,7 +84,7 @@
     isProcessing = true;
     try {
       await settingsProfilesStore.applyProfile(profileId);
-      dispatch('profileSelected', { profileId });
+      onprofileselected?.({ profileId });
     } catch (error) {
       console.error('Failed to switch profile:', error);
     } finally {
@@ -133,15 +136,15 @@
         <p>Сохраняйте и переключайте наборы настроек</p>
       </div>
     </div>
-    <button class="close-btn" onclick={() => dispatch('close')}>
+    <button class="close-btn" onclick={() => onclose?.()}>
       <Icon name="lucide:X" size={20} />
     </button>
   </div>
 
   <div class="profiles-list">
-    {#each state.profiles as profile (profile.id)}
+    {#each profilesState.profiles as profile (profile.id)}
       <div
-        class="profile-card {state.activeProfileId === profile.id ? 'active' : ''}"
+        class="profile-card {profilesState.activeProfileId === profile.id ? 'active' : ''}"
         role="button"
         tabindex="0"
         onclick={() => switchProfile(profile.id)}
@@ -155,7 +158,7 @@
         <div class="profile-info">
           <div class="profile-name">{profile.label}</div>
           <div class="profile-meta">
-            {#if state.activeProfileId === profile.id}
+            {#if profilesState.activeProfileId === profile.id}
               <span class="badge active-badge">Активный</span>
             {/if}
             {#if profile.isDefault}

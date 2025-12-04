@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/sidebar/FileTree.svelte
   // ---------------------------------------------------------------------------
@@ -14,6 +15,7 @@
 
   import type { FileNode } from "../types/fileNode";
   import Icon from "../common/Icon.svelte";
+  import FileTree from "./FileTree.svelte";
   import { getLanguageIcon } from "../mocks/languageIcons";
   import {
     fileTreeState,
@@ -24,23 +26,25 @@
   import { editorStore } from "../stores/editorStore";
   import * as fileTreeActions from "./fileTreeActions";
   import FileTreeContextMenu from "./FileTreeContextMenu.svelte";
-  import { createEventDispatcher } from "svelte";
 
-  export let nodes: FileNode[] = [];
-  export let depth: number = 0;
-
-  const dispatch = createEventDispatcher<{
-    open: { node: FileNode };
-  }>();
+  let {
+    nodes = [],
+    depth = 0,
+    onopen
+  }: {
+    nodes?: FileNode[];
+    depth?: number;
+    onopen?: (detail: { node: FileNode }) => void;
+  } = $props();
 
   const baseIndent = 12; // 3 * 4px
   const perDepth = 12; // 3 * 4px
 
   // Локальное состояние контекстного меню.
-  let contextVisible = false;
-  let contextX = 0;
-  let contextY = 0;
-  let contextNode: FileNode | null = null;
+  let contextVisible = $state(false);
+  let contextX = $state(0);
+  let contextY = $state(0);
+  let contextNode: FileNode | null = $state(null);
 
   function onDirClick(node: FileNode): void {
     toggleDir(node.id);
@@ -52,7 +56,7 @@
       activate: true,
       groupId: 1,
     });
-    dispatch("open", { node });
+    onopen?.({ node });
   }
 
   function onContextMenu(event: MouseEvent, node: FileNode): void {
@@ -63,13 +67,11 @@
     contextNode = node;
   }
 
-  function handleContextAction(
-    event: CustomEvent<{
-      id: fileTreeActions.FileTreeActionId;
-      node: FileNode;
-    }>,
-  ): void {
-    const { id, node } = event.detail;
+  function handleContextAction(detail: {
+    id: fileTreeActions.FileTreeActionId;
+    node: FileNode;
+  }): void {
+    const { id, node } = detail;
     contextVisible = false;
 
     switch (id) {
@@ -115,8 +117,8 @@
         role="button"
         tabindex="0"
         aria-expanded={$fileTreeState.expanded.has(node.id)}
-        on:click={() => onDirClick(node)}
-        on:keydown={(event) => {
+        onclick={() => onDirClick(node)}
+        onkeydown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             onDirClick(node);
@@ -138,7 +140,7 @@
             onContextMenu(syntheticEvent, node);
           }
         }}
-        on:contextmenu={(e) => onContextMenu(e, node)}
+        oncontextmenu={(e) => onContextMenu(e, node)}
       >
         <Icon
           name={$fileTreeState.expanded.has(node.id)
@@ -152,7 +154,7 @@
 
       {#if $fileTreeState.expanded.has(node.id) && node.children}
         <!-- Рекурсивный вызов того же компонента для поддерева -->
-        <svelte:self nodes={node.children} depth={depth + 1} on:open />
+        <FileTree nodes={node.children} depth={depth + 1} onopen={onopen} />
       {/if}
     {:else}
       <button
@@ -161,8 +163,8 @@
         class:is-active={$editorStore?.activeEditorId === node.id}
         class:context-focus={contextVisible && contextNode?.id === node.id}
         style={`padding-left:${baseIndent + depth * perDepth}px`}
-        on:click={() => onFileClick(node)}
-        on:contextmenu={(e) => onContextMenu(e, node)}
+        onclick={() => onFileClick(node)}
+        oncontextmenu={(e) => onContextMenu(e, node)}
         type="button"
       >
         <Icon name={getLanguageIcon(node.name)} size={14} useAdaptiveColor={true} />
@@ -172,14 +174,14 @@
   {/each}
 
   {#if contextVisible && contextNode}
-    <FileTreeContextMenu
-      visible={contextVisible}
-      x={contextX}
-      y={contextY}
-      node={contextNode}
-      on:action={handleContextAction}
-      on:close={closeContextMenu}
-    />
+      <FileTreeContextMenu
+        visible={contextVisible}
+        x={contextX}
+        y={contextY}
+        node={contextNode}
+        onaction={handleContextAction}
+        onclose={closeContextMenu}
+      />
   {/if}
 </div>
 

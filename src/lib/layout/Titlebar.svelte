@@ -108,7 +108,7 @@
     {#if !isPaletteOpen}
       <button class="command-palette" data-tauri-drag-region="false" onclick={openCommandPalette} aria-label="Command Palette">
         <Icon name="lucide:Search" size={14} />
-        <span class="command-palette-text">Новая папка</span>
+        <span class="command-palette-text">Поиск...</span>
       </button>
     {/if}
   </div>

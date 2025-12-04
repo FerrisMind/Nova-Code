@@ -1,3 +1,4 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/sections/EditorSection.svelte
   // ----------------------------------------------------------------------------
@@ -178,7 +179,7 @@
                   max={32}
                   step={1}
                   compact
-                  on:change={() => handleChange('editor.fontSize')}
+                  onchange={() => handleChange('editor.fontSize')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.fontSize'] ?? false} 
@@ -226,7 +227,7 @@
                 <Toggle
                   definition={fontLigaturesDef}
                   compact
-                  on:change={() => handleChange('editor.fontLigatures')}
+                  onchange={() => handleChange('editor.fontLigatures')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.fontLigatures'] ?? false} 
@@ -266,7 +267,7 @@
                   max={8}
                   step={1}
                   compact
-                  on:change={() => handleChange('editor.tabSize')}
+                  onchange={() => handleChange('editor.tabSize')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.tabSize'] ?? false} 
@@ -288,7 +289,7 @@
                 <Toggle
                   definition={insertSpacesDef}
                   compact
-                  on:change={() => handleChange('editor.insertSpaces')}
+                  onchange={() => handleChange('editor.insertSpaces')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.insertSpaces'] ?? false} 
@@ -310,7 +311,7 @@
                 <SelectControl
                   definition={wordWrapDef}
                   options={wordWrapOptions}
-                  on:change={() => handleChange('editor.wordWrap')}
+                  onchange={() => handleChange('editor.wordWrap')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.wordWrap'] ?? false} 
@@ -347,7 +348,7 @@
                 <Toggle
                   definition={minimapDef}
                   compact
-                  on:change={() => handleChange('editor.minimap')}
+                  onchange={() => handleChange('editor.minimap')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.minimap'] ?? false} 
@@ -369,7 +370,7 @@
                 <SelectControl
                   definition={lineNumbersDef}
                   options={lineNumbersOptions}
-                  on:change={() => handleChange('editor.lineNumbers')}
+                  onchange={() => handleChange('editor.lineNumbers')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.lineNumbers'] ?? false} 
@@ -391,7 +392,7 @@
                 <Toggle
                   definition={foldingDef}
                   compact
-                  on:change={() => handleChange('editor.folding')}
+                  onchange={() => handleChange('editor.folding')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.folding'] ?? false} 
@@ -428,7 +429,7 @@
                 <SelectControl
                   definition={autoSaveDef}
                   options={autoSaveOptions}
-                  on:change={() => handleChange('editor.autoSave')}
+                  onchange={() => handleChange('editor.autoSave')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.autoSave'] ?? false} 
@@ -453,7 +454,7 @@
                   max={5000}
                   step={100}
                   compact
-                  on:change={() => handleChange('editor.autoSaveDelay')}
+                  onchange={() => handleChange('editor.autoSaveDelay')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.autoSaveDelay'] ?? false} 
@@ -486,9 +487,9 @@
                 <div class="setting-label-row">
                   <div class="setting-label">Bracket Pair Colorization</div>
                   <Tooltip.Root>
-                    <Tooltip.Trigger>
-                      <HelpCircle size={14} class="help-icon" />
-                    </Tooltip.Trigger>
+                  <Tooltip.Trigger class="help-trigger">
+                    <HelpCircle size={14} class="help-icon" />
+                  </Tooltip.Trigger>
                     <Tooltip.Content>
                       <p>Colorizes matching brackets with different colors to help you identify nested code blocks more easily.</p>
                     </Tooltip.Content>
@@ -500,7 +501,7 @@
                 <Toggle
                   definition={bracketPairDef}
                   compact
-                  on:change={() => handleChange('editor.bracketPairColorization')}
+                  onchange={() => handleChange('editor.bracketPairColorization')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.bracketPairColorization'] ?? false} 
@@ -518,9 +519,9 @@
                 <div class="setting-label-row">
                   <div class="setting-label">Render Whitespace</div>
                   <Tooltip.Root>
-                    <Tooltip.Trigger>
-                      <HelpCircle size={14} class="help-icon" />
-                    </Tooltip.Trigger>
+                  <Tooltip.Trigger class="help-trigger">
+                    <HelpCircle size={14} class="help-icon" />
+                  </Tooltip.Trigger>
                     <Tooltip.Content>
                       <p>Shows spaces and tabs as visible dots/arrows. "Selection" shows only in selected text, "Trailing" shows only at end of lines.</p>
                     </Tooltip.Content>
@@ -532,7 +533,7 @@
                 <SelectControl
                   definition={renderWhitespaceDef}
                   options={renderWhitespaceOptions}
-                  on:change={() => handleChange('editor.renderWhitespace')}
+                  onchange={() => handleChange('editor.renderWhitespace')}
                 />
                 <SaveIndicator 
                   visible={saveStates['editor.renderWhitespace'] ?? false} 
@@ -761,6 +762,32 @@
 
   :global(.help-icon:hover) {
     opacity: 1;
+  }
+
+  :global(.help-trigger[data-slot='tooltip-trigger']) {
+    border: none;
+    background: transparent;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: help;
+    transition: background-color var(--settings-transition-fast, 150ms),
+      color var(--settings-transition-fast, 150ms),
+      opacity var(--settings-transition-fast, 150ms);
+  }
+
+  :global(.help-trigger[data-slot='tooltip-trigger']:hover) {
+    background: var(--nc-level-3, rgba(255, 255, 255, 0.08));
+    opacity: 1;
+  }
+
+  :global(.help-trigger[data-slot='tooltip-trigger']:focus-visible) {
+    outline: 2px solid var(--nc-accent, #5bc4ff);
+    outline-offset: 2px;
   }
 
   .setting-description {

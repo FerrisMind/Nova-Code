@@ -1,10 +1,9 @@
+<svelte:options runes={true} />
 <script lang="ts">
   // src/lib/settings/controls/Toggle.svelte
   // ----------------------------------------------------------------------------
   // Обёртка для shadcn-svelte Switch с сохранением оригинального API.
   // ----------------------------------------------------------------------------
-
-  import { createEventDispatcher } from "svelte";
   import { Switch } from "$lib/components/ui/switch";
   import Icon from "$lib/common/Icon.svelte";
   import type {
@@ -30,10 +29,6 @@
     idPrefix?: string;
   }
 
-  const dispatch = createEventDispatcher<{
-    change: { value: boolean; meta: SettingChangeMeta };
-  }>();
-
   let {
     definition,
     value = undefined,
@@ -42,7 +37,8 @@
     compact = false,
     id = "",
     idPrefix = "setting-toggle",
-  }: ToggleProps = $props();
+    onchange
+  }: ToggleProps & { onchange?: (detail: { value: boolean; meta: SettingChangeMeta }) => void } = $props();
 
   const resolveId = () => {
     if (id) return id;
@@ -94,7 +90,7 @@
     }
 
     checked = newChecked;
-    dispatch("change", { value: newChecked, meta });
+    onchange?.({ value: newChecked, meta });
   };
 
   // Определяем нужны ли иконки (для theme.mode)
