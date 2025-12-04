@@ -117,7 +117,7 @@
         });
       }
 
-core = createEditorCore(monaco as any);
+      core = createEditorCore(monaco as any);
       core.attachTo(containerElement, options);
 
       // Get the Monaco editor instance for InlineSearch
@@ -127,7 +127,6 @@ core = createEditorCore(monaco as any);
         monaco as any,
         language,
       );
-
       core.setModel({
         fileId,
         uri,

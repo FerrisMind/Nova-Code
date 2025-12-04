@@ -234,7 +234,6 @@
           error: validation.warning ?? "Cannot open file",
         };
       }
-
       const value = await fileService.readFile(filePath);
       return {
         lines: value.split(/\r?\n/),
@@ -279,11 +278,35 @@
     warning: null
   }));
 
-  // Обновляем промис только при смене файла
+  // Ключ последнего загруженного файла (id + path), чтобы не перезагружать
+  // контент и не пересоздавать Monaco при каждом обновлении таба/isDirty.
+  let lastLoadedContentKey = $state<{ fileId: string; path?: string } | null>(null);
+
+  // Обновляем промис *только* при смене файла (id/path), а не при каждом
+  // изменении полей EditorTab (isDirty, title и т.п.).
   $effect(() => {
-    if (current) {
-      contentPromise = getContent(current.id, current.path);
+    if (!current) {
+      if (lastLoadedContentKey !== null) {
+        lastLoadedContentKey = null;
+      }
+      return;
     }
+
+    const nextKey = { fileId: current.id, path: current.path };
+
+    if (
+      lastLoadedContentKey &&
+      lastLoadedContentKey.fileId === nextKey.fileId &&
+      lastLoadedContentKey.path === nextKey.path
+    ) {
+      // Тот же файл (id/path не изменились) — не перечитываем его с диска
+      // и не пересоздаём MonacoHost.
+      return;
+    }
+
+    lastLoadedContentKey = nextKey;
+
+    contentPromise = getContent(current.id, current.path);
   });
 
   function handleEditorContentChange(fileId: string, value: string) {

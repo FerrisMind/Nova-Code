@@ -22,7 +22,10 @@
 // - serde / serde_json
 // -----------------------------------------------------------------------------
 
-use notify::{event::Event, recommended_watcher, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{
+    event::{Event, EventKind, ModifyKind},
+    recommended_watcher, RecommendedWatcher, RecursiveMode, Watcher,
+};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -370,7 +373,7 @@ struct WriteFileRequest {
 }
 
 #[tauri::command]
-async fn write_file(app: AppHandle, request: WriteFileRequest) -> Result<(), String> {
+async fn write_file(_app: AppHandle, request: WriteFileRequest) -> Result<(), String> {
     let resolved = resolve_path(&request.path)?;
     if let Some(parent) = resolved.parent() {
         fs::create_dir_all(parent).map_err(|e| {
@@ -382,8 +385,9 @@ async fn write_file(app: AppHandle, request: WriteFileRequest) -> Result<(), Str
     }
     fs::write(&resolved, request.content.as_bytes())
         .map_err(|e| format!("Failed to write {}: {e}", resolved.display()))?;
-    app.emit("file-changed", request.path)
-        .map_err(|e| format!("Failed to emit file change event: {e}"))?;
+    // Не эмитим file-changed здесь: автосохранения и обычные записи файла
+    // не должны триггерить полный рефреш дерева файлов. Для структурных
+    // изменений (создание/удаление/переименование) полагаемся на watcher ниже.
     Ok(())
 }
 
@@ -413,7 +417,22 @@ async fn start_file_watcher(app: AppHandle) -> Result<(), String> {
     thread::spawn(move || {
         while let Ok(event_result) = rx.recv() {
             if let Ok(event) = event_result {
-                for path in event.paths {
+                // Фильтруем только структурные события, влияющие на дерево файлов:
+                // создание, удаление и переименование. Изменения содержимого
+                // (Modify(Data/Metadata)) игнорируем, чтобы автосейвы не
+                // перерисовывали Explorer.
+                let is_structural = matches!(
+                    &event.kind,
+                    EventKind::Create(_)
+                        | EventKind::Remove(_)
+                        | EventKind::Modify(ModifyKind::Name(_))
+                );
+
+                if !is_structural {
+                    continue;
+                }
+
+                for path in &event.paths {
                     let _ = app_handle.emit("file-changed", path.to_string_lossy().to_string());
                 }
             }
